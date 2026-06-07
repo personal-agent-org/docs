@@ -272,7 +272,7 @@ Bewusst minimal-invasiv — wir bauen auf `user_events_channel`, Control-WS und 
 
 2. **FCM-Sender** (neu, serverseitig)
    - Ein `MobilePushService`, der bei jedem Event auf `user_events_channel` prüft, ob der User aktive **FCM**-Geräte hat, und das flache Payload-Schema (§4.3) an FCM (HTTP v1, Service-Account) sendet. WS-Geräte erhalten dasselbe Payload über den **bestehenden** WS-Push (keine Änderung am WS-Protokoll außer optionalem `delivery_id`/Ack).
-   - Konfiguration via `AIPRIL__PUSH__FCM__*` (Service-Account-File aus `/run/secrets`, Konvention des Projekts). FOSS-Deployments ohne FCM-Credentials fallen automatisch auf den WS-Only-Pfad zurück.
+   - Konfiguration via `PERSONAL_AGENT__PUSH__FCM__*` (Service-Account-File aus `/run/secrets`, Konvention des Projekts). FOSS-Deployments ohne FCM-Credentials fallen automatisch auf den WS-Only-Pfad zurück.
 
 3. **Notification-Payload-Mapper** (neu, dünn)
    - Eine zentrale Funktion, die bestehende `user_events_channel`-Eventtypen (chat-reply/title, `agent_question`, `tool_approval`, `draft_ready`, `automation_fired`, background-resume) → flaches Notification-Schema inkl. `deeplink` + `actions` (§4.4) übersetzt. Genutzt von FCM-Sender **und** vom WS-Push (ein Schema für beide Pfade).

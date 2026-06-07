@@ -35,7 +35,7 @@ Two ways forward:
 
 The runner (`agent/subagent.py`) is transport-agnostic; only the **context
 builder** differs. Add a worker-side `subagent_dynamic_toolset()` mirroring
-`plugin_dynamic_toolset()` in `worker/src/aipril_worker/plugin_toolsets.py`:
+`plugin_dynamic_toolset()` in `worker/src/personal_agent_worker/plugin_toolsets.py`:
 
 ```python
 async def _build_subagent(ctx):
