@@ -58,7 +58,7 @@ async def _build_subagent(ctx):
 
 Required supporting changes:
 
-- **`AiprilDeps.model: str`** — carry the run's model string so the worker can look
+- **`PersonalAgentDeps.model: str`** — carry the run's model string so the worker can look
   up the registered Model instance. Set it in both the inline service and the
   durable workflow's `deps` (it's a public model id, not a credential — Contract #5
   still holds). 【TODO marker added in `agent/deps.py`】

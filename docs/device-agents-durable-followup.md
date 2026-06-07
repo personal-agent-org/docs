@@ -37,7 +37,7 @@ untrusted content), so there is no functional regression, just an unsupported ed
    for each owned **online** device in `cfg["devices"]`, freeze its `announced_tools`.
 
 2. **Deps** — `backend/src/personal_agent/agent/deps.py`: add `device_ids: list[str] = []` to
-   `AiprilDeps` (set on the durable path alongside `plugin_entry_ids`).
+   `PersonalAgentDeps` (set on the durable path alongside `plugin_entry_ids`).
 
 3. **Worker toolset** — `worker/src/personal_agent_worker/plugin_toolsets.py`: add
    `device_dynamic_toolset()` (mirror `plugin_dynamic_toolset`) whose in-activity `_build`
@@ -50,7 +50,7 @@ untrusted content), so there is no functional regression, just an unsupported ed
 4. **Worker gateway + gate** — the worker holds **no** device WS connections (those live on the
    API pods), so the worker needs its own `DeviceGateway(redis, pubsub_redis, pod_id)` instance
    (wire it in the worker's resource bootstrap). `dispatch` will always take the **cross-pod**
-   path (`_dispatch_remote`): publish on `aipril:device:<id>:rpc`, the API pod holding the WS
+   path (`_dispatch_remote`): publish on `personal_agent:device:<id>:rpc`, the API pod holding the WS
    forwards it, the reply comes back on the per-request reply channel. The approval gate
    (`gate_device_call` / `request_tool_approval`) already works from any process — it polls the
    `device_approvals` row (shared DB) and pushes the `tool_approval` frame over Redis user-events,
@@ -59,7 +59,7 @@ untrusted content), so there is no functional regression, just an unsupported ed
 
 5. **Global guard in durable** — `GuardToolset` (`agent/tool_guard.py`) is a `WrapperToolset`;
    wrap the worker's combined toolset the same way the inline assembler does when `GuardConfig`
-   is enabled (resolve guard enablement once at snapshot time → carry a flag in `AiprilDeps`, or
+   is enabled (resolve guard enablement once at snapshot time → carry a flag in `PersonalAgentDeps`, or
    re-read in-activity).
 
 ## Verification when built
