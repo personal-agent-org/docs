@@ -48,7 +48,7 @@
 HA hat 8 Module; aipril braucht im MVP **3**, mit der gleichen Convention-Plugin-Idee (`AndroidApplicationConventionPlugin.kt`, `AndroidFullMinimalFlavorConventionPlugin.kt`), um Flavor-Boilerplate zentral zu halten:
 
 ```
-aipril-android/
+personal-agent-android/
   build-logic/                      # Convention-Plugins (Application, Flavor full/minimal)
   :app                              # WebView-Host, Bridge, Onboarding, Notifications-Rendering, Voice-UI
       src/main                      # gemeinsamer Code
