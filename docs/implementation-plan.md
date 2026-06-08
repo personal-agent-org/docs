@@ -13,8 +13,10 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
 - [x] **B1 (P0)** Typisierte Form-Selektoren: `FieldDescriptor` um `entity`/`device`/`area`/
   `duration`/`date`/`time`/`datetime`/`color` + `filter` + `multiple` erweitert; ConfigFlowForm.vue
   rendert sie (entity/device/area mit Async-Optionen, area degradiert bis C3)
-- [ ] **B2 (P1)** Options-/Reconfigure-/Reauth-Flows (`async_step_options/reconfigure/reauth`
-  + `scope` im FlowManager + API-Trigger)
+- [x] **B2 (P1)** Reconfigure-Flow: bestehende Integration in-place bearbeiten
+  (`FlowContext.entry_id` + `update_entry` + `POST /plugin-configs/{id}/reconfigure` + Frontend
+  „Neu konfigurieren"-Button). Reauth/Options = derselbe Mechanismus (Plugin kann
+  `async_step_reauth` definieren, FlowManager dispatcht per hasattr)
 - [ ] **B3 (P2)** Config-Entry-Lifecycle-States + Reload ohne Restart
   (`POST /plugin_configs/{id}/reload`, retry/backoff)
 - [x] **B4 (P3)** Quality-Scale (`quality_scale` + `issue_tracker`) im Manifest, in der
