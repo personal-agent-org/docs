@@ -32,7 +32,8 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
 - [x] **C4** Entity-Category + Visibility (`category` config/diagnostic, `hidden`, `disabled`);
   diagnostic-Typen werden versteckt erstellt, disabled → keine Automations-Events; PATCH
   /entities/{id} + EntityOut-Flags (Migration entity_visibility_01)
-- [ ] **C5** Units & strukturierte Attribute (`AttributeDescriptor` type/unit/precision,
+- [x] **C5** Type-Semantik: `device_class`/`state_class`/`unit`/`category` auf EntityTypeDescriptor
+  + EntityType-Catalog + Sync + entity-types-API (Migration entity_type_semantics_01)
   `state_class`, `device_class`)
 - [ ] **C6** Labels (User-Tags) + Such-/Trigger-Filter
 - [ ] **C7** Registry-Event-Bus (`*_registry.updated`)
