@@ -17,8 +17,10 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
   + `scope` im FlowManager + API-Trigger)
 - [ ] **B3 (P2)** Config-Entry-Lifecycle-States + Reload ohne Restart
   (`POST /plugin_configs/{id}/reload`, retry/backoff)
-- [ ] **B4 (P3)** Quality-Scale / Integration-Health im Manifest + Admin-UI
-- [ ] **B5 (P4)** Soft-Dependency-Ordering (`after_dependencies` im Topo-Sort)
+- [x] **B4 (P3)** Quality-Scale (`quality_scale` + `issue_tracker`) im Manifest, in der
+  /integrations-API ausgegeben
+- [x] **B5 (P4)** Soft-Dependency-Ordering: `after_dependencies` im Loader-Topo-Sort (lädt
+  danach, blockt/dropt aber nie)
 
 ## C. Entity-System vertiefen (HA-Adoption)
 - [x] **C1** State-Timestamps (`state_changed_at`/`state_updated_at`/`availability`) +
