@@ -26,7 +26,8 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
 - [x] **C1** State-Timestamps (`state_changed_at`/`state_updated_at`/`availability`) +
   `old_state` in `entity.updated`-Events + old_state/new_state-Transition-Trigger-Filter
   (Migration entity_state_01)
-- [ ] **C2** State-History-Tabelle (`entity_state_history`, append-only) + History-API
+- [x] **C2** State-History-Tabelle (`entity_state_history`, append-only, RLS) — eine Zeile pro
+  State-Wertänderung; GET /entities/{id}/history (Migration entity_history_01)
 - [ ] **C3** Device/Area/Floor-Registries + `device_id`/`area_id` FKs + Sync-Auflösung +
   Trigger-/Search-Filter
 - [x] **C4** Entity-Category + Visibility (`category` config/diagnostic, `hidden`, `disabled`);
