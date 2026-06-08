@@ -41,7 +41,8 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
   `state_class`, `device_class`)
 - [x] **C6** Labels: `labels`-Tabelle (RLS) + `entities.labels` JSONB; /labels CRUD-API +
   PATCH /entities setzt Labels (Migration label_01). Such-/Trigger-Filter = Follow-up
-- [ ] **C7** Registry-Event-Bus (`*_registry.updated`)
+- [x] **C7** Registry-Events: User-Änderungen via PATCH /entities (area_id/labels/visibility)
+  feuern `entity.updated` mit `changed`-Feld → Automationen reagieren auf Re-Organisation
 
 ## D. Lovelace-Dashboards & Cards (neue Oberfläche)
 - [ ] **D1** Datenmodell: `Dashboard` (config JSONB, RLS) + API + Pinia-Store
