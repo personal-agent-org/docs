@@ -30,8 +30,9 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
   (Migration entity_state_01)
 - [x] **C2** State-History-Tabelle (`entity_state_history`, append-only, RLS) — eine Zeile pro
   State-Wertänderung; GET /entities/{id}/history (Migration entity_history_01)
-- [ ] **C3** Device/Area/Floor-Registries + `device_id`/`area_id` FKs + Sync-Auflösung +
-  Trigger-/Search-Filter
+- [x] **C3** Area/Floor-Registries (RLS) + `entities.area_id` FK + /areas + /floors CRUD-API +
+  PATCH /entities setzt area_id (Migration area_floor_01); macht den B1-area-Selektor funktional.
+  Device-Registry (Entity-Gruppierung) + Sync-Auflösung + Area-Management-UI = Follow-up
 - [x] **C4** Entity-Category + Visibility (`category` config/diagnostic, `hidden`, `disabled`);
   diagnostic-Typen werden versteckt erstellt, disabled → keine Automations-Events; PATCH
   /entities/{id} + EntityOut-Flags (Migration entity_visibility_01)
