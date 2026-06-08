@@ -46,11 +46,10 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
   feuern `entity.updated` mit `changed`-Feld → Automationen reagieren auf Re-Organisation
 
 ## D. Lovelace-Dashboards & Cards (neue Oberfläche)
-- [ ] **D1** Datenmodell: `Dashboard` (config JSONB, RLS) + API + Pinia-Store
-- [ ] **D2** Card-Registry + ~12 Cards (entity/entities/markdown/button/heading/gauge/grid/
-  stack/conditional + chat/automation/agenda)
-- [ ] **D3** Editor-UX: Card-Picker + schema-getriebenes Config-Formular + Grid-Layout
-- [ ] **D4** View-Layouts (masonry/sections/panel) + Routing/Nav
+- [x] **D1** `Dashboard`-Modell (config JSONB, RLS, Migration dashboard_01) + CRUD-API + Pinia-Store
+- [x] **D2** Card-Registry + 5 Start-Cards (markdown/heading/entities/button/agenda); weitere = Follow-up
+- [x] **D3** Editor: Card-Picker + per-Card JSON-Config + Add/Remove/Save (Grid-Drag = Follow-up)
+- [x] **D4** Responsives Card-Grid + Route `dashboards` + Nav-Eintrag (Multi-View = Follow-up)
 
 ---
 
