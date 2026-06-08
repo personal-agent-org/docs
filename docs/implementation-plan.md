@@ -36,7 +36,8 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
 - [x] **C5** Type-Semantik: `device_class`/`state_class`/`unit`/`category` auf EntityTypeDescriptor
   + EntityType-Catalog + Sync + entity-types-API (Migration entity_type_semantics_01)
   `state_class`, `device_class`)
-- [ ] **C6** Labels (User-Tags) + Such-/Trigger-Filter
+- [x] **C6** Labels: `labels`-Tabelle (RLS) + `entities.labels` JSONB; /labels CRUD-API +
+  PATCH /entities setzt Labels (Migration label_01). Such-/Trigger-Filter = Follow-up
 - [ ] **C7** Registry-Event-Bus (`*_registry.updated`)
 
 ## D. Lovelace-Dashboards & Cards (neue Oberfläche)
