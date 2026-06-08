@@ -6,11 +6,13 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
 ## A. Robustheit & Betrieb
 - [x] **A1** Bildanalyse: graceful degradation, wenn das Modell kein Vision kann (kein harter
   500-Fail — Bild verworfen + Text weiter beantwortet; Retry-without-images in inline.py)
-- [ ] **A2** web_fetch live schalten: Backend-Image rebuild + redeploy (trafilatura-Dependency)
+- [x] **A2** web_fetch live: Backend-Image neu gebaut + backend/worker redeployed (trafilatura
+  drin, web_fetch live verifiziert); A1 damit auch live
 
 ## B. Integration / Config-Flow-System (HA-Adoption)
-- [ ] **B1 (P0)** Typisierte Form-Selektoren: `FieldDescriptor` um `entity`/`device`/`area`/
-  `duration`/`date`/`time`/`color` + `filter` + `multiple` erweitern (frontend-Renderer dazu)
+- [x] **B1 (P0)** Typisierte Form-Selektoren: `FieldDescriptor` um `entity`/`device`/`area`/
+  `duration`/`date`/`time`/`datetime`/`color` + `filter` + `multiple` erweitert; ConfigFlowForm.vue
+  rendert sie (entity/device/area mit Async-Optionen, area degradiert bis C3)
 - [ ] **B2 (P1)** Options-/Reconfigure-/Reauth-Flows (`async_step_options/reconfigure/reauth`
   + `scope` im FlowManager + API-Trigger)
 - [ ] **B3 (P2)** Config-Entry-Lifecycle-States + Reload ohne Restart
