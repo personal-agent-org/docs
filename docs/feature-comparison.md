@@ -73,7 +73,7 @@ capabilities live in add-ons or external companions rather than the core.
 | Feature | Personal Agent | OpenClaw | Hermes Agent | Home Assistant |
 |---|:---:|:---:|:---:|:---:|
 | Agent skills (capability packages) | ✓ | ✓ (SKILL.md) | ✓ | ✗ |
-| Skill marketplace / hub | ✗ | ✓ (ClawHub) | ✓ (agentskills.io) | ◑ (HACS) |
+| Skill marketplace / hub | ✓ (curated Git catalogs) | ✓ (ClawHub) | ✓ (agentskills.io) | ◑ (HACS) |
 | Self-authored / self-improving skills | ✓ | ✓ | ✓ | ✗ |
 | Plugin/integration framework | ✓ (HA-style folder) | ◑ | ◑ | ✓ |
 | Config-flow setup UI + manifests | ✓ | ✗ | ✗ | ✓ |
@@ -159,10 +159,11 @@ rewind, todo) and the security-mode/judge guard over every tool call.
 - **Home Assistant** — the mature integration ecosystem: blueprints, the registry model
   (device/area/floor/label), wake-word voice, and a companion mobile app with native sensors.
 
-**Near-term gaps worth closing:** MCP **server** mode, a skill marketplace/hub, broader
-channels (Telegram/Slack/Discord), and automation **blueprints** (reusable parameterized
-templates) — all of which fit cleanly into existing subsystems (plugin framework, skills,
-comms channels, automations) rather than needing new islands.
+**Near-term gaps worth closing:** MCP **server** mode, broader channels (Telegram/Slack/
+Discord), and automation **blueprints** (reusable parameterized templates) — all of which fit
+cleanly into existing subsystems (plugin framework, comms channels, automations) rather than
+needing new islands. (A skill marketplace — install from admin-curated GitHub `SKILL.md`
+catalogs, agentskills.io-compatible — is now built into the Skills view.)
 
 > Compiled 2026-06 from public docs/source of each reference project. Cells reflect a
 > best-effort reading at that time and may lag upstream changes.
