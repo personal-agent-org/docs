@@ -17,8 +17,9 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
   (`FlowContext.entry_id` + `update_entry` + `POST /plugin-configs/{id}/reconfigure` + Frontend
   „Neu konfigurieren"-Button). Reauth/Options = derselbe Mechanismus (Plugin kann
   `async_step_reauth` definieren, FlowManager dispatcht per hasattr)
-- [ ] **B3 (P2)** Config-Entry-Lifecycle-States + Reload ohne Restart
-  (`POST /plugin_configs/{id}/reload`, retry/backoff)
+- [x] **B3 (P2)** Reload ohne Restart: `POST /plugin-configs/{id}/reload` — clear error state +
+  re-sync der Entities (Events feuern). (Vollständige Retry/Backoff-Lifecycle-States = Follow-up;
+  in unserer stateless-pro-Run-Architektur ist Reload = Re-Sync.)
 - [x] **B4 (P3)** Quality-Scale (`quality_scale` + `issue_tracker`) im Manifest, in der
   /integrations-API ausgegeben
 - [x] **B5 (P4)** Soft-Dependency-Ordering: `after_dependencies` im Loader-Topo-Sort (lädt
