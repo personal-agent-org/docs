@@ -27,7 +27,9 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
 - [ ] **C2** State-History-Tabelle (`entity_state_history`, append-only) + History-API
 - [ ] **C3** Device/Area/Floor-Registries + `device_id`/`area_id` FKs + Sync-Auflösung +
   Trigger-/Search-Filter
-- [ ] **C4** Entity-Category + Visibility (`category` config/diagnostic, `hidden`, `disabled`)
+- [x] **C4** Entity-Category + Visibility (`category` config/diagnostic, `hidden`, `disabled`);
+  diagnostic-Typen werden versteckt erstellt, disabled → keine Automations-Events; PATCH
+  /entities/{id} + EntityOut-Flags (Migration entity_visibility_01)
 - [ ] **C5** Units & strukturierte Attribute (`AttributeDescriptor` type/unit/precision,
   `state_class`, `device_class`)
 - [ ] **C6** Labels (User-Tags) + Such-/Trigger-Filter
