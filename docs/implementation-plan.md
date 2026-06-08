@@ -21,8 +21,9 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
 - [ ] **B5 (P4)** Soft-Dependency-Ordering (`after_dependencies` im Topo-Sort)
 
 ## C. Entity-System vertiefen (HA-Adoption)
-- [ ] **C1** State-Timestamps (`state_changed_at`/`state_updated_at`/`availability`) +
-  `old_state`/`new_state` in `entity.*`-Events + `state_changed`-Trigger
+- [x] **C1** State-Timestamps (`state_changed_at`/`state_updated_at`/`availability`) +
+  `old_state` in `entity.updated`-Events + old_state/new_state-Transition-Trigger-Filter
+  (Migration entity_state_01)
 - [ ] **C2** State-History-Tabelle (`entity_state_history`, append-only) + History-API
 - [ ] **C3** Device/Area/Floor-Registries + `device_id`/`area_id` FKs + Sync-Auflösung +
   Trigger-/Search-Filter
