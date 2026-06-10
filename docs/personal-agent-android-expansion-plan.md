@@ -1,5 +1,27 @@
 # Umsetzungsplan: Android-App-Ausbau (nach HA-Code-Abgleich, 2026-06)
 
+> **Umsetzungsstand (2026-06-10): AP0–AP14 implementiert** (alle drei Releases),
+> mit folgenden bewussten Abweichungen/Resten:
+>
+> - **Verifikation:** Backend (`uv run pytest` — 643 passed, nur die 5
+>   vorbestehenden Temporal-e2e-Fails ohne laufenden Temporal-Server) und Frontend
+>   (`pnpm build` + `lint` grün) sind in der Sandbox verifiziert. **Der
+>   Android-Build NICHT** — `maven.google.com`/`dl.google.com` sind hier netzseitig
+>   gesperrt, es gibt kein Android-SDK. Alle Kotlin-Dateien sind ktlint-parse-geprüft;
+>   erster `./gradlew assembleDebug` (oder Docker-Build) lokal ist der nötige nächste
+>   Schritt und kann Kleinigkeiten aufdecken (insb. die ungeprüften
+>   Versionsnummern von `firebase-messaging` / `work-runtime-ktx` /
+>   `health.connect:connect-client` in `libs.versions.toml`).
+> - **AP9:** GMS-Geofencing (instant Zone-Enter-Events) bewusst weggelassen —
+>   Zonenauflösung läuft GMS-frei (LocationManager) im 15-min-Takt + on-demand
+>   (`request_location`); reicht für „kommt heim"-Automations, Latenz dokumentiert.
+>   Zonen-Editor ist Formular (Name/Lat/Lon/Radius), keine Karte.
+> - **AP10:** dynamische „letzte Chats"-Shortcuts verschoben (statisch: Neuer
+>   Chat/Voice/Inbox + 2 QS-Tiles sind da).
+> - **Bonus-Fixes unterwegs:** Notification-Deep-Link `/chat/:id`→`/chats/:id`
+>   (Route existierte nicht) und die Phone-Entity-Projektion verlor `battery_level`/
+>   `is_charging` (Spec-Keys `battery`/`charging` — Aliasse ergänzt).
+
 > **Bezug:** Dies ist der konkrete Arbeitspaket-Plan zur Weiterentwicklung von
 > `personal-agent-android/`. Er ersetzt die Phasen P2–P7 aus
 > `docs/personal-agent-android-app-plan.md` (die Architektur-Blaupause dort bleibt gültig)
