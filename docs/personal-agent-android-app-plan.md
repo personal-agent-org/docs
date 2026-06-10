@@ -1,5 +1,11 @@
 # Implementierungsplan: personal-agent Companion App (Android-first)
 
+> **Update 2026-06:** P1 ist ausgeliefert (plus Phone-Commands/Sensorik). Der konkrete
+> Arbeitspaket-Plan für den weiteren Ausbau — nach Quellcode-Abgleich mit der
+> HA-Android-App und Verifikation der Backend-Verträge — liegt in
+> [`personal-agent-android-expansion-plan.md`](personal-agent-android-expansion-plan.md)
+> und ersetzt die Phasen P2–P7 unten. Dieses Dokument bleibt die Architektur-Blaupause.
+
 > **Prinzip (von Home Assistant übernommen):** Eine native Android-Shell wrappt die **bestehende personal-agent-Quasar-SPA** in einer WebView und ergänzt sie um native Integrationen (Push, Voice/Wake-Word, Sensoren, Deep-Links). Das ist exakt das Modell der HA-App: `WebViewActivity` hostet das HA-Frontend, ein **External Bus** (JS-Bridge) verbindet Web ↔ Native, der Rest (Sensoren, Notifications, Voice) lebt nativ. Wir kopieren die Seams, ersetzen aber HA-spezifische Mechanismen (OAuth/IndieAuth, Multi-*Server*) durch personal-agent-Äquivalente (Keycloak/OIDC, Multi-*Org*).
 
 ---
