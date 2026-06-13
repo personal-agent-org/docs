@@ -52,7 +52,7 @@ search). Recommended order: 1 → 2 → 3, with 4/5/6 as follow-ups.
 
 ## 3. Integration / config-flow system — richer flows
 
-Our plugin framework (`plugins/<domain>/` folder discovery + manifest + config_flow + capability
+Our integration framework (`integrations/<domain>/` folder discovery + manifest + config_flow + capability
 providers + entity sync + encrypted secrets) is a solid HA-shaped base. HA is richer in flows and
 field types. Additive extensions:
 
