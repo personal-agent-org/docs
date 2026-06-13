@@ -14,10 +14,10 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
   `duration`/`date`/`time`/`datetime`/`color` + `filter` + `multiple` erweitert; ConfigFlowForm.vue
   rendert sie (entity/device/area mit Async-Optionen, area degradiert bis C3)
 - [x] **B2 (P1)** Reconfigure-Flow: bestehende Integration in-place bearbeiten
-  (`FlowContext.entry_id` + `update_entry` + `POST /plugin-configs/{id}/reconfigure` + Frontend
-  „Neu konfigurieren"-Button). Reauth/Options = derselbe Mechanismus (Plugin kann
+  (`FlowContext.entry_id` + `update_entry` + `POST /integration-configs/{id}/reconfigure` + Frontend
+  „Neu konfigurieren"-Button). Reauth/Options = derselbe Mechanismus (Integration kann
   `async_step_reauth` definieren, FlowManager dispatcht per hasattr)
-- [x] **B3 (P2)** Reload ohne Restart: `POST /plugin-configs/{id}/reload` — clear error state +
+- [x] **B3 (P2)** Reload ohne Restart: `POST /integration-configs/{id}/reload` — clear error state +
   re-sync der Entities (Events feuern). (Vollständige Retry/Backoff-Lifecycle-States = Follow-up;
   in unserer stateless-pro-Run-Architektur ist Reload = Re-Sync.)
 - [x] **B4 (P3)** Quality-Scale (`quality_scale` + `issue_tracker`) im Manifest, in der

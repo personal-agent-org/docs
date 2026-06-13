@@ -285,7 +285,7 @@ feste Null-UUID. **Atomares Supersede** (eine TX, idempotent über `(run_id, op_
 
 ## 5. Registries & dynamische Typen (Kinds + Prädikate)
 
-Integrationen deklarieren Typen via Descriptor (`plugins/entities.py:97`
+Integrationen deklarieren Typen via Descriptor (`integrations/entities.py:97`
 `EntityTypeDescriptor`, `:139` `EventTypeDescriptor`), **erweitert** um Prädikate:
 
 ```python
@@ -643,7 +643,7 @@ i18n `worldMemory.*` (de+en).
 **Contracts** `…/personal_agent_contracts/world_memory.py` (`ConfigDict(frozen=True)`, `StrEnum`; offen `str` für Kinds/Prädikate)
 **DB** `db/models/world_memory.py` · Migration Stil `f7a8b9c0d1e2_memory_entries.py` (RLS `:54-59`, HNSW `:50-53`) · `db/repositories/world_*_repo.py` (Muster `memory_repo.py`)
 **Curator/Tools/Context** `curator/{service,validator,committer,linker}.py` · `curator/prompts/curator.md` · `agent/world_memory_toolset.py` (Reg. `assembler/assembler.py:137`) · `agent/world_context.py` · `instructions.py:28-101` + `service.py:436-516` · `agent/resolver.py:72-155`
-**Feeder/Kausalität** `entities/sync_runner.py` · `plugins/entities.py:97/139` (+`RelationTypeDescriptor`) · `comms/triage_service.py` · `run.py:42-57` · `audit.py`
+**Feeder/Kausalität** `entities/sync_runner.py` · `integrations/entities.py:97/139` (+`RelationTypeDescriptor`) · `comms/triage_service.py` · `run.py:42-57` · `audit.py`
 **Worker** `services/worker/.../workflows.py:~97` (Trigger; Child-Pattern `automation_workflow.py:33-43`) · `entrypoint.py:55-83` · `activities.py:79-153` · `activities/curator.py`
 **Frontend** `pages/WorldMemoryPage.vue` · `pages/EntityDetailPage.vue` · `components/memory/{CausalTrace,NeighborhoodGraph,AsOfBar}.vue` (Governance via Main-Chat/Proactive, keine Inbox-Page) · `stores/world.ts` · `wsClient.ts`(+`onMemoryCommitted`) · `MainLayout.vue` · `router/routes.ts` · `i18n/{en,de}` · Rewire `Entities/Contact/Agenda/Logbook` · `package.json`(+`@vue-flow/core`)
 

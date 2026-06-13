@@ -21,7 +21,7 @@ A **durable** run executes as a Temporal workflow in `worker/`. Per Frozen Contr
 durable path does NOT query live DB state mid-run — toolsets are **snapshotted** into
 `RunSpec.toolsets` (`packages/personal-agent-contracts/.../runspec.py` `ToolsetSnapshot`) at start and
 the worker rebuilds them from the snapshot via `DynamicToolset`s
-(`worker/src/personal_agent_worker/plugin_toolsets.py`, registered in `agents.py`).
+(`worker/src/personal_agent_worker/integration_toolsets.py`, registered in `agents.py`).
 
 **Device tools are not in that snapshot**, so a durable run with a device selected silently has
 no device tools. This only happens when a user sends a chat run **"in the background"** with a
@@ -33,14 +33,14 @@ untrusted content), so there is no functional regression, just an unsupported ed
 1. **Snapshot** — `runspec.py`: add `DeviceSnapshot(BaseModel, frozen)` with
    `device_id: str` + `announced_tools: dict` (frozen JSON schemas, Contract #6) and
    `ToolsetSnapshot.devices: tuple[DeviceSnapshot, ...] = ()`. Fill it in
-   `backend/src/personal_agent/api/routers/runs.py::_plugin_snapshot` (mirror the plugin snapshot):
+   `backend/src/personal_agent/api/routers/runs.py::_integration_snapshot` (mirror the integration snapshot):
    for each owned **online** device in `cfg["devices"]`, freeze its `announced_tools`.
 
 2. **Deps** — `backend/src/personal_agent/agent/deps.py`: add `device_ids: list[str] = []` to
-   `PersonalAgentDeps` (set on the durable path alongside `plugin_entry_ids`).
+   `PersonalAgentDeps` (set on the durable path alongside `integration_entry_ids`).
 
-3. **Worker toolset** — `worker/src/personal_agent_worker/plugin_toolsets.py`: add
-   `device_dynamic_toolset()` (mirror `plugin_dynamic_toolset`) whose in-activity `_build`
+3. **Worker toolset** — `worker/src/personal_agent_worker/integration_toolsets.py`: add
+   `device_dynamic_toolset()` (mirror `integration_dynamic_toolset`) whose in-activity `_build`
    rebuilds `build_device_toolset(...)` from the **snapshot** (NOT a live DB query — use the
    frozen `announced_tools`; construct a lightweight device-like object carrying id + name +
    policy_mode + announced_tools, fetched once in-activity by id is acceptable since the

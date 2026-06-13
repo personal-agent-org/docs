@@ -7,7 +7,7 @@ roadmap:
 - **OpenClaw** — single-operator personal-agent framework (built on Pi/earendil).
 - **Hermes Agent** — NousResearch's autonomous agent runtime.
 - **Home Assistant** — the home-automation platform whose integration/entity/automation
-  architecture we model our plugin + entity + automation subsystems on.
+  architecture we model our integration + entity + automation subsystems on.
 
 Legend: ✓ = has it · ◑ = partial / via add-on / not first-class · ✗ = no · ? = unknown.
 The comparison is necessarily approximate — the three references move fast and some
@@ -75,7 +75,7 @@ capabilities live in add-ons or external companions rather than the core.
 | Agent skills (capability packages) | ✓ | ✓ (SKILL.md) | ✓ | ✗ |
 | Skill marketplace / hub | ✓ (curated Git catalogs) | ✓ (ClawHub) | ✓ (agentskills.io) | ◑ (HACS) |
 | Self-authored / self-improving skills | ✓ | ✓ | ✓ | ✗ |
-| Plugin/integration framework | ✓ (HA-style folder) | ◑ | ◑ | ✓ |
+| Integration framework | ✓ (HA-style folder) | ◑ | ◑ | ✓ |
 | Config-flow setup UI + manifests | ✓ | ✗ | ✗ | ✓ |
 | Hooks (pre/post events) | ✓ | ✓ | ✓ | ◑ (automations) |
 
@@ -161,7 +161,7 @@ rewind, todo) and the security-mode/judge guard over every tool call.
 
 **Near-term gaps worth closing:** MCP **server** mode, broader channels (Telegram/Slack/
 Discord), and automation **blueprints** (reusable parameterized templates) — all of which fit
-cleanly into existing subsystems (plugin framework, comms channels, automations) rather than
+cleanly into existing subsystems (integration framework, comms channels, automations) rather than
 needing new islands. (A skill marketplace — install from admin-curated GitHub `SKILL.md`
 catalogs, agentskills.io-compatible — is now built into the Skills view.)
 

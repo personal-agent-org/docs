@@ -159,7 +159,7 @@ name via `PERSONAL_AGENT__SANDBOX_BACKEND_URL` (`http://backend:8000` by default
 on the `PERSONAL_AGENT__SANDBOX_NETWORK` network — that internal URL is separate
 from the public origin above and normally needs no change.
 
-The bundled web tools' outbound `User-Agent` and the Met.no weather plugin's
+The bundled web tools' outbound `User-Agent` and the Met.no weather integration's
 contact string default to a generic project URL; configure a real contact on the
 weather integration if you use it heavily (Met.no's ToS asks for one).
 

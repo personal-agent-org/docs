@@ -60,7 +60,7 @@ field types. Additive extensions:
 |---|---|---|
 | **P0** | **Typed form selectors** | extend `FieldDescriptor` beyond text/secret/number/select/note → `entity`/`device`/`area`/`duration`/`date`/`time`/`color`, with a `filter` (by domain/device_class) + `multiple`. Backward-compatible (unknown → text). |
 | **P1** | **Options / reconfigure / reauth flows** | optional `async_step_options/reconfigure/reauth` on `ConfigFlow` + a `scope` on the flow manager → edit an existing integration, re-auth on token expiry, without delete+recreate |
-| **P2** | **Config-entry lifecycle + reload** | a `state` on `PluginConfig` (loaded/setup_error/setup_retry/…) + `POST /plugin_configs/{id}/reload` (unload→setup) + retry-with-backoff |
+| **P2** | **Config-entry lifecycle + reload** | a `state` on `IntegrationConfig` (loaded/setup_error/setup_retry/…) + `POST /integration_configs/{id}/reload` (unload→setup) + retry-with-backoff |
 | **P3** | **Quality scale / health** | optional `quality_scale` + `issue_tracker` in the manifest, surfaced in the admin integrations view |
 | **P4** | **Soft-dependency ordering** | honor `after_dependencies` in the existing topo-sort (reorder, don't block) |
 | Defer | Discovery (zeroconf/SSDP/…) | only if a concrete local-device integration needs auto-detect |

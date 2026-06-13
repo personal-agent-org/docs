@@ -35,7 +35,7 @@ Two ways forward:
 
 The runner (`agent/subagent.py`) is transport-agnostic; only the **context
 builder** differs. Add a worker-side `subagent_dynamic_toolset()` mirroring
-`plugin_dynamic_toolset()` in `worker/src/personal_agent_worker/plugin_toolsets.py`:
+`integration_dynamic_toolset()` in `worker/src/personal_agent_worker/integration_toolsets.py`:
 
 ```python
 async def _build_subagent(ctx):
@@ -69,7 +69,7 @@ Required supporting changes:
   `build_temporal_agent()`. 【TODO marker added in `worker/.../agents.py`】
 - **Explore preset in the worker**: `entity_search_toolset` + `document_search_toolset`
   (resources.session_factory + crypto) + `web_toolset` (resolve providers from the
-  frozen plugin entries, reusing the `_build` provider logic).
+  frozen integration entries, reusing the `_build` provider logic).
 
 ### Critical: tool-activity retry policy (no double-billing)
 
@@ -86,7 +86,7 @@ passed to `TemporalAgent(...)`. Without this, durable sub-agents are unsafe.
 ### Durable `delegate` (inherited tools)
 
 `delegate` must give the sub-agent "the same tools as the parent". In the worker
-that means rebuilding the run's dynamic toolsets (plugins + web + automation +
+that means rebuilding the run's dynamic toolsets (integrations + web + automation +
 comms; **not** devices/MCP until those durable paths land) inside
 `build_child_toolsets("delegate")` from the frozen snapshot/`deps`, with
 `is_subagent=True` so it can't recurse. This is the heavier half — do it after

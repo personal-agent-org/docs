@@ -20,7 +20,7 @@
 | Auth | OAuth authorization_code, WebView-Redirect-Intercept, Token in Room+Keystore | **AppAuth/OIDC gegen Keycloak**, Token in **EncryptedSharedPreferences**, Handoff in die SPA via Bridge |
 | Multi-* | Multi-**Server** (`ServerManager`, serverId) | personal-agent = **ein Server, mehrere Orgs**. Kein Server-Picker; stattdessen Org-Auswahl bleibt in der SPA (`X-Personal-Agent-Org`). Multi-Server bewusst out-of-scope (siehe Risiken) |
 | Push | FCM (full) + WebSocket-Fallback (minimal/FOSS) (`FirebaseCloudMessagingService.kt`, `WebsocketManager.kt`) | **Identisches Dual-Path**: FCM-Flavor + FOSS-Flavor über personal-agent-Control-WS `/api/v1/ws` + `user_events_channel` |
-| Build | Multi-Modul + Convention-Plugins + Full/Minimal-Flavors (`build-logic/`) | **Übernommen, verschlankt** (3 Module statt 8) |
+| Build | Multi-Modul + Convention-Integrations + Full/Minimal-Flavors (`build-logic/`) | **Übernommen, verschlankt** (3 Module statt 8) |
 
 **Cross-Platform:** Android zuerst. iOS später als analoge `WKWebView`-Shell (gleiche Bridge-Verträge, gleiche Server-Endpunkte). Wear/Automotive ausdrücklich Post-MVP.
 
@@ -51,11 +51,11 @@
 
 ### 1.3 Modul-Layout (verschlankt aus HAs `build-logic`-Ansatz)
 
-HA hat 8 Module; personal-agent braucht im MVP **3**, mit der gleichen Convention-Plugin-Idee (`AndroidApplicationConventionPlugin.kt`, `AndroidFullMinimalFlavorConventionPlugin.kt`), um Flavor-Boilerplate zentral zu halten:
+HA hat 8 Module; personal-agent braucht im MVP **3**, mit der gleichen Convention-Integration-Idee (`AndroidApplicationConventionIntegration.kt`, `AndroidFullMinimalFlavorConventionIntegration.kt`), um Flavor-Boilerplate zentral zu halten:
 
 ```
 personal-agent-android/
-  build-logic/                      # Convention-Plugins (Application, Flavor full/minimal)
+  build-logic/                      # Convention-Integrations (Application, Flavor full/minimal)
   :app                              # WebView-Host, Bridge, Onboarding, Notifications-Rendering, Voice-UI
       src/main                      # gemeinsamer Code
       src/full     (FCM/GMS)        # FirebaseMessagingService, Play-Services
@@ -154,7 +154,7 @@ Wir übernehmen HAs **Dual-Path** wörtlich (`FirebaseCloudMessagingService.kt` 
 
 ### 4.2 Path B — FOSS WS-Fallback (`minimal`-Flavor, kein GMS)
 
-- Statt FCM: ein **Foreground-/WorkManager-gehaltener WebSocket** auf Personal Agents `/api/v1/ws` (Bearer via `Sec-WebSocket-Protocol`-Subprotocol — **identisch** zu Personal Agents Web-Client und zu HAs WS-Auth). 
+- Statt FCM: ein **Foreground-/WorkManager-gehaltener WebSocket** auf Personal Agents `/api/v1/ws` (Bearer via `Sec-WebSocket-Protocol`-Subprotocol — **identisch** zu Personal Agents Web-Client und zu HAs WS-Auth).
 - personal-agent pusht ohnehin schon per-User-Events über `user_events_channel` an alle Fenster (Chat-Title-Fanout, Agent-Fragen, Tool-Approval-Cards, Background-Run-Resumptions, Drafts). Der FOSS-Client **abonniert denselben Kanal** und rendert die Events als native Notifications.
 - **Konfigurierbarer Schedule** wie HA (`websocketSetting`: „immer", „bei Bildschirm an", „zuhause im WLAN", „nie"). FOSS-Default = always-on; full-Default = WS aus (FCM bevorzugt). Direkt aus HA übernommen.
 - **Ack:** Falls personal-agent für mobile Zustellung ein Ack braucht (Vermeidung von Doppelzustellung über mehrere Geräte), spiegeln wir HAs `ackNotification(confirmId)`-Muster mit einem `delivery_id` im Event.
@@ -245,7 +245,7 @@ Aus HAs Surfaces (`widgets/`, `qs/`, `wear/`, `AssistShortcutActivity.kt`) prior
 
 ### P2 — FCM-Flavor + Actionable Notifications
 **Inhalt:** `full`-Flavor mit Firebase (`FirebaseMessagingService`), Push-Token-Registry-Endpoint (§9), `NotificationRenderer` für das flache Schema, Action-Buttons + `RemoteInput`/Reply, `NotificationActionReceiver` → `POST /api/v1/mobile/actions`. Mapping aller `user_events_channel`-Eventtypen (§4.4). `minimal`-Flavor behält WS-Pfad.
-**Verifikation:** Tool-Approval-Push mit „Erlauben/Ablehnen" → Tap resumed den Temporal-Workflow; Agent-Frage mit Reply-Textinput; Doppelzustellung (FCM + WS) wird über `delivery_id`/Ack vermieden; full vs minimal getrennt gebaut (Flavor-Convention-Plugin).
+**Verifikation:** Tool-Approval-Push mit „Erlauben/Ablehnen" → Tap resumed den Temporal-Workflow; Agent-Frage mit Reply-Textinput; Doppelzustellung (FCM + WS) wird über `delivery_id`/Ack vermieden; full vs minimal getrennt gebaut (Flavor-Convention-Integration).
 
 ### P3 — Datei/Kamera/Download + Hardening
 **Inhalt:** `onShowFileChooser` (Datei/Kamera), Download-Split (blob→Data-URI, http→`DownloadManager` mit Auth-Header), Safe-Area-Insets, Theme/Statusbar-Sync, Fehlerseiten/Retry, Bridge V2 (`addWebMessageListener`, Origin-Filter) als Härtung gegen `addJavascriptInterface`-Risiken.
@@ -308,10 +308,10 @@ Bewusst minimal-invasiv — wir bauen auf `user_events_channel`, Control-WS und 
 5. **Token-Sicherheit:** EncryptedSharedPreferences (Keystore) statt HAs filesystem-encryptem Room. Risiko: Refresh-Token-Lifetime/Rotation in Keycloak korrekt konfigurieren; bei Diebstahl Logout via `end_session`.
 6. **Multi-Server bewusst out-of-scope:** anders als HA (`ServerManager`/serverId) hat personal-agent einen Server, mehrere Orgs. Spart erheblichen Komplexitätsaufwand. Risiko: Self-Hosting-User wollen mehrere Instanzen → später nachrüstbar (Repository-per-Server-Muster von HA ist die Blaupause).
 7. **Wake-Word/Always-Listening:** Privacy + Akku + Play-Store-Review (Foreground-Mic). Daher **opt-in, Post-MVP**, on-device (kein Cloud-Audio im Idle), Cooldown wie HA.
-8. **Store-Policies:** Play verlangt klare Begründung für Mic/Location/Foreground-Service + Datenschutzerklärung. `minimal`-Flavor für F-Droid muss GMS-frei bleiben (keine Firebase-Artefakte) — über Flavor-Convention-Plugin erzwingen (HAs Trennung `FullApplicationModule` vs. `MinimalApplicationModule`).
+8. **Store-Policies:** Play verlangt klare Begründung für Mic/Location/Foreground-Service + Datenschutzerklärung. `minimal`-Flavor für F-Droid muss GMS-frei bleiben (keine Firebase-Artefakte) — über Flavor-Convention-Integration erzwingen (HAs Trennung `FullApplicationModule` vs. `MinimalApplicationModule`).
 9. **iOS-Parität:** Bridge-Verträge und Endpunkte sind plattformneutral gehalten, damit die iOS-`WKWebView`-Shell ohne Backend-Änderungen andocken kann. Risiko: APNs statt FCM → `push_provider="apns"` ist im Registry-Schema bereits vorgesehen.
 10. **SPA-Kopplung:** Die App hängt am Bridge-Vertrag der SPA. Mitigation: Versionierung über `config/get` (`appVersion`/`bridgeVersion`), additive, abwärtskompatible SPA-Wrapper (No-Op im reinen Browser), damit Web-PWA und App aus demselben SPA-Build laufen.
 
 ---
 
-**Relevante HA-Referenzdateien** (Blaupausen, die dieser Plan adaptiert): `app/.../webview/WebViewActivity.kt`, `WebViewContentScreen.kt`, `util/HAWebViewClient.kt`, `util/TLSWebViewClient.kt`, `frontend/js/FrontendJsBridge.kt`, `webview/externalbus/ExternalBusMessage.kt`, `frontend/session/ServerSessionManager.kt`, `onboarding/connection/ConnectionViewModel.kt`, `common/.../authentication/impl/AuthenticationService.kt`, `notifications/FirebaseCloudMessagingService.kt` (full), `notifications/MessagingManager.kt`, `notifications/NotificationActionReceiver.kt`, `websocket/WebsocketManager.kt`, `app/src/minimal/.../MinimalApplicationModule.kt`, `common/.../sensors/SensorManager.kt` + `SensorWorker.kt`, `microwakeword/.../MicroWakeWord.kt`, `assist/wakeword/WakeWordListener.kt`, `build-logic/convention/.../AndroidFullMinimalFlavorConventionPlugin.kt`.
+**Relevante HA-Referenzdateien** (Blaupausen, die dieser Plan adaptiert): `app/.../webview/WebViewActivity.kt`, `WebViewContentScreen.kt`, `util/HAWebViewClient.kt`, `util/TLSWebViewClient.kt`, `frontend/js/FrontendJsBridge.kt`, `webview/externalbus/ExternalBusMessage.kt`, `frontend/session/ServerSessionManager.kt`, `onboarding/connection/ConnectionViewModel.kt`, `common/.../authentication/impl/AuthenticationService.kt`, `notifications/FirebaseCloudMessagingService.kt` (full), `notifications/MessagingManager.kt`, `notifications/NotificationActionReceiver.kt`, `websocket/WebsocketManager.kt`, `app/src/minimal/.../MinimalApplicationModule.kt`, `common/.../sensors/SensorManager.kt` + `SensorWorker.kt`, `microwakeword/.../MicroWakeWord.kt`, `assist/wakeword/WakeWordListener.kt`, `build-logic/convention/.../AndroidFullMinimalFlavorConventionIntegration.kt`.
