@@ -6,7 +6,7 @@ hide:
   - toc
 ---
 
-## Everything in one platform { .pa-section-title }
+## Explore { .pa-section-title }
 
 <div class="grid cards" markdown>
 
@@ -66,39 +66,14 @@ hide:
 
 </div>
 
-## Why Personal Agent? { .pa-section-title }
+## How it fits together { .pa-section-title }
 
-<div class="grid pa-why" markdown>
+A chat turn runs either **inline** (a FastAPI background task) or **durable** (a
+Temporal workflow); both emit identical AG-UI events onto a per-run Redis Stream.
+A single fail-closed data-classification gate runs at every model-resolution entry,
+so there is no path to an uncleared provider. The stack is FastAPI + pydantic-ai,
+a Quasar / Vue 3 frontend, Keycloak/OIDC, Postgres + pgvector and Redis.
 
--   :material-swap-horizontal-bold:{ .lg } __Two run paths, one envelope__
-
-    A chat turn runs **inline** (a FastAPI background task) or **durable** (a
-    Temporal workflow) — both emit identical AG-UI events onto a per-run Redis Stream.
-
--   :material-lock-check:{ .lg } __No path to an uncleared provider__
-
-    A single fail-closed data-classification gate runs at every model-resolution
-    entry — inline, durable, automations and comms triage.
-
--   :material-server-network:{ .lg } __Self-host on your own domain__
-
-    One built image serves every deployment; point it at your domain with a
-    handful of environment variables.
-
--   :material-chart-line:{ .lg } __Observable by design__
-
-    Built-in OpenTelemetry domain metrics plus Prometheus alert rules ship in
-    the box.
-
-</div>
-
-<div class="pa-cta" markdown>
-
-### Ready to dive in?
-
-Bring up the full stack locally in minutes, or deploy your own instance.
-
-[Get started :material-rocket-launch:](getting-started/index.md){ .md-button .md-button--primary }
-[Read the architecture :octicons-arrow-right-24:](architecture/index.md){ .md-button }
-
-</div>
+[Read the architecture overview](architecture/index.md) ·
+[Get started](getting-started/index.md) ·
+[Self-hosting guide](self-hosting.md)

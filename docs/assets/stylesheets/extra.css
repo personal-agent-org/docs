@@ -1,6 +1,6 @@
 /* ============================================================================
    Personal Agent — MkDocs Material theme + landing page
-   Restrained, editorial styling: one accent colour, generous whitespace,
+   Restrained, text-forward styling: one accent colour, generous whitespace,
    no gradient fills or glows.
    ========================================================================== */
 
@@ -20,13 +20,13 @@
   --md-accent-fg-color: #818cf8;
   --pa-hero-bg: #0a0a0a;
   --pa-line: rgba(255, 255, 255, 0.10);
-  --pa-card-bg: #0c0c10;
+  --pa-code-bg: #0c0c10;
 }
 
 [data-md-color-scheme="default"] {
   --pa-hero-bg: #fafafa;
   --pa-line: rgba(0, 0, 0, 0.10);
-  --pa-card-bg: #1e1e24;
+  --pa-code-bg: #1e1e24;
 }
 
 /* ----------------------------------------------------------------------------
@@ -46,26 +46,17 @@
   align-items: center;
 }
 
-.pa-hero__eyebrow {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--md-accent-fg-color);
-}
-
 .pa-hero__title {
-  margin: 0.9rem 0 0;
-  font-size: 2.85rem;
-  line-height: 1.1;
+  margin: 0;
+  font-size: 2.75rem;
+  line-height: 1.12;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--md-default-fg-color);
 }
 
 .pa-hero__subtitle {
-  margin: 1.15rem 0 0;
+  margin: 1.2rem 0 0;
   max-width: 34rem;
   font-size: 1.02rem;
   line-height: 1.65;
@@ -91,45 +82,38 @@
   color: #fff;
 }
 
-/* ---- Hero visual: a clean terminal card ---- */
-.pa-term {
-  border: 1px solid var(--pa-line);
-  border-radius: 0.6rem;
-  background: var(--pa-card-bg);
-  overflow: hidden;
-  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.18);
-}
-
-.pa-term__bar {
-  display: flex;
-  gap: 0.4rem;
-  padding: 0.7rem 0.85rem;
-  border-bottom: 1px solid var(--pa-line);
-}
-.pa-term__bar span {
-  width: 0.62rem;
-  height: 0.62rem;
-  border-radius: 50%;
-  background: #3f3f46;
-}
-
-.pa-term__body {
+/* ---- Hero visual: an honest quickstart panel ---- */
+.pa-quickstart {
   margin: 0;
-  padding: 1.1rem 1.15rem;
+  border: 1px solid var(--pa-line);
+  border-radius: 0.55rem;
+  background: var(--pa-code-bg);
+  overflow: hidden;
+}
+.pa-quickstart figcaption {
+  padding: 0.55rem 0.95rem;
+  border-bottom: 1px solid var(--pa-line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+}
+.pa-quickstart pre {
+  margin: 0;
+  padding: 1.05rem 1.1rem;
   background: transparent;
-  font-size: 0.78rem;
-  line-height: 1.7;
+  font-size: 0.8rem;
+  line-height: 1.85;
   color: #d4d4d8;
   overflow-x: auto;
 }
-.pa-term__body code {
+.pa-quickstart code {
   background: transparent;
   padding: 0;
   color: inherit;
 }
-.pa-term .pa-c   { color: #818cf8; }      /* prompt $        */
-.pa-term .pa-ok  { color: #34d399; }      /* check          */
-.pa-term .pa-dim { color: #71717a; }      /* muted url/note */
+.pa-quickstart .pa-c { color: #818cf8; }   /* prompt $ */
 
 /* ----------------------------------------------------------------------------
    Sections below the hero
@@ -156,35 +140,6 @@
   color: var(--md-accent-fg-color);
 }
 
-/* "Why" grid — icon-led blurbs, no card chrome */
-.md-typeset .grid.pa-why {
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1.4rem 2rem;
-  margin-top: 1.5rem;
-}
-.md-typeset .grid.pa-why > * {
-  border: none;
-  padding: 0;
-}
-.md-typeset .grid.pa-why .lg {
-  color: var(--md-accent-fg-color);
-}
-
-/* Bottom CTA — a quiet bordered band */
-.pa-cta {
-  margin: 3.5rem 0 1rem;
-  padding: 2.25rem 1.5rem;
-  text-align: center;
-  border: 1px solid var(--pa-line);
-  border-radius: 0.7rem;
-  background: var(--pa-hero-bg);
-}
-.pa-cta h3 {
-  margin-top: 0 !important;
-  font-weight: 700;
-}
-.pa-cta .md-button { margin: 0.3rem; }
-
 .md-typeset table:not([class]) th {
   font-weight: 600;
 }
@@ -199,11 +154,11 @@
     gap: 2.5rem;
   }
   .pa-hero__visual { max-width: 34rem; }
-  .pa-hero__title { font-size: 2.3rem; }
+  .pa-hero__title { font-size: 2.25rem; }
 }
 
 @media screen and (max-width: 44.9375em) {
   .pa-hero { padding: 2.75rem 0 3rem; }
-  .pa-hero__title { font-size: 1.95rem; }
+  .pa-hero__title { font-size: 1.9rem; }
   .pa-hero__subtitle { font-size: 0.96rem; }
 }
