@@ -1,0 +1,85 @@
+{#-
+  Custom landing page for Personal Agent.
+  Injects a full-width hero above the normal page content (the feature grid
+  lives in docs/index.md and renders through the standard content block).
+-#}
+{% extends "main.html" %}
+
+{% block tabs %}
+  {{ super() }}
+
+  <section class="pa-hero" markdown="0">
+    <div class="pa-hero__bg" aria-hidden="true"></div>
+    <div class="md-grid md-typeset">
+      <div class="pa-hero__inner">
+
+        <div class="pa-hero__content">
+          <span class="pa-hero__eyebrow">
+            {% include ".icons/material/shield-check.svg" %}
+            Self-hostable · multi-tenant · durable
+          </span>
+          <h1 class="pa-hero__title">
+            Your own <span class="pa-hero__grad">LLM chat&nbsp;+ agent</span> platform
+          </h1>
+          <p class="pa-hero__subtitle">
+            A reading-first chat UI on a durable agent runtime: per-user agents that use
+            tools, browse your own data, drive a connected machine or browser, run
+            integrations, react to events, and act proactively on your behalf.
+          </p>
+          <div class="pa-hero__actions">
+            <a href="{{ 'getting-started/' | url }}" class="md-button md-button--primary">
+              Get started
+              {% include ".icons/material/rocket-launch-outline.svg" %}
+            </a>
+            <a href="{{ 'features/' | url }}" class="md-button">
+              Explore features
+            </a>
+            <a href="{{ config.repo_url }}" class="md-button pa-hero__ghost">
+              {% include ".icons/fontawesome/brands/github.svg" %}
+              GitHub
+            </a>
+          </div>
+          <ul class="pa-hero__stack">
+            <li>FastAPI</li>
+            <li>pydantic-ai</li>
+            <li>Temporal</li>
+            <li>Vue 3 · Quasar</li>
+            <li>Postgres · pgvector</li>
+            <li>Redis</li>
+            <li>Keycloak</li>
+          </ul>
+        </div>
+
+        <div class="pa-hero__visual" aria-hidden="true">
+          <div class="pa-chat">
+            <div class="pa-chat__bar">
+              <span></span><span></span><span></span>
+              <em>main chat · auto model</em>
+            </div>
+            <div class="pa-chat__body">
+              <div class="pa-msg pa-msg--user">
+                Plan my week and open a PR fixing the failing test.
+              </div>
+              <div class="pa-msg pa-msg--agent">
+                <strong>On it.</strong> Reviewing your agenda, the repo and CI…
+                <div class="pa-tool">
+                  {% include ".icons/material/check-circle.svg" %}
+                  <code>web_fetch</code> · CI logs
+                </div>
+                <div class="pa-tool">
+                  {% include ".icons/material/check-circle.svg" %}
+                  <code>execute_code</code> · reproduce + fix
+                </div>
+                <div class="pa-tool pa-tool--run">
+                  {% include ".icons/material/sync.svg" %}
+                  <code>delegate</code> · open pull request
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+{% endblock %}

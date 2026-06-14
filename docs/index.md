@@ -1,30 +1,12 @@
 ---
+title: Personal Agent — your own LLM chat + agent platform
+template: home.html
 hide:
   - navigation
   - toc
 ---
 
-# Personal Agent
-
-<p class="hero-tagline">
-A multi-tenant, self-hostable <strong>LLM chat + agent platform</strong>.
-It pairs a reading-first chat UI with a durable agent runtime: per-user
-agents that use tools, browse your own data, drive a connected machine or
-browser, run integrations, react to events, and act proactively on your behalf.
-</p>
-
-[Get started :material-rocket-launch:](getting-started/index.md){ .md-button .md-button--primary }
-[Explore the features :material-feature-search:](features/index.md){ .md-button }
-[View on GitHub :fontawesome-brands-github:](https://github.com/luebke-dev/personal-assistant){ .md-button }
-
----
-
-## Built on a modern, durable stack
-
-Personal Agent is built on **FastAPI + pydantic-ai**, a **Quasar / Vue 3**
-frontend, **Keycloak/OIDC** auth, **Postgres + pgvector** and **Redis** for
-storage and streaming, and **Temporal** for durable runs. The UI is
-German-first (English i18n) and ships in containers.
+## Everything in one platform { .pa-section-title }
 
 <div class="grid cards" markdown>
 
@@ -84,19 +66,39 @@ German-first (English i18n) and ships in containers.
 
 </div>
 
----
+## Why Personal Agent? { .pa-section-title }
 
-## Why Personal Agent?
+<div class="grid pa-why" markdown>
 
-- **Two run paths, one envelope.** A chat turn runs either **inline** (a FastAPI
-  background task) or **durable** (a Temporal workflow) — both emit identical
-  AG-UI events onto a per-run Redis Stream.
-- **No path to an uncleared provider.** A single fail-closed data-classification
-  gate runs at every model-resolution entry — inline, durable, automations and
-  comms triage.
-- **Self-hostable on your own domain.** One built image serves every deployment;
-  point it at your domain with a handful of environment variables.
-- **Everything is observable.** Built-in OpenTelemetry domain metrics plus
-  Prometheus alert rules ship in the box.
+-   :material-swap-horizontal-bold:{ .lg } __Two run paths, one envelope__
 
-[Read the architecture overview :octicons-arrow-right-24:](architecture/index.md){ .md-button }
+    A chat turn runs **inline** (a FastAPI background task) or **durable** (a
+    Temporal workflow) — both emit identical AG-UI events onto a per-run Redis Stream.
+
+-   :material-lock-check:{ .lg } __No path to an uncleared provider__
+
+    A single fail-closed data-classification gate runs at every model-resolution
+    entry — inline, durable, automations and comms triage.
+
+-   :material-server-network:{ .lg } __Self-host on your own domain__
+
+    One built image serves every deployment; point it at your domain with a
+    handful of environment variables.
+
+-   :material-chart-line:{ .lg } __Observable by design__
+
+    Built-in OpenTelemetry domain metrics plus Prometheus alert rules ship in
+    the box.
+
+</div>
+
+<div class="pa-cta" markdown>
+
+### Ready to dive in?
+
+Bring up the full stack locally in minutes, or deploy your own instance.
+
+[Get started :material-rocket-launch:](getting-started/index.md){ .md-button .md-button--primary }
+[Read the architecture :octicons-arrow-right-24:](architecture/index.md){ .md-button }
+
+</div>
