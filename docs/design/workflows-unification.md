@@ -64,10 +64,10 @@ workers. This is the highest-risk phase and is sequenced after the safe unificat
 
 ## Phased delivery (each phase independently shippable)
 
-1. **Unify the scripts.** `run_tools_script` + `run_agents_script` → ONE `run_workflow` tool
-   backed by ONE Monty executor whose injected externals = the data tools + the sub-agent
-   spawners (when available) — i.e. sub-agent spawning is just a tool, not a second tool/path.
-   Extract the shared Monty core; behavior preserved (sub-agents available at depth 1).
+1. ✅ **DONE (commit da8bd94, deployed 2026-06-15).** `run_tools_script` + `run_agents_script`
+   → ONE `run_workflow` tool; sub-agent spawning is just a function in the sandbox (depth 1).
+   Spawner surface reduced to `delegate` + `delegate_many` with an `agent=` selector (folds
+   in explore/run_agent/delegate_to). Backend strings switched to English. Behaviour preserved.
 2. **Permission upgrade.** Route the script's inner tool calls through the chat's
    guard-wrapped toolset; full toolset; per-call `approve_each`/`judge` + governance;
    mid-script HITL.
