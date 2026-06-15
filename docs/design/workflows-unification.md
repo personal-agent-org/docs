@@ -1,10 +1,16 @@
 # Unified Workflows (design + roadmap)
 
-Status: **proposed** (2026-06-15). Consolidates three fragmented mechanisms — the two
-programmatic-tool-calling scripts, the Skills playbooks, and the Automation static
-step-lists — into ONE first-class **Workflow** concept, and ultimately absorbs the whole
-Automation system as "a workflow with a trigger". Modeled on Claude Code's own Workflow
-tool (meta `{name, description, whenToUse}` + a script body + save-by-name + discovery).
+Status: **proposed** (2026-06-15). Consolidates the two programmatic-tool-calling scripts
+and the Automation static step-lists into ONE first-class **Workflow** concept, and
+ultimately absorbs the whole Automation system as "a workflow with a trigger". Modeled on
+Claude Code's own Workflow tool (meta `{name, description, whenToUse}` + a script body +
+save-by-name + discovery).
+
+**Skills stay a SEPARATE system** (decision 2026-06-15) — they are not absorbed into
+workflows. A Skill is an authored prose PLAYBOOK the LLM reads (progressive disclosure via
+`use_skill`); a Workflow is an EXECUTABLE unit (script / steps / agent-prompt). A saved
+workflow's `when_to_use` discovery may *mirror* the skills preamble pattern, but the two
+keep their own tables, tools and UI.
 
 ## Target model
 
@@ -45,7 +51,6 @@ extends, not replaces, that path.
 |---|---|
 | `run_tools_script` (Monty, read-only) | ad-hoc **kind=script** run, no sub-agents |
 | `run_agents_script` (Monty + sub-agents) | ad-hoc **kind=script** run, sub-agents capability on |
-| `save_skill` / `use_skill` / Skills preamble | saved Workflow + `when_to_use` discovery preamble |
 | Automation `action.kind=workflow` (steps) | saved **kind=steps** Workflow |
 | Automation `action.kind=agent` (prompt) | saved **kind=agent** Workflow |
 | Automation trigger + schedule | a Workflow **trigger binding** |
@@ -68,14 +73,19 @@ workers. This is the highest-risk phase and is sequenced after the safe unificat
    → ONE `run_workflow` tool; sub-agent spawning is just a function in the sandbox (depth 1).
    Spawner surface reduced to `delegate` + `delegate_many` with an `agent=` selector (folds
    in explore/run_agent/delegate_to). Backend strings switched to English. Behaviour preserved.
-2. **Permission upgrade.** Route the script's inner tool calls through the chat's
-   guard-wrapped toolset; full toolset; per-call `approve_each`/`judge` + governance;
-   mid-script HITL.
+2. ✅ **BUILT (adversarially reviewed, pre-deploy).** A run_workflow script's inner tool
+   calls dispatch through the run's fully-assembled toolset (`GuardedToolsetRef` late-bound
+   AFTER wrap_with_guard AND the user hooks, before the follow-up injector): full toolset,
+   per-call `approve_each`/`judge` + governance + untrusted gate + user block/decision hooks.
+   Real mid-script HITL — a top-level inline workflow awaits the approval card (timeout
+   defaults to the MAX when the full toolset is bound, for approval headroom). A DETACHED
+   background workflow is `headless` → the guard fail-denies approval instead of hanging.
 3. **Persistence + discovery.** A dedicated `workflows` table (+ repo, migration, web
    page). The agent gets the management surface: `run_workflow(script=… | name=…)`,
    `save_workflow(name, description, when_to_use, script)`, `list_workflows()`,
    `delete_workflow(name)`. Enabled workflows' `when_to_use` is injected into the agent
-   preamble for discovery (mirror `build_skills_preamble`); `enabled` toggle on the page.
+   preamble for discovery (a SEPARATE preamble that mirrors the skills pattern — skills are
+   not reused/absorbed); `enabled` toggle on the page.
 4. **Converge steps + agent kinds.** Fold the `WorkflowStep` IR and the agent-prompt mode
    into the same table (`kind`). The agent can author all three kinds.
 5. **Absorb Automations.** Automations become trigger bindings on a Workflow (schedule via
