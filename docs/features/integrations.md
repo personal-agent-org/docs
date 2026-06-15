@@ -62,6 +62,15 @@ The manifest sync never overwrites these settings, and changes are audit-logged.
   they work unchanged in **durable runs and automations** — with token refresh
   happening inside the activity and the same **untrusted-content gating** dropping
   high-privilege tools when an untrusted MCP source is in the run.
-- **As a server** — Personal Agent exposes itself at **`/api/mcp`** with a curated,
-  read-mostly tool surface for external clients, authenticated by **Personal Access
-  Tokens** minted in Settings (only the hash is stored).
+- **As a server** — Personal Agent exposes itself at **`/api/mcp`** (Streamable HTTP)
+  with a curated, read-mostly tool surface for external clients. Two auth paths:
+  - **Keycloak OAuth 2.1 (primary).** OAuth-capable clients (Claude, …) just get the
+    URL: a 401 returns an RFC 9728 `WWW-Authenticate: Bearer resource_metadata=…`
+    challenge pointing at `/api/mcp/.well-known/oauth-protected-resource`, which
+    advertises the Keycloak realm as the authorization server. The client runs the
+    standard Auth-Code+PKCE (or device-grant) flow against the pre-registered
+    `personal-agent-mcp` realm client (audience `personal-agent-api`), and the access
+    token is validated by the **same `TokenVerifier`** as the rest of the API — no
+    second credential to manage. Sign-in, MFA, revocation and lifetimes are Keycloak's.
+  - **Personal Access Tokens (headless fallback).** For CLI/scripts that can't do
+    OAuth, mint a `pa_pat_…` token in Settings (only the hash is stored).
