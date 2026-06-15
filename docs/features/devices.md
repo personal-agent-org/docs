@@ -12,7 +12,7 @@ A per-user **Rust** binary (per-OS one-liner install) running cross-platform
 - The **macOS/Windows** builds link system libraries.
 
 It authenticates over the Keycloak device flow and serves a **jailed filesystem +
-PTY**, powering coding mode and `execute_code`.
+PTY**, powering coding mode.
 
 ## The `browser` device
 
@@ -57,6 +57,6 @@ zero-setup coding mode.
 
 ## Safe parallelism
 
-Read tools run concurrently while device writes and `execute_code` are
+Read tools run concurrently while device writes are
 **serialized** to avoid races on the shared jail. See
 [Security & governance](security.md).

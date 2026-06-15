@@ -68,7 +68,6 @@ back, keeping intermediate results out of context:
   `model_tags`). Intermediate results live in script variables — outside the
   context window; failed workers degrade to `[failed]` values instead of killing
   the plan; the **monthly budget is the real spawn ceiling**.
-- **`execute_code`** — full Python on a connected device's jail.
 
 !!! info "Usage accounting"
     Usage is recorded per `ModelResponse`, never per run, with idempotency keyed

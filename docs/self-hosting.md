@@ -150,7 +150,7 @@ the values to the import Job.
 
 `PERSONAL_AGENT__PUBLIC_BASE_URL` (set from `APP_ORIGIN`) is the origin that
 on-demand **cloud coding/browser sandboxes** and **device agents** use to dial
-back to the backend, and it points the `execute_code` RPC stub at the right host.
+back to the backend (and the SPA / browser-extension OIDC bootstrap read it).
 It must be the externally reachable origin, not an internal service name. If it is
 unset, the backend falls back to the first `CORS_ORIGINS` entry.
 

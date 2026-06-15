@@ -22,7 +22,7 @@ device tools via `toolset.filtered()`; the durable worker mirrors this per-reque
 
 ## Safe parallelism
 
-Read tools run concurrently while device writes and `execute_code` are
+Read tools run concurrently while device writes are
 **serialized** to avoid races on the shared jail.
 
 ## BYOK envelope encryption
