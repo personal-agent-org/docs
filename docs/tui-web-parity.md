@@ -3,6 +3,11 @@
 Comparison of the Rust terminal client (`clients/tui/`) against the Quasar/Vue web app
 (`apps/web/`), plus a prioritised roadmap to close the gaps. Snapshot: 2026-06-15.
 
+> **Update 2026-06-15 (commit b1c1bc2):** P1 partially shipped — TUI now has a security-mode
+> picker (F7 / `/security`) and the `/main`, `/rename`, `/summarize`, `/proofread` commands.
+> `/edit` was dropped (awkward in a TUI); the context/budget chip is deferred (needs
+> model-context-window plumbing the TUI doesn't track yet).
+
 Legend: ✅ present · ⚠️ partial · ❌ missing
 
 ## Chat core
@@ -26,7 +31,7 @@ Legend: ✅ present · ⚠️ partial · ❌ missing
 | Model picker (grouped / searchable) | ✅ | ✅ (F2) |
 | Reasoning effort (off/low/med/high) | ✅ | ✅ (`/think`) |
 | Built-in tools on/off | ✅ | ✅ (Ctrl+T) |
-| Security mode (autonomous/approve_each/judge) | ✅ | ❌ |
+| Security mode (autonomous/approve_each/judge) | ✅ | ✅ (F7 / `/security`) |
 | Collaboration mode (plan/execute/pair) | ✅ | ❌ |
 | Data classification (confidential) | ✅ | ❌ |
 | Memory-access policy (scoped) | ✅ | ❌ |
@@ -36,7 +41,7 @@ Legend: ✅ present · ⚠️ partial · ❌ missing
 - Web: `/new /rename /btw /goal /main /summarize /proofread` + coding (`/terminal /review /explain /fix /tests /init`)
 - TUI: `/new /btw /retry /model /think /tools /attach /agents /inbox /logout /help`
 - Custom commands (from `GET /commands`): ✅ both
-- Missing in TUI: `/goal`, `/main`, `/rename`, `/summarize`, `/proofread`, coding prompts
+- Missing in TUI: `/goal`, coding prompts (`/main /rename /summarize /proofread` now present)
 
 ## Coding mode
 | Feature | Web | TUI |
@@ -93,16 +98,15 @@ Ordered by value-to-effort for a terminal user. Each item notes the backend it a
 (most are pure TUI work — the API exists).
 
 ### P1 — cheap, high-impact (run controls + lifecycle)
-1. **Security mode picker** — per-run/per-chat (autonomous/approve_each/judge). Backend +
-   web done; TUI just needs a picker (e.g. F-key/`/security`) and to pass `security_mode` in
-   the run body. Directly affects how much the agent interrupts.
-2. **Edit a user message** — re-uses the existing rerun endpoint (`POST …/runs/rerun` with
-   `from_message_id` + `prompt`); TUI already does `/retry`, so this is the same call with an
-   edited prompt. Add `/edit` or an edit key on the last user turn.
-3. **Missing global slash commands** — `/main [msg]`, `/rename <t>`, `/summarize`,
-   `/proofread`; all are prompt-templates or existing store ops, trivial to add to the palette.
-4. **Context / budget chip** — surface context fill + monthly budget in the status bar (data
-   already arrives on run events).
+1. ~~**Security mode picker**~~ — DONE (b1c1bc2): F7 / `/security`, passed as `security_mode`,
+   shown as a 🔒 composer chip.
+2. ~~**Edit a user message**~~ — DROPPED: awkward in a TUI (no in-place message editing UX);
+   `/retry` covers regeneration.
+3. ~~**Missing global slash commands**~~ — DONE (b1c1bc2): `/main [msg]`, `/rename <t>`,
+   `/summarize`, `/proofread`.
+4. **Context / budget chip** — DEFERRED: needs the model context window + cumulative history
+   tokens, which the TUI doesn't track (the `chat_run` WS frame carries no context tokens).
+   Plumb `context_tokens`/`threshold_tokens` onto the run/WS event first, then add the chip.
 
 ### P2 — moderate (governance + tools)
 5. **Per-run integrations / tool selection** — let the user toggle integrations/devices for a
