@@ -72,5 +72,9 @@ The manifest sync never overwrites these settings, and changes are audit-logged.
     `personal-agent-mcp` realm client (audience `personal-agent-api`), and the access
     token is validated by the **same `TokenVerifier`** as the rest of the API — no
     second credential to manage. Sign-in, MFA, revocation and lifetimes are Keycloak's.
-  - **Personal Access Tokens (headless fallback).** For CLI/scripts that can't do
-    OAuth, mint a `pa_pat_…` token in Settings (only the hash is stored).
+    Headless/CLI clients are covered too: the `personal-agent-mcp` client enables the
+    **OAuth 2.0 Device Authorization Grant** (RFC 8628), so a terminal tool signs in by
+    showing a code the user confirms in a browser — add `offline_access` for a long-lived
+    refresh token. The resulting access token validates the same way (no special path).
+  - **Personal Access Tokens (last-resort fallback).** Only for tools that can't do OAuth
+    at all — mint a `pa_pat_…` token in Settings (only the hash is stored).
