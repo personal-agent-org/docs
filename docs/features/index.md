@@ -1,7 +1,7 @@
-# Features
+# Using Personal Agent
 
-Personal Agent is a broad platform. This section breaks the product surface into
-focused pages — each one drawn from the capabilities that ship in the box.
+Personal Agent is a broad platform. These pages break the product surface into
+focused, user-facing capabilities — each one drawn from what ships in the box.
 
 <div class="grid cards" markdown>
 

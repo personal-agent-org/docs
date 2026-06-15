@@ -125,23 +125,25 @@ nav:
   - Getting started:
       - getting-started/index.md
       - Run locally: getting-started/run-locally.md
-      - Self-hosting: self-hosting.md
-  - Features:
+  - Users:
       - features/index.md
       - Chat & agents: features/chat-agents.md
       - Memory graph: features/memory.md
       - Devices & coding: features/devices.md
       - Integrations: features/integrations.md
       - Automations & dashboards: features/automations.md
+  - Administration:
       - Security & governance: features/security.md
-  - Architecture:
-      - architecture/index.md
+  - Operation:
+      - Architecture: architecture/index.md
       - Frozen contracts: architecture/frozen-contracts.md
+      - Self-hosting: self-hosting.md
   - Design notes:
       - design/index.md
       - Feature comparison: feature-comparison.md
       - Home Assistant adoption: home-assistant-adoption.md
       - Universal memory: universal-memory.md
+      - TUI ↔ web parity: tui-web-parity.md
       - Implementation plan: implementation-plan.md
       - Sub-agents (durable): subagents-durable-followup.md
       - Device agents (durable): device-agents-durable-followup.md
