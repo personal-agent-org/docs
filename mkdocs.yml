@@ -131,7 +131,7 @@ nav:
       - Memory graph: features/memory.md
       - Devices & coding: features/devices.md
       - Integrations: features/integrations.md
-      - Workflows & dashboards: features/automations.md
+      - Workflows & dashboards: features/workflows.md
   - Administration:
       - Security & governance: features/security.md
   - Operation:

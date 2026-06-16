@@ -33,7 +33,7 @@ focused, user-facing capabilities — each one drawn from what ships in the box.
     The folder tier, config flows, governance, capability providers and MCP in
     both directions.
 
--   :material-robot-industrial:{ .lg .middle } __[Workflows & dashboards](automations.md)__
+-   :material-robot-industrial:{ .lg .middle } __[Workflows & dashboards](workflows.md)__
 
     ---
 

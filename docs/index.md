@@ -54,7 +54,7 @@ hide:
     durably on Temporal), Lovelace-style dashboards, entities with full state
     history, and proactive background work.
 
-    [:octicons-arrow-right-24: Workflows & dashboards](features/automations.md)
+    [:octicons-arrow-right-24: Workflows & dashboards](features/workflows.md)
 
 -   :material-shield-lock:{ .lg .middle } __Security & governance__
 
