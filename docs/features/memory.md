@@ -1,67 +1,71 @@
-# Memory — the world-state graph
+# Memory
 
-The agent's long-term memory is a **bitemporal, causal entity-state graph**, not a
-flat note store. Knowledge is **entities** (`person`, `task`, `preference`, … — an
-open, integration-extensible kind registry) linked by **facts**
-(subject–predicate–object; a fact pointing at another entity is a relationship).
+Personal Agent remembers. Tell it something once — a preference, a fact about a project,
+who someone is — and it recalls it in later chats. Everything it knows lives on the
+**Knowledge** page (*Gedächtnis*, in the account menu), where you can browse, inspect
+and correct it.
 
-## Two time axes
+## What the Knowledge page shows
 
-Every fact carries **valid-time** (true in the world) and **system-time** (when the
-agent learned it), so it can answer:
+The page is **one list of everything the assistant knows about your world** — people,
+projects, places, preferences, tasks and more. Each item is an **entity**; entities are
+linked by **facts** (e.g. *owner = Alice*, *located in = Kitchen*). Items fed by an
+[integration](integrations.md) also carry a **Live** badge with their current state, so
+"what the assistant remembers" and "what's happening right now" sit side by side.
 
-- *"What was true on Monday?"* (valid-time) versus
-- *"What did you **know** on Monday?"* (system-time)
+You can:
 
-…and explain late knowledge and corrections.
+- **Search** and filter by **kind** (person, task, place, …), by **integration**, and by
+  **nature** — physical vs. virtual.
+- Switch between a **list** and a **graph** view. The graph draws entities as nodes and
+  their relationships as links, and updates live as new facts are learned.
+- Open any entity for its detail page: its **facts**, its **relationships**, its
+  **history**, and a **cause-and-effect** trace of what led to a change.
 
-## Causality & provenance
+## How the assistant learns
 
-Facts record their source and the run/action that caused them — so you can trace
-the effects of a run and explain any change.
+You never have to "save" anything manually — though you can ask it to *remember* a
+specific thing. After a chat, a background **curator** reviews what happened and
+**proposes** memory updates. Clear, low-risk facts are kept automatically; anything
+sensitive or uncertain shows up as a **suggestion to confirm** (*Vorschläge zum
+bestätigen*) at the top of the Knowledge page, where you **Keep** or **Reject** it.
 
-## Read / propose / write split
+This split keeps you in control: the chat agent only ever *reads* memory, a curator only
+*proposes*, and writes are deliberate.
 
-The memory pipeline keeps writers deterministic and the chat agent read-only:
+## Time travel
 
-```mermaid
-flowchart LR
-    A[Chat agent<br/>reads only] -->|after run| B[Curator<br/>per-chat Temporal workflow]
-    B -->|proposes a structured mutation| C[Committer<br/>sole writer]
-    C -->|supersede · conflict · idempotency| D[(World-state graph)]
-    C -.->|derived / privileged / untrusted| E[Review queue]
-```
+Memory has two senses of time, so you can ask both *"what was true on Monday?"* and
+*"what did you **know** on Monday?"*. The **Time travel** control (*Zeitreise*) on an
+entity lets you pick a past moment and see what the assistant knew then — useful for
+understanding how it reached a conclusion, or auditing a correction.
 
-- The chat agent only **reads**.
-- A post-run **Curator** (a per-chat Temporal workflow) proposes a structured
-  mutation.
-- A deterministic **Committer** is the sole writer — handling supersede, conflict,
-  idempotency and autonomy routing (explicit/observed auto-commit;
-  derived/privileged/untrusted go to review).
+## Correcting & forgetting
 
-## Forgetting = invalidating
+Knowledge changes, and so should memory:
 
-Corrections **supersede / invalidate** rather than delete, so history and as-of
-queries survive. Conflicts and merge suggestions surface conversationally in the
-main chat.
+- Editing a fact **supersedes** the old one rather than erasing it, so history and
+  time-travel stay intact.
+- **Forget** (*Vergessen*) removes an entity from active memory. Items synced from an
+  integration are **archived rather than deleted** when the integration drops them, so
+  anything you'd attached to them survives.
+- Conflicts and merge suggestions surface conversationally in your main chat.
 
-## Strictly private
+## Controlling what's used, per chat
 
-Owner-scoped with fail-closed RLS; untrusted content also drops privileged writes.
+Memory is **strictly private** to you. On top of that, each chat decides how much memory
+it may read via the **Memory** picker — **Full**, **None**, or **Restricted** to chosen
+areas and sources. A **None** chat is a clean-room: nothing is read and nothing is
+learned. See [Chat controls](chat-controls.md#memory-access).
 
-## Entities and memory are one concept
+## The simple "remembered facts" list
 
-Integration entities (the live-state layer) feed the graph: an entity type can
-declare a `world_kind`, and the sync engine then maintains a linked graph node per
-entity — renamed on sync, **archived (never deleted)** when the integration drops
-it, so attached facts survive.
+For a plain, flat view of facts the assistant has stored about you — the ones it picked
+up with the *remember* tool — open **Settings → Memory** (*Gedächtnis*). It lists every
+entry, marks whether it came **from you** or **from the assistant**, and lets you delete
+any of them.
 
-- The knowledge page is **one list** (graph nodes with live-state badges plus
-  live-only entities).
-- Kinds carry a **physical vs. virtual** nature axis, and `contact` is the single
-  kind for humans.
-- A **graph UI** shows entity pages plus a neighbourhood + causal-trace graph that
-  live-updates as facts commit.
-
-!!! note "Full design"
-    The complete design lives in [Universal memory](../universal-memory.md).
+!!! note "Going deeper"
+    The full design of the world-state memory graph — its two time axes, provenance and
+    the read/propose/write pipeline — is documented in
+    [Universal memory](../universal-memory.md).

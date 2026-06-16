@@ -1,66 +1,55 @@
-# Security & governance
+# Security & privacy
 
-Security is woven through every run path, not bolted on. The same gates re-apply
-inside durable runs, the model fallback chain, `auto` model selection and
-sub-agent `model_tags` resolution — there is **no path to an uncleared provider**.
+Personal Agent is built so you stay in control of what the assistant does and where your
+data goes. This page is the user-facing view; the engineering guarantees behind it are in
+[Frozen contracts](../architecture/frozen-contracts.md).
 
-## Per-chat security modes
+## You gate what tools do
 
-Each chat runs in one of three tool-call security modes:
+Every chat runs in a **security mode** (*Sicherheit*) you choose per chat (default under
+**Settings → Profile**):
 
-| Mode | Behaviour |
+| Mode | What it means for you |
 | --- | --- |
-| `autonomous` | The agent calls tools without per-call approval |
-| `approve_each` | Each tool call waits for explicit user approval |
-| `judge` | An LLM judge gates each call |
+| **Autonomous** | The agent runs tools without asking — fastest, most hands-off |
+| **Approve each** | You approve (or reject) every tool call, inline in the chat |
+| **Judge (LLM)** | A safety model reviews each call before it runs |
 
-## Untrusted-content gating
+When approval is needed, **Always allow** lets you whitelist a specific command on a
+specific [device](devices.md) so you're not asked again for it.
 
-When an untrusted source is in a run, high-privilege tools (and custom-agent
-delegation) are **filtered out**. The assembler drops high-privilege first-party /
-device tools via `toolset.filtered()`; the durable worker mirrors this per-request.
+## Your data stays yours
 
-## Safe parallelism
+- **Memory is private to you**, with database-level isolation. Each chat further chooses
+  how much memory it can read — including **None**, a clean-room chat that learns nothing.
+  See [Memory](memory.md) and [Chat controls](chat-controls.md#memory-access).
+- **Confidential** chats and documents (*Vertraulich*) are restricted to **local-only**
+  models, so sensitive data never leaves your infrastructure. This is **fail-closed**:
+  there is no path to a provider that isn't cleared for the data's classification — and
+  it holds for normal chats, automatic model selection, fallbacks, sub-agents and
+  background workflows alike.
+- **Your keys are encrypted.** Provider keys and integration secrets are
+  envelope-encrypted, decrypted only in-process for your runs, and never shown back to
+  you, written into logs, or included in durable run history.
 
-Read tools run concurrently while device writes are
-**serialized** to avoid races on the shared jail.
+## Protection from untrusted content
 
-## BYOK envelope encryption
+When a run pulls in **untrusted content** (a web page, an external MCP server, an
+incoming message), high-privilege tools are automatically **dropped** from that run — so
+a malicious page can't trick the agent into, say, deleting files or sending money. You
+don't have to do anything; it's on by default.
 
-Provider keys and secrets are envelope-encrypted — decrypted only in the model
-activity, **never** serialized into Temporal history, spans or errors.
+## Governance (set by your admin / org)
 
-!!! warning "No secrets in spans"
-    Content capture defaults **off**; provider keys never appear in `ModelSettings`
-    dumps, errors or Temporal inputs.
+Some limits are set above you and you can only make them **stricter**, never looser:
 
-## Tenancy
+- **Data classification floor** — your organization can require a minimum classification
+  for every chat.
+- **Provider governance tags** — providers are tagged for what they're cleared for (e.g.
+  *local*, *eu*, *no-train*); tools and integrations require tags, and a capability is
+  only offered when the provider clears them.
+- **Command policy** and **budgets** — admins can forbid certain commands outright and
+  cap monthly spend.
 
-The org header is validated against the token claim **every request**, with
-Postgres **RLS** as defense-in-depth (`ScopedDbDep` sets `personal_agent.current_org`).
-
-## ABAC governance & data classification
-
-Providers carry capability tags (`local`, `eu`, `no-train`, …); tools, integrations
-and MCP servers declare required tags, and a capability is offered only when
-**required ⊆ granted** (fail-closed).
-
-```mermaid
-flowchart TD
-    A[Model resolution entry] --> B{enforce_classification}
-    B -->|cleared| C[Provider allowed]
-    B -->|not cleared| D[Blocked — fail closed]
-    C --> E[Inline run]
-    C --> F[Durable chat]
-    C --> G[Triggered workflows]
-    C --> H[Comms triage]
-```
-
-- Chat / document / entity **data classification** gates RAG and provider choice.
-- Org policy sets a **floor**.
-- Gated capabilities are **explained to the agent**, and governance changes are
-  audit-logged.
-
-The single fail-closed gate (`auto_model.enforce_classification`) runs at every
-model-resolution entry. See [Frozen contracts](../architecture/frozen-contracts.md)
-(#13, #14, #15).
+Governance changes are audit-logged, and when a capability is withheld the agent is told
+why, so it can explain it to you rather than failing silently.

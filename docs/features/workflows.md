@@ -1,64 +1,92 @@
-# Workflows, entities & dashboards
+# Workflows & automations
 
-Integrations expose **entities** and users upload **documents**; both are indexed
-in pgvector for semantic search.
+A **workflow** is a reusable plan the assistant can run by name — and, if you give it
+**triggers**, it runs **automatically**. *A workflow with triggers is what other tools
+call an "automation."* They live on the **Workflows** page (*Workflows*, in the account
+menu); the badge shows how many are pending your confirmation.
 
-## Entities
+## The Workflows page
 
-Entities carry the full Home-Assistant-style registry — state history, device
-registry, classes/units, visibility controls, areas/floors, labels and a logbook.
+Each workflow shows its name, description, trigger summary and last-run time. For ones
+you own you can:
 
-Entities are also **controllable**: a first-party **action contract** routes a
-dashboard card, a workflow and the agent (`control_entity`) through one
-pipeline, with changes pushed live over the control WebSocket. **Scenes** capture
-and re-apply entity states.
+- **Run now** (*Jetzt ausführen*) — fire it immediately;
+- **toggle** it on/off (for triggered workflows);
+- **Confirm** (*Bestätigen*) — accept one the assistant proposed (these arrive in a
+  *pending* state);
+- **Edit**, **Delete**, or **Open chat** to where its results were posted.
 
-## Lovelace-style dashboards
+A workflow can be **created by you** or **suggested by the agent** (badged *from agent*),
+and shared workflows show a *shared* badge.
 
-Multi-view tabs, a drag-and-resize grid, badges and a wide card set:
+## Creating a workflow
 
-- **Read-outs** — entity / gauge / history / logbook / markdown / picture / iframe /
-  agenda
-- **Controls** — tile / toggle / number / select / counter / scene
-- **Registry** — area / device cards
-- **Layout** — stack (vertical / horizontal / grid) and conditional cards
+**New workflow** (*Neuer Workflow*) opens a dedicated form:
 
-All schema-configured and persisted per user.
+### What it does
 
-## Workflows
+- **Name** and an optional **Description**.
+- **When to use** (*Wann zu nutzen*) — a hint that helps the assistant decide when to run
+  it on its own.
+- **Script** (*Skript*) — the workflow's logic, written as a sandboxed Python plan that
+  orchestrates tools (with loops, fan-out and sub-agents). The agent can author these for
+  you; you don't have to write Python. A triggered workflow runs headless with the full
+  toolset and reports back with `send_message_to_user(...)`.
 
-A **Workflow** is the single unified concept: a named, owner-scoped **sandboxed Monty
-Python script** — programmatic tool-calling with loops, fan-out and sub-agents
-(`delegate` / `delegate_many`), running the full guard-wrapped toolset on top of the
-ambient web + first-party tools. It may optionally scope which integrations and connected
-device-agents (plus the companion phone as `phone:<id>`) its tools come from. The agent
-authors and runs workflows via `save_workflow` / `list_workflows` / `delete_workflow` /
-`run_workflow`.
+### What it can touch
 
-A Workflow optionally carries **triggers** (schedule / interval / webhook / manual /
-event / poll) plus an HA-style **condition** (entity_state / entity_attribute / time /
-trigger). **A Workflow with triggers is what used to be an "Automation."** When a trigger
-fires, the script runs durably in the background on a Temporal Schedule (→
-`WorkflowScheduleWorkflow` → a child `ChatAgentWorkflow` → the `run_script_workflow`
-activity), headless, with `send_message_to_user` as its only channel back to you.
+- **Integrations** (*Integrationen*) — extra [integration](integrations.md) tools the
+  script may use, on top of web and built-in tools.
+- **Devices** (*Geräte*) — connected device agents (or your phone) whose tools it may
+  use; they must be online when it runs.
 
-## Web tools
+### Triggers — what makes it run
 
-In-process **`web_fetch`** reads any page **locally** (HTML → clean Markdown, plus
-images and PDFs) behind an **SSRF guard**. A vendor (Tavily / Brave) is used only
-for **`web_search`**.
+Add one or more **triggers** (any one fires it). Without triggers it's just a reusable
+definition you (or the agent) run by name.
 
-## Proactive & background work
+| Trigger | German | Fires… |
+| --- | --- | --- |
+| **Schedule** | *Zeitplan (Cron)* | on a cron schedule |
+| **Interval** | *Intervall* | every *N* minutes (min. 15) |
+| **Webhook** | *Webhook* | when a URL is called |
+| **Manual** | *Manuell* | only when you or the agent runs it |
+| **Event** | *Ereignis* | on a system event (run finished/failed, an entity created/updated/deleted, a tool used) |
+| **Poll** | *Abfrage* | by polling on an interval |
 
-- **Commitment capture** records obligations into an agenda; an **hourly proactive
-  review** nudges you about what's due, in the main chat and via push.
-- The memory **Curator** runs per-chat, inline after each run (a per-`chat_id`
-  Temporal workflow).
-- Global **Temporal schedules** keep things tidy: a 15-min entity-sync that also
-  prunes state-history and ages skills, the hourly proactive review, and the
-  `world/` memory-maintenance jobs (embedding + retention + curator catch-up).
+For a **webhook** trigger, saving the workflow shows a one-time **token + URL**
+(*Webhook-Token*) — copy it then, as it isn't shown again. You can **rotate** it later.
 
-!!! info "Observable by design"
-    Background work ships with built-in **OpenTelemetry domain metrics** (Curator
-    proposals / commits / pending, context-build latency) plus **Prometheus alert
-    rules** under `deploy/observability/`.
+### Conditions — gating when it runs
+
+Add optional **conditions** that must hold for the run to proceed, combined with
+**All (AND)** or **Any (OR)**:
+
+- **Entity state** / **Entity attribute** — compare an [entity](dashboards.md#entities)
+  value with an operator (equals, not equals, greater/less than, at least/at most,
+  contains);
+- **Time window** — between two times, on selected weekdays;
+- **Trigger data** — match a value in the trigger's payload.
+
+### Organizing
+
+Place a workflow in a **project** folder, optionally **share** it with your group, and
+choose whether it's **enabled** right away.
+
+## Hooks
+
+**Hooks** (*Hooks*, a tab on the Workflows page) are small rules that fire around tool
+calls and chat messages — guardrails and automations for how the agent behaves:
+
+- **Before a tool call** (`pre_tool_use`) — **block** a matching call (e.g. protect a
+  read-only repo from `write_file`), or run a **decision** command that allows or denies
+  it.
+- **After a tool call** (`post_tool_use`) — run a command on your workspace device (e.g.
+  `ruff format .` after every edit).
+- **Before your message** (`pre_message`) — inject context (e.g. `git status`) or block
+  the message entirely as a guardrail.
+- **After the answer** (`post_message`) — run a fire-and-forget command on the device.
+
+Each hook has a **tool pattern** (or message pattern) to match, a **scope** (all chats or
+just the main chat), and either a **block message** or a **command** to run on the
+connected (jailed) device.

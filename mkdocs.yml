@@ -125,15 +125,30 @@ nav:
   - Getting started:
       - getting-started/index.md
       - Run locally: getting-started/run-locally.md
-  - Users:
+  - User guide:
       - features/index.md
-      - Chat & agents: features/chat-agents.md
-      - Memory graph: features/memory.md
-      - Devices & coding: features/devices.md
-      - Integrations: features/integrations.md
-      - Workflows & dashboards: features/workflows.md
+      - Chatting:
+          - Chatting: features/chat.md
+          - Controls & modes: features/chat-controls.md
+          - Agents & autonomy: features/agents.md
+          - Coding & Cloud Tasks: features/coding.md
+      - What it knows:
+          - Memory: features/memory.md
+          - Notes & Files: features/notes-files.md
+      - Comms & calendar:
+          - Inbox & contacts: features/inbox.md
+          - Calendar & agenda: features/calendar.md
+      - Automation & devices:
+          - Workflows & automations: features/workflows.md
+          - Dashboards, entities & scenes: features/dashboards.md
+          - Skills: features/skills.md
+          - Integrations: features/integrations.md
+          - Devices & apps: features/devices.md
+      - Personalize:
+          - Settings: features/settings.md
+          - Security & privacy: features/security.md
   - Administration:
-      - Security & governance: features/security.md
+      - Admin console: features/admin.md
   - Operation:
       - Architecture: architecture/index.md
       - Frozen contracts: architecture/frozen-contracts.md

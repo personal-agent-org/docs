@@ -17,7 +17,7 @@ hide:
     Per-chat model, mode and security pickers. Pick a model or `auto`. Sub-agents,
     a `/goal` loop, slash commands, checkpoints and best-of-N attempts.
 
-    [:octicons-arrow-right-24: Chat & agents](features/chat-agents.md)
+    [:octicons-arrow-right-24: Chat & agents](features/chat.md)
 
 -   :material-graph:{ .lg .middle } __World-state memory__
 
@@ -35,7 +35,7 @@ hide:
     A jailed Rust device agent (Linux/macOS/Windows) and a real browser device.
     Coding mode = Monaco editor + PTY terminal + LSP + shadow-git undo.
 
-    [:octicons-arrow-right-24: Devices & coding](features/devices.md)
+    [:octicons-arrow-right-24: Devices & coding](features/coding.md)
 
 -   :material-puzzle:{ .lg .middle } __Integrations__
 
@@ -75,6 +75,7 @@ A single fail-closed data-classification gate runs at every model-resolution ent
 so there is no path to an uncleared provider. The stack is FastAPI + pydantic-ai,
 a Quasar / Vue 3 frontend, Keycloak/OIDC, Postgres + pgvector and Redis.
 
+[Read the user guide](features/index.md) ·
 [Read the architecture overview](architecture/index.md) ·
 [Get started](getting-started/index.md) ·
 [Self-hosting guide](self-hosting.md)

@@ -1,62 +1,88 @@
-# Devices & coding
+# Devices & apps
 
-Chats bind to **devices**; each declares a **kind** on connect, which shapes the
-toolset.
+Connect a **computer**, a **browser** or your **phone** and your assistant can act in the
+real world — edit files, drive a web page, read your phone's status. You manage them all
+under **Settings → Devices** (*Geräte*). Online devices become available in the chat's
+device picker.
 
-## The `linux` device agent
+## Connect a computer
 
-A per-user **Rust** binary (per-OS one-liner install) running cross-platform
-(Linux/macOS/Windows via `portable-pty`), with binaries built natively per OS:
+A connected computer runs a small, secure **device agent** that gives the assistant a
+**jailed filesystem and terminal** — the foundation of [coding mode](coding.md). It runs
+on Linux, macOS and Windows.
 
-- The **Linux** build links statically via the musl target.
-- The **macOS/Windows** builds link system libraries.
+1. **Settings → Devices → Connect** (*Computer verbinden*) and give the device a name.
+2. Run the **one-liner** it shows you on that machine. It downloads the agent, signs in
+   through your normal **Keycloak** browser login (no token to copy), and starts it. The
+   agent connects **outbound**, so it works behind NAT.
+3. The device appears in the list as **online**, with the tools it offers.
 
-It authenticates over the Keycloak device flow and serves a **jailed filesystem +
-PTY**, powering coding mode.
+Prefer to do it by hand? **Download the binary** for your OS instead of the one-liner.
+You can **rotate** a device's credentials or **remove** it anytime.
 
-## The `browser` device
+!!! note "Device safety is per chat"
+    A device no longer carries its own rules — what the agent may do on it is governed by
+    the chat's [security mode](chat-controls.md#security-mode) (Autonomous / Approve each /
+    Judge). You can grant **permanent allowances** (*Dauerhafte Freigaben*) for specific
+    commands so they run without asking.
 
-Drives a real browser via the same WS protocol, as either:
+## Connect a browser
 
-- a **Chrome MV3 extension** (acts in your logged-in session), or
-- an on-demand **Playwright + Chromium** cloud sandbox.
+A **browser** device lets the assistant navigate, click, type and screenshot real web
+pages. Two flavours:
 
-Both speak the same `browser_*` protocol —
-`navigate`/`click`/`type`/`press`/`scroll`/`get_page`/`screenshot`/`eval_js`/`wait_for`
-+ tab switching; the in-session extension also exposes `back`/`forward`/`reload`/`find`.
+- the **browser extension** (Chrome/Edge) — acts in *your* logged-in session (see
+  [below](#the-browser-extension)); or
+- an on-demand **cloud browser** — **Settings → Devices → Start cloud browser**
+  (*Cloud-Browser starten*) spins up a headless Chromium in the cloud with no install.
 
-!!! tip "Vision models see the page directly"
-    Screenshots return as images, so vision models can read the page directly.
+Either way, vision models can read the page from screenshots directly.
 
-## Coding mode
+## Connect your phone
 
-Coding mode turns a chat into a **workspace** over a connected device's jailed
-filesystem:
+Install the **Android app** ([below](#native-apps)) and sign in, and your phone appears
+as a device. With your opt-in, the assistant can read its **status** and **control** it,
+and the phone can report **sensors** for context. You tune all of this under
+**Settings → Companion** (*Companion-App*):
 
-- **Monaco editor** + a real **PTY terminal**
-- **LSP** navigation / diagnostics, formatters
-- fuzzy-edit + `apply_patch`
-- **shadow-git undo**
-- `AGENTS.md` / custom commands
+- **Push connection** (*Push-Verbindung*) — when the app holds its realtime connection
+  (Always / Only when screen on / Wi-Fi only / Never) to balance battery.
+- **Location** (*Standort*) — off by default; opt in to report just a **zone name**
+  (e.g. "Home") or **exact** coordinates. Define **zones** (place + radius) that
+  [workflows](workflows.md) can react to.
+- **Sensors** — choose which sensors the phone shares.
+- **Health** (*Gesundheit*, via Health Connect) — opt in per metric (steps, sleep,
+  resting heart rate, weight); daily aggregates let the agent answer "how did I sleep?".
 
-A coding chat without a workspace **asks where to work first** — own device or an
-on-demand **cloud sandbox**, new vs. existing project — and the agent binds the
-choice itself (`list_workspace_options` / `select_workspace`). Chats spun off from
-the main chat start in a **clarify-first kickoff** (plan + questions, no invented
-requirements, no building before scope is confirmed).
+## Native apps
 
-On **small screens**, coding shows one view at a time (Chat / Editor / Terminal /
-Agents) with a bottom nav: unread-answer counts, the uncommitted-git-changes badge
-on the editor, finished-command counts on the terminal, and pulsing icons while
-the agent or a command is running.
+Personal Agent runs in the browser, but native shells add real push notifications,
+Keycloak login and microphone access. Find downloads under **Settings → App**.
 
-## On-demand cloud sandbox
+- **Android** — download the APK, allow installing it, open and sign in.
+- **Desktop (Linux)** — a Tauri app, offered as an AppImage (portable), a `.deb`, or a
+  single binary.
+- **Browser extension (Chrome/Edge)** — see below.
+- **Terminal client (TUI)** — a terminal chat client that speaks the same API; sign in
+  with the Keycloak device flow and chat from your shell.
 
-The same on-demand pattern offers a disposable **cloud coding sandbox** for
-zero-setup coding mode.
+### The browser extension
 
-## Safe parallelism
+Download the extension `.zip`, then load it unpacked: unzip it, open `chrome://extensions`,
+enable **Developer mode**, click **Load unpacked**, and select the folder. Open the
+popup and **Connect (sign in)** — it authenticates through your Keycloak login and a
+**Browser** device appears under **Settings → Devices**. Select it in a chat to give the
+assistant the browser tools.
 
-Read tools run concurrently while device writes are
-**serialized** to avoid races on the shared jail. See
-[Security & governance](security.md).
+## Use this assistant from other tools (MCP)
+
+Personal Agent can also expose **itself** as an [MCP](integrations.md#mcp-servers-external-apis)
+server, so other tools (Claude Code, Cursor, any MCP client) can use your assistant's
+knowledge — entity/document search, memory, notes, commitments, chats — and message you.
+Under **Settings → App**:
+
+- **OAuth (recommended)** — OAuth-capable clients just need the **MCP server URL**; they
+  sign you in through the normal login.
+- **Headless / CLI** — many CLI clients can also sign in with an OAuth **device code**
+  using only that URL. Only if your tool can't do OAuth at all, **create an access
+  token** (shown once) and use it as a Bearer token.
