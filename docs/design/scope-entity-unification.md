@@ -2,6 +2,12 @@
 
 > Status: Design (Vorschlag). Lead-Architekt-Entwurf. Verifiziert gegen den realen
 > Code-Stand am 2026-06-16. Alle Datei:Zeile-Referenzen sind echt.
+>
+> **Umsetzungsstand (2026-06-16):** Phase 0 (additiv) + Phase 1 (RLS-Schnitt) sind
+> **DEPLOYED** auf prod. Phase 1 lief in zwei Schritten: zuerst die 7 World-Memory-Tabellen
+> (`scope_unify_p1`), dann `entities` (`scope_unify_p1_entities`). Der App läuft als
+> unprivilegierte, RLS-pflichtige Rolle `personal_agent_app` (sonst wäre RLS inert). Offen:
+> Phase 2 (Group-Integrationen) + Phase 3 (Entity-Merge).
 
 ## Problemstellung — der heutige Doppel-Bruch
 
@@ -320,6 +326,19 @@ risikoreiche, alle Tabellen berührende Änderung; der Entity-Merge ist additiv 
 
 ### Phase 1 — RLS auf `scope_ref` umstellen (der harte Schnitt)
 
+> **DEPLOYED 2026-06-16.** Umgesetzt in zwei Migrationen statt einem Big-Bang, nach Risiko
+> sequenziert: `scope_unify_p1` flippt die 7 World-Tabellen (near-zero Risiko — World-Writer
+> setzen via `set_owner_context` schon `user:<owner>` als Read+Write-Scope), danach
+> `scope_unify_p1_entities` flippt `entities` (~36 Lese-/Schreibstellen, eigene Migration). Der
+> **Enabler**: prod lief vorher als Superuser `personal_agent` (BYPASSRLS → RLS komplett inert);
+> Fix = unprivilegierte Rolle `personal_agent_app` (NOSUPERUSER NOBYPASSRLS) + DSN-Override für
+> Backend+Worker, `migrate` behält den Superuser für DDL/Policies. Ein 4-Reviewer-Adversarial-Pass
+> fand vor dem Deploy vier reale, fehlende Scope-Wirings, die der Initialdurchlauf übersehen hatte:
+> `entities/webhook.py` (Webhook-Ingest setzte nur die Org-GUC), `comms/triage_service.py` (die
+> Pre-LLM-Filter lasen die Entity ohne Scope → Opt-out umgangen, Drop-Filter tot), `PATCH
+> /entities/{id}` (write_scope fest `user:<sub>` → 500 bei Org-Entity), und global/ownerless
+> Entities (`scope_ref=NULL` → unsichtbar; gelöst per `global`-Sentinel, siehe §5.1).
+
 1. `scope_ref NOT NULL` setzen (Backfill ist durch).
 2. Pro Tabelle: alte Policy droppen (`tenant_isolation` bzw. `owner_isolation`), neue
    `scope_isolation` (§1.4) anlegen. **Eine** Migration, reversibel (alte Policies
@@ -408,6 +427,16 @@ Drei Prinzipal-Typen: `scope_ref ∈ {user:<sub> | group:<id> | org:<id>}`. `org
 liegt immer mit in `current_scopes` (RLS-Sonderarm), Contract #11 (Org als äußere Grenze)
 bleibt natürlich AND-verknüpft. Kleinster Bruch, kein Zwang, dass jeder User Mitglied einer
 „Alle"-Group ist. (Verworfen: implizite Org-Group; org-shared abschaffen.)
+
+**Nachtrag (Phase-1-Deploy): der truly-globale Fall** — ein `SCOPE_GLOBAL`-Config-Entry
+(admin-erstellt, owner_sub UND org_id NULL) erzeugt Entities ganz ohne Prinzipal. Die im
+Backfill ursprünglich vorgesehene `org:<id>`-Default-Abbildung greift hier nicht (kein org_id).
+Lösung: ein vierter `global`-Sentinel-Scope (`scope_global()`), den die `entities`-Policy per
+USING-Sonderarm (`scope_ref = 'global' OR …`) **instanzweit lesbar** macht — das stellt das
+Vor-Flip-Verhalten wieder her (die alte org-`tenant_isolation` machte `org_id IS NULL`-Zeilen
+für alle sichtbar). Schreiben verlangt weiterhin `write_scope='global'` (nur die Sync/Writer/
+Webhook-Pfade setzen das via `set_entry_scope(None, None)`). Kein neuer Prinzipal-*Typ* im
+Sinne von 5.1 — ein Sichtbarkeits-Sentinel für besitzerlose Instanz-Daten.
 
 ### 5.2 Tabellen-Merge → **ENTSCHIEDEN (Empfehlung bestätigt): Schichtung DAUERHAFT**
 Zwei Tabellen bleiben der Endzustand, KEIN späterer physischer Ein-Tabellen-Merge:
