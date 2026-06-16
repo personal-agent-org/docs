@@ -25,6 +25,13 @@ plans — kept alongside the code so the *why* travels with the *what*.
 
     The full design of the bitemporal, causal world-state memory graph.
 
+-   :material-shield-account:{ .lg .middle } __[Scope & entity unification](scope-entity-unification.md)__
+
+    ---
+
+    Unifying the principal scope model (user/group, fail-closed) and merging the
+    integration-entity and world-memory entity systems.
+
 -   :material-clipboard-list:{ .lg .middle } __[Implementation plan](../implementation-plan.md)__
 
     ---
