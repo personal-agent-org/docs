@@ -1,104 +1,97 @@
-# Unified Workflows (design + roadmap)
+# Unified Workflows (shipped design)
 
-Status: **proposed** (2026-06-15). Consolidates the two programmatic-tool-calling scripts
-and the Automation static step-lists into ONE first-class **Workflow** concept, and
-ultimately absorbs the whole Automation system as "a workflow with a trigger". Modeled on
-Claude Code's own Workflow tool (meta `{name, description, whenToUse}` + a script body +
-save-by-name + discovery).
+Status: **DONE / shipped** (2026-06-16). The two programmatic-tool-calling scripts
+(`run_tools_script` / `run_agents_script`) and the entire **Automations** subsystem were
+merged into ONE first-class **Workflow** concept, then collapsed to a SINGLE form. The
+separate Automations subsystem no longer exists: **a Workflow with triggers IS what used to
+be an "Automation."** Modeled on Claude Code's own Workflow tool (meta
+`{name, description, when_to_use}` + a script body + save-by-name + discovery).
 
-**Skills stay a SEPARATE system** (decision 2026-06-15) — they are not absorbed into
-workflows. A Skill is an authored prose PLAYBOOK the LLM reads (progressive disclosure via
-`use_skill`); a Workflow is an EXECUTABLE unit (script / steps / agent-prompt). A saved
-workflow's `when_to_use` discovery may *mirror* the skills preamble pattern, but the two
-keep their own tables, tools and UI.
+**Skills stay a SEPARATE system** — they are not absorbed into workflows. A Skill is an
+authored prose PLAYBOOK the LLM reads (progressive disclosure via `use_skill`); a Workflow
+is an EXECUTABLE script. The two keep their own tables, tools and UI.
 
-## Target model
+## The unified model
 
-A **Workflow** is a named, owner-scoped definition of "something that runs":
+A **Workflow** is a named, owner-scoped, **sandboxed Monty Python script** — programmatic
+tool-calling with loops, fan-out and sub-agents (`delegate` / `delegate_many`), running the
+full guard-wrapped toolset. **There is NO `kind`.** The old script-vs-agents split, the
+"static steps" IR (tool/llm/extract) and the "agent prompt" action mode are GONE —
+everything is a script.
 
 ```
 Workflow {
   id, owner_sub, org_id,
-  name (slug), description, when_to_use,     # self-describing discovery (Skill-style)
-  kind: "script" | "steps" | "agent",        # how it executes
-  body,                                       # script text | step IR (tool/llm/extract) | prompt
-  enabled, allowed_tools?, source, usage_meta,
-  triggers: [ {kind: manual|chat|schedule|event|slash, config} ]   # Phase 4
+  name (slug), description, when_to_use,   # self-describing discovery (Skill-style)
+  script,                                  # the sandboxed Monty Python body
+  enabled, source, usage_meta,
+  integrations: [config_entry_id],         # optional: integration tools the script may use
+  devices: [device_id | "phone:<id>"],     # optional: connected device-agent tools
+  triggers: [ {kind: schedule|interval|webhook|manual|event|poll, config} ],
+  condition?: HA-style (entity_state | entity_attribute | time | trigger)
 }
 ```
 
-- **kind=script** — a sandboxed Monty Python script (today's `run_tools_script` +
-  `run_agents_script`, unified). **There is NO tools-vs-agents split**: spawning a
-  sub-agent (`explore`/`delegate`/`run_agent`/…) is *just another tool* injected into the
-  sandbox, alongside the data tools and — once the permission seam is closed — the full
-  chat toolset. What's available is decided by the run's capabilities + permissions, not by
-  which of two tools the model picked. Inner tool calls run through the chat's
-  **guard-wrapped** toolset, so every call honors the per-run security mode
-  (`approve_each`/`judge`) + governance (decision: *full toolset through the guard*).
-- **kind=steps** — the deterministic `WorkflowStep` IR (tool/llm/extract,
-  `{{trigger}}`/`{{steps.x}}` templating), reusing `run_static_workflow`.
-- **kind=agent** — a plain agent-prompt run (today's automation `action.kind=agent`).
+- **Script body** — a sandboxed Monty Python script. Spawning a sub-agent
+  (`delegate` / `delegate_many` with an `agent=` selector) is *just another function* in the
+  sandbox, alongside the data tools and the full chat toolset. Inner tool calls run through
+  the chat's **guard-wrapped** toolset, so every call honors the per-run security mode
+  (`approve_each` / `judge`) + governance + the untrusted-content gate.
+- **Triggers** — a Workflow may carry triggers: schedule / interval / webhook / manual /
+  event / poll, plus an optional HA-style **condition** (entity_state / entity_attribute /
+  time / trigger). A triggered Workflow is the old "Automation."
+- **Integrations + devices** — a Workflow may scope which integration config-entries and
+  connected device-agents (plus the companion phone as `phone:<id>`) it may use, on top of
+  the ambient web + first-party tools.
 
-**An Automation becomes a Workflow + a trigger binding.** The Automation subsystem
-(Temporal Schedules, the event dispatcher) stops being a separate concept and becomes the
-**trigger layer** that fires a Workflow. `RunSpec` already carries `workflow` (steps) and
-rides the same durable `ChatAgentWorkflow` + persist/record/notify tail — the unification
-extends, not replaces, that path.
+## How a Workflow runs
 
-## How today's pieces map
+- **Inline** — the agent runs a Workflow in-chat via the `run_workflow` tool (by `script=`
+  or by saved `name=`). The agent authors/manages workflows via `save_workflow` /
+  `list_workflows` / `delete_workflow` / `run_workflow`. Enabled workflows' `when_to_use` is
+  injected into a discovery preamble (mirrors the skills pattern; skills are not reused).
+- **Durable (triggered)** — a trigger fires a Workflow in the background via a Temporal
+  **Schedule** → `WorkflowScheduleWorkflow` → `prepare_workflow_run` → a child
+  `ChatAgentWorkflow` → the `run_script_workflow` activity. The activity runs the script
+  **headless** with the full guard-wrapped toolset + sub-agents + `send_message_to_user`
+  (the run's only channel to the user; its own output chat is hidden, so a detached
+  background run can still reach the user).
 
-| Today | Becomes |
-|---|---|
-| `run_tools_script` (Monty, read-only) | ad-hoc **kind=script** run, no sub-agents |
-| `run_agents_script` (Monty + sub-agents) | ad-hoc **kind=script** run, sub-agents capability on |
-| Automation `action.kind=workflow` (steps) | saved **kind=steps** Workflow |
-| Automation `action.kind=agent` (prompt) | saved **kind=agent** Workflow |
-| Automation trigger + schedule | a Workflow **trigger binding** |
+A headless/detached background run is `headless` → the guard **fail-denies** approval
+instead of hanging on a HITL card.
 
-## Permission seam (the load-bearing change)
+## Why script-only
 
-Today a Monty script dispatches inner tools through its OWN unwrapped read-only toolset —
-the security guard (`approve_each`/`judge`) is applied only at the *script tool boundary*,
-never per inner call. Safe today only because the inner surface is a hardcoded read-only
-allowlist (`CODE_RPC_TOOLS`) and the script tool is high-privilege (untrusted-gated).
+Collapsing to a single script form removes the dead branches (the `WorkflowStep` IR, the
+agent-prompt mode) and the script-vs-agents tool split. What's available to a script is
+decided by the run's capabilities + permissions, not by which of several tools the model
+picked. A script is strictly more expressive than the old static step-lists, so nothing is
+lost; everything authored as a workflow is one authoring + one execution path.
 
-Decision: a unified workflow may call the **full** chat toolset, so inner calls MUST
-re-enter `wrap_with_guard` — each inner call gated like a direct call, with mid-script HITL
-(deferred-approval) semantics, and the sub-agent fail-deny branch preserved for headless
-workers. This is the highest-risk phase and is sequenced after the safe unification.
+## Code map
 
-## Phased delivery (each phase independently shippable)
+- **Trigger engine** — `services/api/src/personal_agent/workflows/` (executor, triggers,
+  conditions, schedule_sync, event_dispatcher, tool_emitter, events). The Automations
+  subpackage is gone; this is its successor.
+- **Contracts** — `personal_agent_contracts/workflow_trigger.py` (`WorkflowFireSpec`,
+  `WORKFLOW_SCHEDULE_WORKFLOW`); `RunSpec.script` + `RunSpec.workflow_id`.
+- **DB** — one `workflows` table (+ a `workflow_secrets` webhook sidecar). The migration
+  preserved existing automation ids + schedules.
+- **REST** — one `/workflows` surface: CRUD + enable/disable/confirm/run/runs/rotate-token,
+  plus the public `/webhooks/workflows/{id}`.
+- **Frontend** — a "Workflows" drawer page (the list), a dedicated `/workflows/new` and
+  `/workflows/:id/edit` form page (not a dialog). The Hooks tab lives on the Workflows list
+  page.
 
-1. ✅ **DONE (commit da8bd94, deployed 2026-06-15).** `run_tools_script` + `run_agents_script`
-   → ONE `run_workflow` tool; sub-agent spawning is just a function in the sandbox (depth 1).
-   Spawner surface reduced to `delegate` + `delegate_many` with an `agent=` selector (folds
-   in explore/run_agent/delegate_to). Backend strings switched to English. Behaviour preserved.
-2. ✅ **BUILT (adversarially reviewed, pre-deploy).** A run_workflow script's inner tool
-   calls dispatch through the run's fully-assembled toolset (`GuardedToolsetRef` late-bound
-   AFTER wrap_with_guard AND the user hooks, before the follow-up injector): full toolset,
-   per-call `approve_each`/`judge` + governance + untrusted gate + user block/decision hooks.
-   Real mid-script HITL — a top-level inline workflow awaits the approval card (timeout
-   defaults to the MAX when the full toolset is bound, for approval headroom). A DETACHED
-   background workflow is `headless` → the guard fail-denies approval instead of hanging.
-3. **Persistence + discovery.** A dedicated `workflows` table (+ repo, migration, web
-   page). The agent gets the management surface: `run_workflow(script=… | name=…)`,
-   `save_workflow(name, description, when_to_use, script)`, `list_workflows()`,
-   `delete_workflow(name)`. Enabled workflows' `when_to_use` is injected into the agent
-   preamble for discovery (a SEPARATE preamble that mirrors the skills pattern — skills are
-   not reused/absorbed); `enabled` toggle on the page.
-4. **Converge steps + agent kinds.** Fold the `WorkflowStep` IR and the agent-prompt mode
-   into the same table (`kind`). The agent can author all three kinds.
-5. **Absorb Automations.** Automations become trigger bindings on a Workflow (schedule via
-   Temporal Schedules, event via the dispatcher, plus chat/slash/manual). Migrate existing
-   `automations` rows → `workflows` + trigger bindings (reversible migration; the live
-   automation subsystem stays working throughout — strangler-fig, not big-bang).
+## Invariants preserved
 
-## Risks / invariants to preserve
-
-- Automations are **live** (all phases done+deployed). Phase 5 is a strangler migration with
-  a reversible path; never a flag-day rewrite.
-- `_WORKFLOW_ACT` retry-disabled + `FunctionModel(_no_model)` (no-LLM, no-auto-retry for
-  side-effecting steps) must survive.
-- Contract #6 (snapshot at run start), #1/#2 (per-ModelResponse usage), #13 (untrusted gate),
-  #14 (classification) all hold; sub-agents keep own run_id + parent_run_id + usage.
-- Backend strings English (fix the German strings in `workflow_runner.py` while there).
+- Contract #1/#2 — usage recorded per `ModelResponse`, idempotent on
+  `(run_id, request_index)`; sub-agents keep their own `run_id` + `parent_run_id` + usage.
+- Contract #6 — toolsets snapshotted into the `RunSpec` at run start; the workflow never
+  queries live DB state during a run/replay.
+- Contract #13 — when an untrusted source is in a run, the assembler drops high-privilege
+  first-party / device tools; the durable worker mirrors this per-request.
+- Contract #14 — `enforce_classification` runs at every model-resolution entry, including
+  the triggered durable path.
+- **Schedule survival** — Temporal Schedules are id-stable (`autorun:{id}`); a boot
+  reconcile pass re-syncs schedules against the `workflows` table.

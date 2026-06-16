@@ -1,4 +1,4 @@
-# Automations, entities & dashboards
+# Workflows, entities & dashboards
 
 Integrations expose **entities** and users upload **documents**; both are indexed
 in pgvector for semantic search.
@@ -9,7 +9,7 @@ Entities carry the full Home-Assistant-style registry — state history, device
 registry, classes/units, visibility controls, areas/floors, labels and a logbook.
 
 Entities are also **controllable**: a first-party **action contract** routes a
-dashboard card, an automation step and the agent (`control_entity`) through one
+dashboard card, a workflow and the agent (`control_entity`) through one
 pipeline, with changes pushed live over the control WebSocket. **Scenes** capture
 and re-apply entity states.
 
@@ -25,13 +25,22 @@ Multi-view tabs, a drag-and-resize grid, badges and a wide card set:
 
 All schema-configured and persisted per user.
 
-## Automations
+## Workflows
 
-Automations are HA-style:
+A **Workflow** is the single unified concept: a named, owner-scoped **sandboxed Monty
+Python script** — programmatic tool-calling with loops, fan-out and sub-agents
+(`delegate` / `delegate_many`), running the full guard-wrapped toolset on top of the
+ambient web + first-party tools. It may optionally scope which integrations and connected
+device-agents (plus the companion phone as `phone:<id>`) its tools come from. The agent
+authors and runs workflows via `save_workflow` / `list_workflows` / `delete_workflow` /
+`run_workflow`.
 
-- **Temporal schedules** kick off durable agent runs.
-- **Event triggers** react to changes.
-- A static, **LLM-free action mode** runs deterministic tool-call steps.
+A Workflow optionally carries **triggers** (schedule / interval / webhook / manual /
+event / poll) plus an HA-style **condition** (entity_state / entity_attribute / time /
+trigger). **A Workflow with triggers is what used to be an "Automation."** When a trigger
+fires, the script runs durably in the background on a Temporal Schedule (→
+`WorkflowScheduleWorkflow` → a child `ChatAgentWorkflow` → the `run_script_workflow`
+activity), headless, with `send_message_to_user` as its only channel back to you.
 
 ## Web tools
 

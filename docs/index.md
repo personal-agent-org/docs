@@ -46,14 +46,15 @@ hide:
 
     [:octicons-arrow-right-24: Integrations](features/integrations.md)
 
--   :material-robot-industrial:{ .lg .middle } __Automations & dashboards__
+-   :material-robot-industrial:{ .lg .middle } __Workflows & dashboards__
 
     ---
 
-    HA-style automations on durable Temporal runs, Lovelace-style dashboards,
-    entities with full state history, and proactive background work.
+    Workflows (sandboxed scripts; a workflow with triggers is an automation, run
+    durably on Temporal), Lovelace-style dashboards, entities with full state
+    history, and proactive background work.
 
-    [:octicons-arrow-right-24: Automations & dashboards](features/automations.md)
+    [:octicons-arrow-right-24: Workflows & dashboards](features/automations.md)
 
 -   :material-shield-lock:{ .lg .middle } __Security & governance__
 

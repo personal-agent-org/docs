@@ -70,7 +70,7 @@ Legend: ✅ present · ⚠️ partial · ❌ missing
 
 ## Other pages (web) — all ❌ in TUI
 Notes, Files, Knowledge/Entities, Contacts, Calendar, Agenda/Commitments, Logbook, Scenes,
-Skills, Tasks, Dashboards, Automations. TUI surfaces only Chat + Sessions + Inbox + Agents.
+Skills, Tasks, Dashboards, Workflows. TUI surfaces only Chat + Sessions + Inbox + Agents.
 
 ## Cross-cutting
 | Feature | Web | TUI |
@@ -128,7 +128,7 @@ Ordered by value-to-effort for a terminal user. Each item notes the backend it a
 11. **Coding editor** — a Monaco-equivalent in a terminal is a big lift; `!cmd` + diffs may be
     enough. Consider a read-only file viewer + `$EDITOR` handoff instead of a full editor.
 12. **Voice (STT/TTS)** — needs audio capture/playback; low priority for a terminal client.
-13. **Workspace snapshot/revert**, Dashboards, Knowledge/Contacts/Calendar/Automations — port
+13. **Workspace snapshot/revert**, Dashboards, Knowledge/Contacts/Calendar/Workflows — port
     only if a concrete terminal use-case emerges.
 
 Suggested first slice: **P1 (1–4)** — small, all backend-ready, and they remove the most

@@ -33,12 +33,12 @@ focused, user-facing capabilities — each one drawn from what ships in the box.
     The folder tier, config flows, governance, capability providers and MCP in
     both directions.
 
--   :material-robot-industrial:{ .lg .middle } __[Automations & dashboards](automations.md)__
+-   :material-robot-industrial:{ .lg .middle } __[Workflows & dashboards](automations.md)__
 
     ---
 
-    HA-style automations, Lovelace-style dashboards, entities, scenes and
-    proactive background work.
+    Workflows (a workflow with triggers is an automation), Lovelace-style
+    dashboards, entities, scenes and proactive background work.
 
 -   :material-shield-lock:{ .lg .middle } __[Security & governance](security.md)__
 
@@ -70,7 +70,7 @@ A few cross-cutting capabilities sit across every chat:
 - **Voice** — speech-to-text and streaming text-to-speech via admin-configured
   OpenAI-compatible audio models.
 - **Groups** — admin-configured teams with OIDC-assigned membership and shared
-  folders/automations.
+  folders/workflows.
 - **Apps** — an Android WebView shell (OIDC, push, sensor reporting) and a Tauri
   desktop app; downloads live in Settings. A **first-login setup wizard** walks
   new users through initial configuration.

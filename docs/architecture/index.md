@@ -49,7 +49,7 @@ and `agent/resolver.py`:
   governance-compatible enabled models).
 - An explicit `provider:model` → `resolver.build_byok` with the admin platform key.
 - `enforce_classification(...)` is the **single** fail-closed gate, applied inline,
-  in the durable router and in automations/comms.
+  in the durable router and in workflows/comms.
 - The fallback chain is a `FallbackModel` built from `ranked_compatible_labels`,
   preferring **provider-diverse** fallbacks.
 

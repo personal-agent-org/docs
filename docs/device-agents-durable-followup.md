@@ -25,7 +25,7 @@ the worker rebuilds them from the snapshot via `DynamicToolset`s
 
 **Device tools are not in that snapshot**, so a durable run with a device selected silently has
 no device tools. This only happens when a user sends a chat run **"in the background"** with a
-device selected — automations/triage never set `run_config.devices` (and must not: they run over
+device selected — triggered workflows/triage never set `run_config.devices` (and must not: they run over
 untrusted content), so there is no functional regression, just an unsupported edge case.
 
 ## How to build it

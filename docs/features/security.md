@@ -52,7 +52,7 @@ flowchart TD
     B -->|not cleared| D[Blocked — fail closed]
     C --> E[Inline run]
     C --> F[Durable chat]
-    C --> G[Automations]
+    C --> G[Triggered workflows]
     C --> H[Comms triage]
 ```
 

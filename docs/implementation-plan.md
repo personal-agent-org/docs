@@ -3,6 +3,10 @@
 Lebende Checkliste für den autonomen Umbau (Goal: *setze das alles um*). Jeder Block wird
 einzeln committet; erledigte Punkte werden hier abgehakt.
 
+> **Hinweis (2026-06-16):** Das frühere „Automations"-Subsystem wurde inzwischen in
+> **Workflows** überführt (eine Workflow mit Triggern *ist* eine Automation). Ältere
+> Erwähnungen von „Automationen" weiter unten sind historisch.
+
 ## A. Robustheit & Betrieb
 - [x] **A1** Bildanalyse: graceful degradation, wenn das Modell kein Vision kann (kein harter
   500-Fail — Bild verworfen + Text weiter beantwortet; Retry-without-images in inline.py)

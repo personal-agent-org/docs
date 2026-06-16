@@ -69,7 +69,7 @@ in [`CLAUDE.md`](https://github.com/luebke-dev/personal-assistant/blob/main/CLAU
     per-request.
 14. **Data-classification is fail-closed**: tagged data must never reach a provider
     not cleared for it. The **same** `auto_model.enforce_classification` gate runs
-    at every model-resolution entry (inline, durable chat, automations, comms
+    at every model-resolution entry (inline, durable chat, triggered workflows, comms
     triage).
 15. **No secrets in spans**: content capture defaults **off**; provider keys never
     appear in `ModelSettings` dumps, errors or Temporal inputs.

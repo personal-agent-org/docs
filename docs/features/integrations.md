@@ -48,7 +48,7 @@ The manifest sync never overwrites these settings, and changes are audit-logged.
 | Integration | What it brings |
 | --- | --- |
 | **Email** | Triage with human-approved draft replies — the canonical inbox channel |
-| **GitHub** | PRs/issues as RAG-indexed entities + create/review/comment tools + an automation-triggerable webhook |
+| **GitHub** | PRs/issues as RAG-indexed entities + create/review/comment tools + a workflow-triggerable webhook |
 | **Web search** | Tavily / Brave / DuckDuckGo as interchangeable `web_search` providers (Tavily also provides `web_fetch`) |
 | **Inbox channels** | Signal, Matrix, Zulip, WhatsApp |
 | **Calendar / projects** | CalDAV, OpenProject, TED |
@@ -59,7 +59,7 @@ The manifest sync never overwrites these settings, and changes are audit-logged.
 - **As a client** — stdio built-ins plus user/org Streamable-HTTP servers
   (static-Bearer or OAuth + PKCE, tokens envelope-encrypted and auto-refreshed),
   selectable per chat. MCP servers freeze into the **RunSpec** at run start, so
-  they work unchanged in **durable runs and automations** — with token refresh
+  they work unchanged in **durable runs and triggered workflows** — with token refresh
   happening inside the activity and the same **untrusted-content gating** dropping
   high-privilege tools when an untrusted MCP source is in the run.
 - **As a server** — Personal Agent exposes itself at **`/api/mcp`** (Streamable HTTP)

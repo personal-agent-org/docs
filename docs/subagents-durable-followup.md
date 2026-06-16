@@ -40,9 +40,9 @@ builder** differs. Add a worker-side `subagent_dynamic_toolset()` mirroring
 ```python
 async def _build_subagent(ctx):
     deps = ctx.deps
-    # High-privilege (Contract #13): never in automation/comms/untrusted runs,
+    # High-privilege (Contract #13): never in triggered-workflow/comms/untrusted runs,
     # and never inside a sub-agent (depth = 1).
-    if not deps.tools_enabled or deps.automation_id or deps.is_subagent:
+    if not deps.tools_enabled or deps.workflow_id or deps.is_subagent:
         return None
     model = agents.resolve_model(deps.model)   # reuse the worker's REGISTERED models
     if model is None:
@@ -86,7 +86,7 @@ passed to `TemporalAgent(...)`. Without this, durable sub-agents are unsafe.
 ### Durable `delegate` (inherited tools)
 
 `delegate` must give the sub-agent "the same tools as the parent". In the worker
-that means rebuilding the run's dynamic toolsets (integrations + web + automation +
+that means rebuilding the run's dynamic toolsets (integrations + web + workflow +
 comms; **not** devices/MCP until those durable paths land) inside
 `build_child_toolsets("delegate")` from the frozen snapshot/`deps`, with
 `is_subagent=True` so it can't recurse. This is the heavier half — do it after
