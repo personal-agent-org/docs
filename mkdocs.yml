@@ -133,14 +133,14 @@ nav:
           - Agents & autonomy: features/agents.md
           - Coding & Cloud Tasks: features/coding.md
       - What it knows:
-          - Memory: features/memory.md
+          - Memory & entities: features/memory.md
           - Notes & Files: features/notes-files.md
       - Comms & calendar:
           - Inbox & contacts: features/inbox.md
           - Calendar & agenda: features/calendar.md
       - Automation & devices:
           - Workflows & automations: features/workflows.md
-          - Dashboards, entities & scenes: features/dashboards.md
+          - Dashboards & scenes: features/dashboards.md
           - Skills: features/skills.md
           - Integrations: features/integrations.md
           - Devices & apps: features/devices.md

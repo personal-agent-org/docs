@@ -23,10 +23,10 @@ hide:
 
     ---
 
-    A bitemporal, causal entity-state graph — not a flat note store. Two time
-    axes, provenance, a read/propose/write split and forgetting-as-invalidation.
+    A bitemporal, causal entity-state graph — not a flat note store. Memory and live
+    entities are one graph: two time axes, provenance, and a read/propose/write split.
 
-    [:octicons-arrow-right-24: Memory graph](features/memory.md)
+    [:octicons-arrow-right-24: Memory & entities](features/memory.md)
 
 -   :material-laptop:{ .lg .middle } __Devices & coding__
 
