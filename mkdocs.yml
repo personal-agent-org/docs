@@ -153,6 +153,7 @@ nav:
       - Architecture: architecture/index.md
       - Frozen contracts: architecture/frozen-contracts.md
       - Self-hosting: self-hosting.md
+      - FCM push setup: fcm-push-setup.md
   - Design notes:
       - design/index.md
       - Feature comparison: feature-comparison.md

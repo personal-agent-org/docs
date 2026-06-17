@@ -217,3 +217,9 @@ The app's OIDC redirect URI is `<applicationId>:/oauth/callback`
 (`applicationId` defaults to `dev.luebke.personalagent`); register that exact
 value on the `personal-agent-app` Keycloak client (change `applicationId` in
 `app/build.gradle.kts` if you fork the package name).
+
+`assembleMinimalRelease` (the default flavor) uses the foreground-WebSocket push
+path and needs no Google services. To wake a backgrounded phone via **Firebase
+Cloud Messaging** — and to reliably deliver the agent's device commands (alarms,
+timers) when the screen is off — build the `full` flavor and configure the
+server side: see [FCM push setup](fcm-push-setup.md).
