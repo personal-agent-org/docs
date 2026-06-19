@@ -17,6 +17,7 @@ Postgres+pgvector, Redis, Kubernetes/Compose.
 | **Redis** | AG-UI token stream, control/presence pub/sub, rate limits. |
 | **Temporal** | Durable engine for runs, the Curator, and schedules. |
 | **device-agent** (`clients/device-agent/`) | Cross-platform Rust agent (jailed FS + PTY). |
+| **tui** (`clients/tui/`) | Rust terminal client (ratatui) over the same HTTP/SSE API. |
 | **browser-sandbox** / **browser-extension** | Playwright cloud browser / Chrome MV3 extension — both `browser` devices. |
 
 Shared **contracts** (identity, run spec, bus, control, usage, world memory,
@@ -78,11 +79,12 @@ services/worker/                    Temporal worker (durable runs + Curator)
 apps/web/                           Quasar SPA + PWA
 integrations/                       integrations (folder tier)
 clients/device-agent/               Rust device agent (Linux/macOS/Windows)
+clients/tui/                        Rust terminal client (TUI)
 clients/browser-sandbox/            Playwright cloud browser device
 clients/browser-extension/          Chrome MV3 extension (browser device)
 deploy/keycloak/                    realm-as-code
 deploy/                             Dockerfiles, Compose, Helm
-docs/                               design notes & plans
+docs/                               MkDocs documentation site
 ```
 
 The design's invariants are captured as [Frozen contracts](frozen-contracts.md) —
