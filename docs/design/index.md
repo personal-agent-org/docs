@@ -19,6 +19,13 @@ plans — kept alongside the code so the *why* travels with the *what*.
     How the Lovelace dashboard, entity and config-flow models map onto our
     subsystems.
 
+-   :material-home-automation:{ .lg .middle } __[Home Assistant parity roadmap](home-assistant-parity-roadmap.md)__
+
+    ---
+
+    The north-star plan for full HA breadth/depth: a real-time control plane,
+    standard entity-class catalog, discovery and the HA-bridge accelerator.
+
 -   :material-graph-outline:{ .lg .middle } __[Universal memory](../universal-memory.md)__
 
     ---
