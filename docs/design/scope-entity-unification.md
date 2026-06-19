@@ -285,6 +285,25 @@ einer Projektion mit `source_kind='entity'`, `source_id=<world_entity_id>`,
 `entity_ids=[node]` (`world_memory.py:353,356`). Ein Recall-Query, eine RLS-Policy, ein HNSW.
 `entity_chunks` entfällt; der `EntityIndexer` schreibt in `memory_projections`.
 
+> **Keying-Korrektur (2026-06-19, RAG-Merge 1/N).** Das oben skizzierte `source_id=<world_entity_id>`
+> ist für die **Mehrheit** der Integration-Entities **nicht verwendbar**: der Feeder legt nur dann einen
+> `world_entities`-Node an, wenn der Deskriptor `world_kind` deklariert (`entities/service.py`); der
+> Default ist `None` (`integrations/entities.py`), und „churnende" Sensor-Typen sollen den Graphen
+> bewusst **nicht** fluten. Eine nicht-graph-gefeedte Entity hat also `entity_chunks`, aber **keine**
+> `world_entity_id`. `memory_projections.source_id` ist bereits ein **nullable, un-ge-FK-ter**
+> diskriminierter Pointer (`source_kind` + `source_id`). **Entscheidung:** polymorph keyen — eine
+> graph-gefeedte Entity behält ihren Rollup als `source_kind='entity'` / `source_id=world_entities.id`
+> (unverändert), die Integration-Live-RAG wird ein **eigenes** `source_kind='entity_live'` /
+> `source_id=entities.id`. Zwei `source_kind`, zwei ID-Räume, eine Tabelle, ein HNSW. Idempotenz bleibt
+> sauber, da `find_by_source` auf dem Tripel `(owner_sub, source_kind, source_id)` keyt.
+>
+> **Inkremente (additiv → dual-write → Reader-Vereinheitlichung → Cutover → DROP):** (1) **erledigt
+> 2026-06-19** — `memory_projections`-RLS um den `scope_ref='global'`-Zweig erweitert (kongruent zu
+> `entity_chunks`, Tier-Gate auf beiden Zweigen) + `ProjectionRepo.add(scope_ref=…)` stampt explizit;
+> kein Reader/Indexer berührt. (2) Indexer dual-write nach `memory_projections` (`entity_live`,
+> per-Chunk beibehalten). (3) vereinheitlichter Reader (muss `current_scopes`+`current_model_tier`
+> setzen, nicht nur `owner_sub`). (4) Read-Cutover. (5) `entity_chunks` droppen (soak-gated).
+
 ### 2.6 Zieltabellen — Überblick
 
 | Tabelle | Rolle | scope_ref | Schicksal |
