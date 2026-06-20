@@ -29,7 +29,7 @@ Hermes: man **chattet mit** dem Agent über die Plattform).
 | 2 | Skill-Usage-Signale → Lebenszyklus & Verbesserung | Aging nach last_used | **Adopt** | ★★☆ | S |
 | 3 | ACP-Adapter (IDE-Integration VS Code/Zed) | fehlt | **Adapt** | ★★☆ | M |
 | 4 | Mehr Messaging-Kanäle (inbound-lesend) | 6 Kanäle | **Adapt** | ★★★ | M je Kanal |
-| 5 | Konversationeller Agent-Endpoint (Hermes-Modell) | fehlt | **Design-Fork → klären** | ★★☆ | L |
+| 5 | Konversationeller Agent-Endpoint (Hermes-Modell) | fehlt | **Skip (bewusst)** | — | — |
 | 6 | i18n-Ausweitung (16 Sprachen) | 2 Sprachen | **Adapt (Quick-Win)** | ★★☆ | S–M |
 | 7 | Klassische Chat-CLI | TUI vorhanden | **Skip** | ★☆☆ | S |
 | 8 | Weitere Execution-Backends (Modal/Daytona) | SSH/K8s/Docker da | **Skip** | ★☆☆ | M |
@@ -67,10 +67,16 @@ archiviert ungenutzte automatisch.
 
 **Empfehlung — Adopt als Ausbau, in drei Stufen:**
 - **(a) Autonomie-Policy** auf dem bestehenden Proposal-Pfad: pro Org/User ein
-  Level `propose_only` (Default) → `auto_enable_trusted` → `auto_enable`. Auto-Enable
-  **nur**, wenn das Skill keine high-privilege/untrusted-gated Tools referenziert und
-  die Provider-Governance passt. So bleibt der **fail-closed**-Charakter (Contract #14)
-  erhalten und die Autonomie ist eine *Konfiguration*, kein Architekturbruch.
+  Level **`propose_only` (Default, entschieden)** → `auto_enable_trusted` →
+  `auto_enable` (beide opt-in). Bei `propose_only` landet jedes gelernte Skill als
+  `enabled=False`/`proposed` in der Review-Queue und wird erst nach Freigabe genutzt.
+  `auto_enable_trusted` aktiviert ein Skill automatisch **nur**, wenn es keine
+  high-privilege/untrusted-gated Tools referenziert und die Provider-Governance passt;
+  sensible Skills bleiben Review-pflichtig. Wichtig: In *allen* Levels greift zur
+  Laufzeit weiterhin das normale Tool-Gating (Contracts #13/#14) — die Autonomie
+  betrifft nur den *Review-Schritt*, nie die Sicherheitsgrenzen. So bleibt der
+  **fail-closed**-Charakter erhalten und die Autonomie ist eine *Konfiguration*, kein
+  Architekturbruch.
 - **(b) Skill-Self-Improvement:** Curator-Pass, der bei wiederholter Nutzung +
   beobachteten Fehlschlägen eines Skills einen Patch-Vorschlag erzeugt (gleicher
   Propose→Approve→Commit-Pfad). Nutzungssignale aus #2 unten.
@@ -136,21 +142,19 @@ Priorisierung nach Reichweite/Aufwand:
 
 **Architektur-Fit:** Hoch (kanonischer Integrations-Pfad). **Aufwand: M je Kanal.**
 
-### 5. Konversationeller Agent-Endpoint — der eigentliche Design-Fork
+### 5. Konversationeller Agent-Endpoint (Hermes-Modell) — **Skip (bewusste Entscheidung)**
 
-> **Hier ist eine Produktentscheidung nötig.** Du hast den Konzeptunterschied selbst
-> benannt: bei PA *liest* der Agent Nachrichten; bei Hermes *chattet* man mit dem
-> Agent über die Plattform. #4 deckt nur das Lesen ab. Wenn Nutzer **mit ihrem Agent
-> über Telegram/Signal chatten** sollen (Hermes-Modell), ist das eine **neue
-> Capability**, kein weiterer Listener: ein „conversational transport", der eine
-> Plattform-DM-Konversation an einen echten Chat-Run bindet (mit Streaming-Antworten,
-> Security-Modi, Tool-Approvals über den Kanal).
+> **Entschieden:** Direkte Kommunikation *mit* dem Agent läuft bei Personal Agent
+> **ausschließlich über die eigenen Apps** (Web-SPA, Rust-TUI, Android, Desktop).
+> Das Hermes-Modell — „mit dem Agent über eine Fremd-Plattform chatten" — wird
+> **bewusst nicht** übernommen.
 
-**Empfehlung:** Inbound-Lesen (#4) zuerst, da es nahtlos ins bestehende Modell passt.
-Den konversationellen Endpoint als **separates, größeres Vorhaben** behandeln — er
-berührt Auth (Plattform-Identity ↔ PA-User-Mapping), Mandantenfähigkeit und das
-Approval-UX über einen Chat-Kanal. **Aufwand: L.** *→ Ich frage unten nach, ob/wann
-wir diesen Fork angehen.*
+Damit bleibt die klare Trennung erhalten: Drittplattformen (E-Mail, Signal,
+WhatsApp, Matrix, Zulip, künftig Telegram/Slack/Discord) sind **rein inbound-lesend**
+(#4) — der Agent liest und triagiert dort eingehende Nachrichten, aber die
+konversationelle Oberfläche bleibt den eigenen Clients vorbehalten. Das vermeidet die
+sonst nötige Komplexität (Plattform-Identity ↔ PA-User-Mapping, Approval-UX und
+Security-Modi über einen fremden Chat-Kanal) und hält das Produktkonzept scharf.
 
 ### 6. i18n-Ausweitung (Richtung 16 Sprachen)
 
@@ -214,19 +218,20 @@ dem Per-`ModelResponse`-Usage-/Cost-Modell (Contracts #1/#2).
 3. **#6 i18n-Ausweitung** (S–M) — paralleler Quick-Win.
 4. **#3 ACP-Adapter** (M) — Dev-Ökosystem-Sichtbarkeit.
 5. **#4 Telegram/Slack/Discord inbound** (M je Kanal) — Reichweite im PA-Modell.
-6. **#5 Konversationeller Endpoint** (L) — nur nach expliziter Produktentscheidung.
+
+(#5 konversationeller Endpoint entfällt bewusst — siehe Tier-2-Abschnitt.)
 
 ---
 
-## Offene Punkte (brauche deine Entscheidung)
+## Getroffene Entscheidungen
 
-- **Konversationeller Agent-Endpoint (#5):** Wollen wir das Hermes-Modell
-  („mit dem Agent chatten über Telegram/Signal") als eigene Capability *zusätzlich*
-  zum Inbound-Lesen — oder bleibt PA bewusst rein inbound-lesend und wir bauen nur die
-  Kanäle aus (#4)?
-- **Autonomie-Default (#1a):** Soll Auto-Enable von gelernten Skills org-weit
-  abschaltbar/Opt-in sein (mein Vorschlag: Default `propose_only`), oder willst du
-  einen aggressiveren Default für Power-User?
+- **Konversationeller Agent-Endpoint (#5): bewusst verworfen.** Direkte
+  Kommunikation mit dem Agent läuft ausschließlich über die eigenen Apps
+  (Web/TUI/Android/Desktop). Drittplattformen bleiben rein inbound-lesend (#4).
+- **Autonomie-Default (#1a): `propose_only`.** Gelernte Skills landen in der
+  Review-Queue und werden erst nach Freigabe genutzt; `auto_enable_trusted` und
+  `auto_enable` bleiben opt-in pro Org/User. Laufzeit-Tool-Gating greift in allen
+  Levels.
 
 ---
 
