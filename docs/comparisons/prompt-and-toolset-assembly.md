@@ -295,9 +295,34 @@ e2e-/`requires_services`-/`requires_llm`-Tests laufen nur mit lokaler DB/LLM.
 | **A3 / durable Worker** | ✅ (opt-in) | Durable Chat-Agent defert die Integrations-/MCP-Toolsets + `ToolSearch` mit **lokaler `keywords`-Strategie** (native Suche ist nicht replay-stabil); hinter `Settings.durable_tool_search` (default **off**, da der Temporal-Pfad hier nicht integrationsgetestet werden kann → Operator schaltet nach Live-Validierung frei). |
 | **A3 / Sub-Agents** | ✅ bewusst ausgelassen | Worker sind fokussiert + kurzlebig und laufen schon unter Tool-Constraints (`NoDeferToolset`); Deferral brächte nur Discovery-Round-Trips ohne Nutzen. |
 
-**Verbleibende echte Optionen (kein Code-Schuld, bewusste Entscheidung):**
-- A3 durable per-run **`auto`-Schwelle** statt all-or-nothing — bräuchte einen
-  `for_run`-Zähl-Wrapper; auf dem Singleton-Temporal-Agent mit Replay-Determinismus
-  riskanter als der aktuelle Flag-Ansatz, daher erst nach Live-Validierung sinnvoll.
-- A1 **`CachePoint`** für generische OpenAI-kompatible Endpoints, die Anthropic proxen
-  (nicht OpenRouter) — Nische; heute Auto-Prefix-Caching.
+### Abschluss-Runde — alles fertig gebaut
+
+| Item | Status | Kernänderung |
+|------|--------|--------------|
+| **A1 / CachePoint** | ✅ | `agent/prompt_cache.with_cache_point` hängt einen `CachePoint` an den Inline-Prompt → Anthropic/Bedrock/OpenRouter cachen den **Konversations-History-Präfix** über Turns; OpenAI/Google/generisch filtern ihn weg (no-op). Round-trip-sicher über `ModelMessagesTypeAdapter`. |
+| **A1 / Static-Dynamic-Split** | ✅ | `_layer_instructions` liefert `(stable, volatile)`: stabiler Präfix als **statische** (gecachte) Instructions, volatiler Teil (World-State, Kompression, Title/Goal/Tag-Gate, Hook-Output) als **dynamischer** Funktions-Block → echtes **Cross-Turn-Caching**. Gerenderter Text byte-identisch (Test). Inline-Pfad. |
+| **A3 / durable auto** | ✅ (opt-in) | `AutoDeferToolset` zählt pro Run die Tools des dynamischen Integrations-Toolsets (deterministisch → replay-safe) und defert nur über der Schwelle. Hinter `durable_tool_search`. |
+
+**Generischer OpenAI-kompatibler Anthropic-Proxy:** kein sauberer Weg — pydantic-ais
+OpenAI-Adapter **filtert `CachePoint`** und sendet kein `cache_control`. Nur der dedizierte
+`OpenRouterModel`/`AnthropicModel`/`BedrockModel` tragen Caching. Bewusst offen gelassen.
+
+## 7. pydantic-ai-Feature-Audit (1.107) — was wir noch nutzen könnten
+
+Audit der installierten pydantic-ai-Primitive vs. PA-Nutzung. **Gut genutzt:**
+Instrumentation, Hooks, `ToolReturn`, `FallbackModel`, `UsageLimits`, der Filtered/Wrapper-
+Gate-Stack (#13), Tool Search (mit Determinismus-Split), CachePoint + Cache-Settings.
+
+**Empfohlen (noch nicht / nicht optimal genutzt):**
+1. **Static-/Dynamic-Instructions (`InstructionPart`)** — ✅ jetzt umgesetzt (siehe oben).
+2. **`args_validator=`** an risikoreichen Tools (Device-Setpoints 0–100, World-Memory-Writes)
+   → Grenz-Validierung via `ModelRetry`, bevor ein malformter Call ausgeführt wird. Heute nur
+   im Code-Execution-Pfad. *Geringer Aufwand, lokale Sicherheit. Offen.*
+3. **`PreparedToolset` / `prepare=`** für das Device-Toolset — die **online**-Geräte im
+   Tool-Schema sichtbar machen (statt erst im Call-Result), muss reproduzierbar aus dem
+   RunSpec bleiben (#6). *Mittlerer Aufwand. Offen.*
+
+**Bewusst übersprungen (Begründung):** `load_capability`/Capabilities-on-demand (Kontext schon
+via Tool-Search + Kompression gemanagt), native Tools/Embeddings (PAs eigene sind plattform-
+getunt), strukturierter Output (Text-Streaming + AG-UI #3 funktioniert), `PrefixedToolset`/
+`SetMetadata`/`ExternalToolset` (kosmetisch/Zukunft).
