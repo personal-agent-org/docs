@@ -3,7 +3,7 @@ site_description: >-
   A multi-tenant, self-hostable LLM chat + agent platform — durable runs,
   a world-state memory graph, devices, integrations and proactive work.
 site_author: luebke.dev
-site_url: https://luebke-dev.github.io/personal-assistant/
+site_url: https://personal-agent.org/
 
 repo_name: luebke-dev/personal-assistant
 repo_url: https://github.com/luebke-dev/personal-assistant
