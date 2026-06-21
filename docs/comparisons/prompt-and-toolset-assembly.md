@@ -313,14 +313,20 @@ Audit der installierten pydantic-ai-Primitive vs. PA-Nutzung. **Gut genutzt:**
 Instrumentation, Hooks, `ToolReturn`, `FallbackModel`, `UsageLimits`, der Filtered/Wrapper-
 Gate-Stack (#13), Tool Search (mit Determinismus-Split), CachePoint + Cache-Settings.
 
-**Empfohlen (noch nicht / nicht optimal genutzt):**
-1. **Static-/Dynamic-Instructions (`InstructionPart`)** — ✅ jetzt umgesetzt (siehe oben).
-2. **`args_validator=`** an risikoreichen Tools (Device-Setpoints 0–100, World-Memory-Writes)
-   → Grenz-Validierung via `ModelRetry`, bevor ein malformter Call ausgeführt wird. Heute nur
-   im Code-Execution-Pfad. *Geringer Aufwand, lokale Sicherheit. Offen.*
-3. **`PreparedToolset` / `prepare=`** für das Device-Toolset — die **online**-Geräte im
-   Tool-Schema sichtbar machen (statt erst im Call-Result), muss reproduzierbar aus dem
-   RunSpec bleiben (#6). *Mittlerer Aufwand. Offen.*
+**Empfohlen — alle drei jetzt umgesetzt:**
+1. **Static-/Dynamic-Instructions (`InstructionPart`)** — ✅ `_layer_instructions` liefert
+   `(stable, volatile)`; stabiler Teil statisch (gecacht), volatiler Teil als Funktions-Block
+   (dynamisch, ungecacht). Cross-Turn-Caching, gerenderter Text byte-identisch.
+2. **`args_validator=`** — ✅ `control_entity` (endlicher Setpoint, kein NaN/Inf) +
+   `get_neighbors` (Tiefe 1–3) werfen `ModelRetry` **vor** dem Tool-Body / DB-/Geräte-I/O.
+3. **Device-Identität im Schema** — ✅ jede `dev_<id>_*`-Tool-Beschreibung trägt jetzt den
+   Geräte-**Namen** (`[Bastis MacBook] …`), damit das Modell weiß, auf welcher Maschine es
+   handelt. Idiomatisch zur Build-Zeit (das Toolset wird ohnehin pro Run gebaut) statt via
+   `PreparedToolset` — letzteres wäre hier redundante Indirektion.
+
+**Zusätzlich (Hermes-Parität):** Das **aktuelle Datum/Uhrzeit** wird direkt in die (volatile)
+Instructions injiziert (`current_time_instruction`) statt per Tool — `get_current_time` ist
+aus dem interaktiven Chat raus (bleibt für Code-Execution-Skripte + Sub-Agents).
 
 **Bewusst übersprungen (Begründung):** `load_capability`/Capabilities-on-demand (Kontext schon
 via Tool-Search + Kompression gemanagt), native Tools/Embeddings (PAs eigene sind plattform-
