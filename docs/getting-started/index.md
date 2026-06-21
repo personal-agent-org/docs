@@ -1,4 +1,4 @@
-# Getting started
+# Installation
 
 Personal Agent is a containerised platform. You can spin up the **full stack
 locally** in minutes for development, or deploy your **own instance** on your own
