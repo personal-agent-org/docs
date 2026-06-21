@@ -179,7 +179,7 @@ or a command is running.
 
     Security modes, memory access, confidential chats and what stays private.
 
--   :material-shield-account:{ .lg .middle } __[Admin console](admin.md)__
+-   :material-shield-account:{ .lg .middle } __[Admin console](../administration/index.md)__
 
     ---
 

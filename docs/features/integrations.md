@@ -65,4 +65,4 @@ Both are selectable per chat like any other tools.
     Admins can enable or disable each integration platform-wide, restrict which scopes may
     configure it, and require provider **governance tags** — so, for example, an
     integration only runs on providers cleared for it. See
-    [Security & privacy](security.md) and the [Admin console](admin.md).
+    [Security & privacy](security.md) and the [Admin console](../administration/integrations.md).
