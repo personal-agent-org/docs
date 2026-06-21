@@ -60,6 +60,14 @@ actually configure things.
 
     [:octicons-arrow-right-24: Integrations](integrations.md)
 
+-   :material-key:{ .lg .middle } __OAuth credentials__
+
+    ---
+
+    OAuth2 client config per integration domain, for connect-with-provider sign-in.
+
+    [:octicons-arrow-right-24: OAuth credentials](oauth-credentials.md)
+
 -   :material-storefront:{ .lg .middle } __Skill catalog__
 
     ---

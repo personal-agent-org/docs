@@ -158,6 +158,7 @@ nav:
       - Providers: administration/providers.md
       - Groups: administration/groups.md
       - Integrations: administration/integrations.md
+      - OAuth credentials: administration/oauth-credentials.md
       - Skill catalog: administration/skill-catalog.md
       - Statistics: administration/statistics.md
       - Budgets: administration/budgets.md
