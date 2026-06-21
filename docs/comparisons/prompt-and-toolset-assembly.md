@@ -270,3 +270,27 @@ Surface-Overlays ergänzt, statt pro Domain im Code zu streuen (passt zur
 > Vorher offene Produktfrage für A1/A3: Caching nur auf Claude/Anthropic-Schiene
 > zuerst, oder direkt provider-übergreifend? Und: Tool-Search-Default `auto`
 > (wie Hermes) vs. `off` bis MCP-Last messbar ist.
+
+---
+
+## 6. Umsetzungsstatus (alle vier umgesetzt)
+
+Entscheidung: **alle vier**, Caching **provider-übergreifend**, Tool-Search-Default
+**`auto`** (no-op unter Schwelle → sicher per Konstruktion). Unit-getestet; die
+e2e-/`requires_services`-/`requires_llm`-Tests laufen nur mit lokaler DB/LLM.
+
+| Item | Status | Kernänderung | Tests |
+|------|--------|--------------|-------|
+| **A1** Prompt-Caching | ✅ | `resolver.apply_prompt_cache_settings` in `with_provider_defaults` (geteilte Seam → resolve + override + auto + durable RunSpec). Anthropic: `anthropic_cache_instructions` + `anthropic_cache_tool_definitions`; OpenAI/Google/DeepSeek prefix-cachen automatisch. | `test_model_settings.py` |
+| **A2** Tool-Use-Guidance | ✅ | `run_instructions.tool_use_enforcement(model_label)` — Block für schwächere Caller (GPT/Gemini/Qwen/…), no-op für Claude; im stabilen Cache-Präfix von `_layer_instructions` (getrieben vom RESOLVED Label → folgt Auto). | `test_tool_use_enforcement.py` |
+| **A3** Tool Search | ✅ (inline) | `agent/tool_search.py` über pydantic-ais `DeferredLoadingToolset` + `ToolSearch`-Capability; nur Integrations-/MCP-Toolsets, nur inline-Top-Level (`assembler.tool_search_path`), untrusted-ids auf Wrapper remapped (#13), Capability atomisch via `factory.build(extra_capabilities=…)`. Echte Tool-Namen → AG-UI (#3) unberührt. | `test_tool_search.py` |
+| **A4** Platform-Hints | ✅ | `agent/platform_hints.py` (Domain→Stil + append/replace-Override, fail-safe), in die Comms-Triage-Hülle (`triage_context`) eingehängt; no-op für eigene/unbekannte Domains. | `test_platform_hints.py`, `test_triage_context.py` |
+
+**Bewusst außerhalb des Scopes (dokumentierte Follow-ups):**
+- A3 für den **durable Worker** + **Sub-Agents** — erfordert dieselbe Wrap+Capability-Atomarität
+  auf dem Temporal-Pfad (RunSpec-Mirror); inline zuerst, weil dort die Capability-Addition am
+  Agent-Bau garantiert ist.
+- A1 **CachePoint** für OpenAI-kompatible Anthropic-Proxys (OpenRouter) — heute cachen die
+  Anthropic-Marker nur auf direktem Anthropic-Provider; Proxys nutzen Auto-Prefix-Caching.
+- A4 **Config-Override-Surface** (`platform_hints` in Settings) — der Resolver akzeptiert bereits
+  Overrides; nur die Settings-Anbindung fehlt.
