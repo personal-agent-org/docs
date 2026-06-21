@@ -81,7 +81,7 @@ There's a broad card set. The main families:
 
 ### Dashboards in chat
 
-Custom [chat modes](chat-controls.md#chat-modes) can pin a dashboard's cards into the
+Custom [chat modes](chat-controls.md#mode-collaboration-style) can pin a dashboard's cards into the
 chat's side panel, so the controls and readouts you need for a task sit right next to the
 conversation.
 

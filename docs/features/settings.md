@@ -61,7 +61,7 @@ How the assistant works for you:
 - **Devices** — connect a computer, browser or phone (see [Devices & apps](devices.md)).
 - **Commands** — your own [slash commands](chat-controls.md#your-own-commands).
 - **Integrations** — connect external services (see [Integrations](integrations.md)).
-- **Memory** — the flat list of [remembered facts](memory.md#the-simple-remembered-facts-list).
+- **Memory** — the flat list of [remembered facts](memory.md#what-the-assistant-remembers).
 
 ## System
 

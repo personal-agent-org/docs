@@ -61,7 +61,7 @@ then, as it isn't shown again. You can **rotate** it later if it leaks.
 Add optional **conditions** that must hold for the run to proceed, combined with
 **All (AND)** or **Any (OR)**:
 
-- **Entity state** / **Entity attribute** — compare an [entity](memory.md#entities-in-detail)
+- **Entity state** / **Entity attribute** — compare an [entity](entities.md#per-entity-detail-state-history-cause-effect)
   value with an operator (equals, not equals, greater/less than, at least/at most,
   contains);
 - **Time window** — between two times, on selected weekdays;
