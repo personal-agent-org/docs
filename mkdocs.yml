@@ -125,6 +125,8 @@ nav:
   - Installation:
       - getting-started/index.md
       - Run locally: getting-started/run-locally.md
+      - Docker / Podman: getting-started/docker.md
+      - Kubernetes: getting-started/kubernetes.md
   - User guide:
       - features/index.md
       - Chatting:
