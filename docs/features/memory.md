@@ -1,158 +1,182 @@
-# Memory & entities
+# Memory
 
-**Memory and entities are the same thing.** Personal Agent keeps a single layer of
-knowledge about your world, and it surfaces on one screen — the **Knowledge** page (in
-the account menu). There is no separate "memory" page and "entities" page: the old
-`/memory` and `/entities` links both redirect to `/knowledge`, because they were never
-two things to begin with.
+The assistant builds up a durable, private picture of your world as you chat — that you
+prefer terse answers, who a person is, that "the K8s migration" is a project, what you
+asked it to do. This page covers that learned **memory**: how facts are recalled, how the
+assistant proposes new ones for you to confirm, and how to inspect, time-travel, correct
+and erase what it knows.
 
-This page explains that one layer: what it is, how the assistant learns it, how to
-inspect and correct it, and how live integration data fits into the very same graph.
+Memory and live integration data share **one graph** of entities and facts, surfaced on
+the **Knowledge** page (in the account menu). This page is about the *governance and
+time-travel* side. For browsing that graph, creating your own entities (helpers), and
+organizing areas, floors and devices, see [Entities](entities.md).
 
-## One layer, two kinds of knowledge
+!!! note "Memory is private"
+    Everything the assistant learns is **strictly yours**, isolated at the database level
+    (per-owner row-level security). Nothing leaks across users. Group-shared knowledge is
+    the one exception, and only for members of that group.
 
-Everything the assistant knows is stored as a graph of **entities** linked by **facts**.
-That graph holds two kinds of knowledge that most products keep apart — and here they are
-unified:
+## What the assistant remembers
 
-1. **Durable memory** — things the assistant has *learned*: that you prefer terse
-   answers, that "the K8s migration" is a project, who a person is. These are entities
-   and facts the assistant builds up over time as you chat.
-2. **Live entities** — things with a *current state*, synced from your
-   [integrations](integrations.md): a light that is on, a sensor reading, a calendar, a
-   GitHub pull request, a project in OpenProject.
+Each thing the assistant knows is an **entity** (a person, project, place, preference, …)
+with **facts** attached (`preference = terse`, `location = Kitchen`, `state = on`). A fact
+whose object is another entity is a **relationship**.
 
-They are not two registries. An integration entity can declare a memory **kind**, and the
-sync engine then keeps a **graph node for that entity inside the same memory graph**. So a
-single "Living-room lamp" is *both* a live-state thing you can switch *and* a memory node
-that facts can attach to ("installed by Alice", "part of the evening scene"). On the
-Knowledge page it shows a **Live** badge with its current state, sitting in the same list
-as purely-learned entities like a person or a preference.
+Every fact carries provenance you can see throughout the UI:
 
-!!! tip "Why this matters"
-    Because they share one graph, the assistant can reason across both at once — *"turn
-    off the lamp Alice installed"* joins a learned fact (who installed it) with live state
-    (which lamp, is it on). Ask it about a project and it can pull both what you've told it
-    and the live issues synced from your tracker.
+| Provenance | Shown as | Meaning |
+| --- | --- | --- |
+| Source | 👤 / 🤖 / 🔌 | Who asserted it: you, the assistant, or an integration |
+| Date | `06-07` | When the fact started holding (its valid-from) |
+| Confidence | `●●●●○` | How sure the assistant is (0–5 dots) |
+| Status | `superseded`, `invalidated`, … | Lifecycle — only shown when not the active value |
 
-## What the Knowledge page shows
+### How facts reach memory
 
-The Knowledge page is **one list of everything the assistant knows about your world** —
-people, places, preferences, tasks, projects, devices, lights, sensors and more. Each row
-is an entity. Entities fed by an integration carry a **Live** badge and their current
-state; purely-learned entities don't.
+You rarely add memory by hand. The pipeline keeps the chat agent **read-only** and routes
+all writing through a deliberate review step:
 
-You can:
+1. **During a conversation the agent only reads.** It never writes or edits memory mid-run.
+2. **After a run a background curator reviews what happened** and *proposes* memory
+   updates. The curator only proposes — it never writes the database directly.
+3. **A deterministic committer writes** the accepted proposals, handling deduplication,
+   superseding and conflict detection.
 
-- **Search** the graph and filter by **kind** (person, task, place, light, …) and by
-  **integration**.
-- Filter by **nature** — every kind is tagged **physical** (a lamp, a person, a room) or
-  **virtual** (a project, a preference, a note topic).
-- Switch between a **list view** and a **graph view**. The graph draws entities as nodes
-  and their relationships as edges, and updates live as new facts are committed. It shows
-  up to a few hundred nodes — filter or search to focus it.
-- Open any entity for its detail page (covered below).
+Clear, low-risk facts (things you plainly stated, or an integration plainly observed) are
+**committed automatically**. Anything inferred, privileged, or drawn from untrusted
+content is held back as a **proposal to confirm** (see [below](#proposals-keep-or-discard)).
 
-`contact` is the single kind used for people, so a person you email, message and meet is
-one entity — not one per channel. See [Contacts](inbox.md#contacts) for the person-centric
-view built on top of it.
+## Recall and automatic prefetch
 
-## Entities in detail
+The assistant has two ways to read memory.
 
-Open an entity to see and manage everything about it:
+**Automatic prefetch (push).** Before each turn, relevant memory is gathered and injected
+into the model's context as a compact `## Known World State` reference block: your
+preferences and policies, the entities mentioned in your message, their current facts and
+nearest relationships, and a few salient recent events. This runs deterministically on the
+hot path — no model call — and is a *reference, not an instruction*: a live statement you
+make always wins over a remembered fact.
 
-- **Facts** — every statement where this entity is the subject (`preference = terse`,
-  `location = Kitchen`, `state = on`). A fact whose object is another entity is a
-  **relationship** and shows under its own heading.
-- **Live state & attributes** — for integration-linked entities, the current value and
-  the raw attributes the integration reports.
-- **History** — how the entity's facts and state have changed over time.
-- **Cause and effect** — a trace of *what* led to a change: the run, message or sync that
-  caused it, and what it resulted in.
-- **Time travel** (see [below](#time-travel)).
-- **Forget** — remove the entity from active memory.
+**On-demand lookup (pull).** When the assistant needs something not already in context, it
+uses read-only tools to query the graph directly — semantic `recall`, entity lookup,
+current facts, relationship traversal, and the time-travel queries below. These tools never
+return unconfirmed proposals to the agent, and they respect the chat's
+[memory access](#per-chat-memory-access).
 
-### Creating your own entities (helpers)
+!!! note
+    Memory must never break a run. If anything in the memory path fails, the run simply
+    proceeds without it.
 
-You don't only get entities from integrations — you can create your own, called
-**helpers**, right on the Knowledge page. A helper is a small virtual entity the assistant
-(and your [dashboards](dashboards.md) and [workflows](workflows.md)) can read and control:
+## Proposals: Keep or Discard
 
-| Helper | What it is |
+Proposals the curator wants you to confirm appear at the top of the **Knowledge** page
+under **Proposals to confirm**. Each row shows the proposed fact, its source, type and
+confidence, with two actions:
+
+| Action | Effect |
 | --- | --- |
-| **Toggle** | An on/off switch |
-| **Number** | A value with a min/max/step (rendered as a slider) |
-| **Button / counter** | A press button or a +/- counter |
-| **Select** | A dropdown of options you define |
-| **Text** | A free-text value |
-| **Date / time** | A date and/or time value |
+| **Keep** (✓) | Commits the proposal as an active fact |
+| **Discard** (✗) | Rejects it — and remembers the rejection so it isn't re-proposed |
 
-Helpers with the same device group are shown together under one device.
+The same proposals also surface conversationally in your **main chat**, where you can just
+say *"yes, remember that"* or *"no"*. Until confirmed, a pending proposal is invisible to
+the chat agent — it is never read into a run.
 
-### Areas, floors and devices
+!!! note "Anti-nag"
+    Discarding a proposal records a quiet suppression, so the curator stops re-proposing
+    the same assertion. Keeping a fact you previously discarded clears that suppression.
 
-Entities can be organized like a real building: assign each to an **area** (a room),
-group areas onto **floors**, and roll physical entities up under **devices**. Areas and
-floors are managed from the Knowledge page and drive area/device cards and per-room
-dashboards.
+### Merge suggestions and conflicts
 
-### Sync and search indexing
+When the curator notices two entities that might be the same thing — for example, a person
+recorded under two spellings — it raises a **merge suggestion** in the main chat (*"Are
+these the same?"*) rather than guessing. Confirm to merge, decline to keep them separate.
 
-Integration entities refresh automatically; **Sync now** pulls the latest state on
-demand. Many entities are also **indexed for semantic search (RAG)** — marked with a RAG
-badge — so the assistant can find a project, document or issue by meaning, not just by
-name.
+When a new fact contradicts something you said earlier, the committer **supersedes** the
+old value and the curator tells you in the main chat (*"I updated something you'd said
+differently before"*), so a silent change never goes unnoticed.
 
-## How the assistant learns
-
-You rarely add memory by hand (though you can ask the assistant to *remember* a specific
-thing). The pipeline keeps writers deliberate and the chat agent read-only:
-
-1. **The chat agent only reads** memory during a conversation.
-2. After a run, a background **curator** reviews what happened and **proposes** memory
-   updates — it never writes directly.
-3. Clear, low-risk facts (things you stated or the assistant plainly observed) are
-   **committed automatically**. Anything inferred, privileged or drawn from untrusted
-   content is held as a **suggestion to confirm**.
-
-Pending suggestions appear at the top of the Knowledge page, where you **Keep** or
-**Reject** each one. Conflicts and merge suggestions also surface conversationally in your
-main chat.
-
-## Time travel
+## Time-travel
 
 Memory tracks two senses of time for every fact, so it can answer both *"what was true on
 Monday?"* and *"what did you **know** on Monday?"* — and explain late knowledge or
-corrections. The **time-travel** control on an entity lets you pick a past moment and see
-exactly what the assistant knew then. It's the quickest way to understand how a conclusion
-was reached or to audit a change.
+corrections.
 
-## Correcting and forgetting
+On an entity's detail page, the **Time-travel (as of)** control lets you pick a point in
+time and show exactly that:
 
-Knowledge changes, so memory is built to be corrected without losing its past:
+| Mode | Question it answers |
+| --- | --- |
+| Valid-time (default) | What was **true** about this entity at that moment |
+| **What the agent knew** (toggle) | What the assistant **knew** at that moment |
 
-- Editing a fact **supersedes** the old one rather than erasing it, so history and
-  time-travel stay intact.
-- **Forget** removes an entity from active memory.
-- When an integration stops reporting an entity, its node is **archived, not deleted** —
-  so any facts you attached to it survive, and it can come back if the integration does.
+The two differ whenever knowledge arrived late or was later corrected. The assistant can
+run the same queries itself during a chat (*"what did you know about this last week?"*).
 
-## Privacy and per-chat access
+Each fact also has a **History** view listing every value the attribute has held, with the
+window each value was valid (`valid_from → valid_to`) and its status — the quickest way to
+see how a value evolved.
 
-Memory is **strictly private to you**, isolated at the database level. On top of that,
-each chat decides how much memory it may read with the **Memory** control — **Full**,
-**None**, or **Restricted** to chosen areas and sources. A **None** chat is a clean
-room: nothing is read and nothing is learned from it. See
-[Chat controls](chat-controls.md#memory-access).
+## Superseding, forgetting and archiving
 
-## The simple remembered-facts list
+Knowledge changes, so memory is built to be corrected without losing its past.
 
-For a plain, flat view of the facts the assistant has stored about you — the ones it
-picked up with its *remember* tool — open **Settings → Memory**. It lists every entry,
-marks whether it came **from you** or **from the assistant**, and lets you delete any of
-them. It's a lightweight companion to the full Knowledge page above.
+- **Editing supersedes, it doesn't overwrite.** A new value ends the old one's validity and
+  marks it `superseded`; the old row stays, so history and time-travel remain intact.
+- **Forget** a fact (the trash action on a fact) ends its validity and marks it
+  `invalidated`. The row is kept — "forgotten" means it no longer holds, not that it's
+  erased — so the past is still auditable.
+- **Merge and split.** Two entities can be merged into one (the merged node is kept, never
+  hard-deleted), and a conflated entity can be **split** into two, moving the chosen facts
+  to the new one.
+- **Archiving.** When an integration stops reporting an entity, its graph node is
+  *archived, not deleted* — any facts you attached to it survive, and it can return if the
+  integration does.
+
+## The audit trail
+
+Because nothing is overwritten, every change is traceable:
+
+- **Cause & effect** on an entity shows what led to a change — the run, message or sync
+  that caused it, and what it resulted in.
+- The assistant can walk this both ways: *why* an attribute has its current value (the
+  asserting source, the recorded reason and evidence, and the triggering event) and *what*
+  a given run or event went on to trigger.
+- Every fact keeps the **evidence** behind it (a quote or reference) and the **reason** it
+  was asserted, visible when you expand the fact.
+
+## Per-chat memory access
+
+Each chat decides how much memory it may read, with the **Memory** control in the composer.
+Your default lives under **Settings → Profile**; a per-chat choice overrides it.
+
+| Access | What the chat may read | Is it learned from? |
+| --- | --- | --- |
+| **Full** (default) | Everything remembered | Yes |
+| **None** | Nothing — a private chat | No — the curator skips it entirely |
+| **Restricted** | Only the areas **and** sources you tick | Yes |
+
+A **None** chat is a clean room: no `## Known World State` is pushed, the read tools are
+removed, and the curator never mines it — nothing in nor out.
+
+**Restricted** filters along two independent axes, and a fact must pass *both* to be visible:
+
+| Areas (by topic) | Sources (by origin) |
+| --- | --- |
+| People & contacts | Preferences & rules |
+| Work & projects | Things you said |
+| Places & devices | Agent inferences |
+| Notes & topics | Integration observations |
+
+!!! warning "Empty axis = nothing"
+    Leaving an area or source list empty is fail-closed — the chat sees **nothing** in that
+    axis. The picker warns you so it isn't accidental. (This is handy on purpose: a chat
+    that may draw only on your stated preferences and nothing inferred.)
+
+This gate is enforced at the source, so sub-agents and scripted tools spawned from the chat
+honour the same policy. See also [Chat controls](chat-controls.md#memory-access).
 
 !!! note "Going deeper"
-    The complete design of the world-state memory graph — its two time axes, provenance,
-    and the read / propose / write pipeline — is documented in
-    [Universal memory](../universal-memory.md).
+    The full design of the world-state memory graph — its two time axes, provenance, and
+    the read / propose / write pipeline — is in [Universal memory](../universal-memory.md).
+    For browsing entities, helpers and areas, see [Entities](entities.md).

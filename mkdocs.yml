@@ -135,10 +135,12 @@ nav:
           - Agents & autonomy: features/agents.md
           - Coding & Cloud Tasks: features/coding.md
       - What it knows:
-          - Memory & entities: features/memory.md
+          - Memory: features/memory.md
+          - Entities & helpers: features/entities.md
           - Notes & Files: features/notes-files.md
       - Comms & calendar:
-          - Inbox & contacts: features/inbox.md
+          - Inbox: features/inbox.md
+          - Contacts: features/contacts.md
           - Calendar & agenda: features/calendar.md
       - Automation & devices:
           - Workflows & automations: features/workflows.md
@@ -166,6 +168,13 @@ nav:
       - Frozen contracts: architecture/frozen-contracts.md
       - Self-hosting: self-hosting.md
       - FCM push setup: fcm-push-setup.md
+  - Development:
+      - development/index.md
+      - Build an integration: development/integrations.md
+      - What an integration can provide: development/integration-capabilities.md
+      - Config flows: development/config-flows.md
+      - Authoring skills: development/skills.md
+      - Authoring surfaces & cards: development/surfaces.md
   - Design notes:
       - design/index.md
       - Feature comparison: feature-comparison.md
