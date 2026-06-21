@@ -33,8 +33,8 @@ theme:
     # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: deep purple
+      primary: blue
+      accent: blue
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
@@ -42,7 +42,7 @@ theme:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: black
-      accent: deep purple
+      accent: blue
       toggle:
         icon: material/brightness-4
         name: Switch to system preference

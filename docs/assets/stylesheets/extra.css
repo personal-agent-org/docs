@@ -5,10 +5,11 @@
    ========================================================================== */
 
 :root {
-  --md-primary-fg-color: #4f46e5;
-  --md-primary-fg-color--light: #6366f1;
-  --md-primary-fg-color--dark: #4338ca;
-  --md-accent-fg-color: #4f46e5;
+  /* The product/logo blue — the single accent. */
+  --md-primary-fg-color: #2f5da6;
+  --md-primary-fg-color--light: #3f72c0;
+  --md-primary-fg-color--dark: #244a85;
+  --md-accent-fg-color: #2f5da6;
 }
 
 /* OLED-black dark scheme, matching the product's design tokens */
@@ -17,7 +18,8 @@
   --md-default-bg-color--light: #0a0a0a;
   --md-code-bg-color: #0d0d0f;
   --md-primary-fg-color: #0a0a0a;
-  --md-accent-fg-color: #818cf8;
+  /* A brighter tint of the logo blue for links/hover on the OLED-black scheme. */
+  --md-accent-fg-color: #6ea0e0;
   --pa-hero-bg: #0a0a0a;
   --pa-line: rgba(255, 255, 255, 0.10);
   --pa-code-bg: #0c0c10;
