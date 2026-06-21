@@ -286,11 +286,18 @@ e2e-/`requires_services`-/`requires_llm`-Tests laufen nur mit lokaler DB/LLM.
 | **A3** Tool Search | ✅ (inline) | `agent/tool_search.py` über pydantic-ais `DeferredLoadingToolset` + `ToolSearch`-Capability; nur Integrations-/MCP-Toolsets, nur inline-Top-Level (`assembler.tool_search_path`), untrusted-ids auf Wrapper remapped (#13), Capability atomisch via `factory.build(extra_capabilities=…)`. Echte Tool-Namen → AG-UI (#3) unberührt. | `test_tool_search.py` |
 | **A4** Platform-Hints | ✅ | `agent/platform_hints.py` (Domain→Stil + append/replace-Override, fail-safe), in die Comms-Triage-Hülle (`triage_context`) eingehängt; no-op für eigene/unbekannte Domains. | `test_platform_hints.py`, `test_triage_context.py` |
 
-**Bewusst außerhalb des Scopes (dokumentierte Follow-ups):**
-- A3 für den **durable Worker** + **Sub-Agents** — erfordert dieselbe Wrap+Capability-Atomarität
-  auf dem Temporal-Pfad (RunSpec-Mirror); inline zuerst, weil dort die Capability-Addition am
-  Agent-Bau garantiert ist.
-- A1 **CachePoint** für OpenAI-kompatible Anthropic-Proxys (OpenRouter) — heute cachen die
-  Anthropic-Marker nur auf direktem Anthropic-Provider; Proxys nutzen Auto-Prefix-Caching.
-- A4 **Config-Override-Surface** (`platform_hints` in Settings) — der Resolver akzeptiert bereits
-  Overrides; nur die Settings-Anbindung fehlt.
+### Follow-ups — ebenfalls umgesetzt
+
+| Follow-up | Status | Kernänderung |
+|-----------|--------|--------------|
+| **A1 / OpenRouter-Caching** | ✅ | `build_byok` baut den `openrouter`-Provider über pydantic-ais dediziertes `OpenRouterModel` (statt generisch `OpenAIChatModel`); `apply_prompt_cache_settings` setzt `openrouter_cache_instructions` + `openrouter_cache_tool_definitions` (an Anthropic/Gemini downstream weitergereicht, no-op sonst). |
+| **A4 / Config-Override** | ✅ | `Settings.platform_hints` (JSON via `PERSONAL_AGENT__PLATFORM_HINTS`, Hermes-Parität); `render_from_raw` faltet die Overrides in `resolve_platform_hint`. |
+| **A3 / durable Worker** | ✅ (opt-in) | Durable Chat-Agent defert die Integrations-/MCP-Toolsets + `ToolSearch` mit **lokaler `keywords`-Strategie** (native Suche ist nicht replay-stabil); hinter `Settings.durable_tool_search` (default **off**, da der Temporal-Pfad hier nicht integrationsgetestet werden kann → Operator schaltet nach Live-Validierung frei). |
+| **A3 / Sub-Agents** | ✅ bewusst ausgelassen | Worker sind fokussiert + kurzlebig und laufen schon unter Tool-Constraints (`NoDeferToolset`); Deferral brächte nur Discovery-Round-Trips ohne Nutzen. |
+
+**Verbleibende echte Optionen (kein Code-Schuld, bewusste Entscheidung):**
+- A3 durable per-run **`auto`-Schwelle** statt all-or-nothing — bräuchte einen
+  `for_run`-Zähl-Wrapper; auf dem Singleton-Temporal-Agent mit Replay-Determinismus
+  riskanter als der aktuelle Flag-Ansatz, daher erst nach Live-Validierung sinnvoll.
+- A1 **`CachePoint`** für generische OpenAI-kompatible Endpoints, die Anthropic proxen
+  (nicht OpenRouter) — Nische; heute Auto-Prefix-Caching.
