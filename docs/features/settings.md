@@ -79,4 +79,4 @@ per-day breakdown by model.
 If a **monthly budget** applies to you, a bar shows how much of it you've spent. Budgets
 cascade **user → org → global**; when you hit the cap, new runs are declined until next
 month — and the cap also stops sub-agents from spawning mid-task. Admins set budgets under
-**Admin → Budgets** (see [Admin console](admin.md)).
+**Admin → Budgets** (see [Admin console](../administration/budgets.md)).

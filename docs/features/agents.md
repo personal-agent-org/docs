@@ -40,7 +40,7 @@ parent chat open.
 You manage your own specialists under **Settings → Agent → Custom agents**: give each a
 name, an emoji, a "when to use" hint, a persona, an optional required chat mode, and which
 tool groups it needs (Web / Devices / Documents / Memory). Admins manage **global** agents
-available to everyone (see [Admin console](admin.md)).
+available to everyone (see [global agents](../administration/agents.md)).
 
 !!! info "Workers stay in their lane"
     A worker runs strictly autonomously — it never asks you questions, and an

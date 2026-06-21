@@ -38,5 +38,5 @@ You'll also see when an **update** is available for an installed skill.
 
 !!! note "Where the catalogs come from"
     The catalogs offered in the marketplace are curated by your admin under
-    **Admin → Skill catalog** (see [Admin console](admin.md)). If the marketplace is empty,
+    **Admin → Skill catalog** (see [Admin console](../administration/skill-catalog.md)). If the marketplace is empty,
     no catalog sources have been configured yet.

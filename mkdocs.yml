@@ -150,7 +150,17 @@ nav:
           - Settings: features/settings.md
           - Security & privacy: features/security.md
   - Administration:
-      - Admin console: features/admin.md
+      - administration/index.md
+      - User management: administration/users.md
+      - Agents: administration/agents.md
+      - Providers: administration/providers.md
+      - Groups: administration/groups.md
+      - Integrations: administration/integrations.md
+      - Skill catalog: administration/skill-catalog.md
+      - Statistics: administration/statistics.md
+      - Budgets: administration/budgets.md
+      - Command policy: administration/command-policy.md
+      - Platform settings: administration/platform-settings.md
   - Operation:
       - Architecture: architecture/index.md
       - Frozen contracts: architecture/frozen-contracts.md

@@ -52,4 +52,4 @@ Some limits are set above you, and you can only make them **stricter**, never lo
 
 Governance changes are audit-logged, and when a capability is withheld the agent is told
 why — so it can explain it to you rather than failing silently. See the
-[Admin console](admin.md) for how these are configured.
+[Admin console](../administration/index.md) for how these are configured.
