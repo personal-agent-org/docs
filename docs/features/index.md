@@ -8,10 +8,6 @@ This is the **user guide** — a tour of the app the way you actually use it, sc
 screen. Every section maps to something you can see and click in the web UI (and the
 Android, desktop and browser-extension shells that wrap it).
 
-!!! note "Languages"
-    Personal Agent is available in **English and German** and the two interfaces share the
-    same layout, so every screen below maps to both. This guide uses the English labels.
-
 ## First login: the setup wizard
 
 The very first time you sign in, a full-screen **setup wizard** walks you through the
