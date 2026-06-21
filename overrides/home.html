@@ -13,14 +13,18 @@
       <div class="pa-hero__inner">
 
         <div class="pa-hero__content">
+          <picture class="pa-hero__logo" markdown="0">
+            <source media="(prefers-color-scheme: dark)" srcset="{{ 'assets/mark-dark.svg' | url }}">
+            <img src="{{ 'assets/mark.svg' | url }}" alt="Personal Agent" width="84" height="84">
+          </picture>
           <h1 class="pa-hero__title">
             Your own LLM chat &amp; agent platform
           </h1>
           <p class="pa-hero__subtitle">
-            A reading-first chat UI on a durable agent runtime. Per-user agents that use
-            tools, browse your own data, drive a connected machine or browser, run
+            A self-hostable LLM chat &amp; agent platform on a durable runtime. Per-user agents
+            that use tools, browse your own data, drive a connected machine or browser, run
             integrations, react to events, and act proactively on your behalf. Open
-            source and self-hostable.
+            source.
           </p>
           <div class="pa-hero__actions">
             <a href="{{ 'getting-started/' | url }}" class="md-button md-button--primary">
