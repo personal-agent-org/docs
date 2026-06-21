@@ -1,0 +1,86 @@
+# Kubernetes (Helm)
+
+For a scaled-out, highly-available deployment. The umbrella chart in
+`deploy/charts/personal-agent/` deploys Personal Agent to a self-managed cluster.
+
+## What it deploys
+
+First-party workloads (always rendered):
+
+| Workload | Kind | Notes |
+| --- | --- | --- |
+| `personal-agent-api` | Deployment | FastAPI, 3 replicas, **HPA on CPU**, readiness `/readyz` + liveness `/healthz`, preStop drain, no session affinity (Redis-Streams fanout). |
+| `personal-agent-worker` | Deployment | Temporal worker, **KEDA** `ScaledObject` on the `personal-agent-agents` task-queue backlog (no scale-to-zero). |
+| `personal-agent-frontend` | Deployment | nginx serving the static Quasar build; runtime `/config.js` from a ConfigMap. No secrets. |
+
+Plus Services, PodDisruptionBudgets, default-deny NetworkPolicies, a Gateway +
+HTTPRoutes (Gateway API), ExternalSecrets, and the `db-migrate` /
+`realm-import` hook Jobs.
+
+The platform operators/data services are declared as subchart dependencies but
+**disabled by default** (so the chart renders fully offline): CloudNativePG,
+Redis, Temporal, KEDA, cert-manager, External Secrets, HAProxy + Gateway API.
+Enable the ones you need with `<name>.enabled=true`.
+
+## Prerequisites
+
+- A Kubernetes cluster + [`helm`](https://helm.sh/) v3.
+- The dependency chart repos added (below), or the operators already installed.
+
+## Install
+
+```bash
+# Add the dependency repos, then vendor them into the chart:
+helm repo add cnpg https://cloudnative-pg.github.io/charts
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add temporal https://go.temporal.io/helm-charts
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo add jetstack https://charts.jetstack.io
+helm repo add external-secrets https://charts.external-secrets.io
+helm repo add haproxytech https://haproxytech.github.io/helm-charts
+helm dependency build deploy/charts/personal-agent
+
+# Install (rolls back on a failed migrate hook):
+helm upgrade --install --atomic personal-agent deploy/charts/personal-agent \
+  -n personal-agent --create-namespace \
+  -f deploy/charts/personal-agent/values-prod.yaml
+```
+
+`--atomic` rolls back on a failed migrate hook, enforcing the migrate-gate.
+
+## Install order
+
+The chart enforces the order via Helm hook weights + initContainer gates:
+
+1. **`db-migrate`** Job (pre-install/upgrade) — waits for the database, runs
+   `alembic upgrade head`.
+2. **`realm-import`** Job — waits for Keycloak, imports the `personal-agent` realm
+   (idempotent). The realm is domain-agnostic; supply your origins via
+   `jobs.realmImport.realmVars` (`APP_ORIGIN`, `KEYCLOAK_ORIGIN`, `EXTENSION_ID`).
+3. **api / worker / frontend** roll out only after the hooks succeed.
+
+!!! note "Frozen Contract #8"
+    Postgres extensions (`vector` / `pgcrypto` / `citext`) come from CloudNativePG
+    `postInitSQL`, **not** from the migrate Job.
+
+## Configuration
+
+- `config.*` — all non-secret `PERSONAL_AGENT__*` settings.
+- `externalSecrets.data` — DB DSN, Redis URL, BYOK master key, provider keys.
+- `api.autoscaling.*`, `worker.keda.*`, `gateway.sse.*`, `gateway.tls.*`.
+
+See `values.yaml` (defaults) and `values-prod.yaml` (example).
+
+## Offline render
+
+The chart templates without a cluster or network (deps disabled):
+
+```bash
+helm lint deploy/charts/personal-agent
+helm template personal-agent deploy/charts/personal-agent \
+  -f deploy/charts/personal-agent/values.yaml
+```
+
+Full reference: the
+[chart README](https://github.com/luebke-dev/personal-assistant/tree/main/deploy/charts/personal-agent)
+and the [Self-hosting guide](../self-hosting.md).
