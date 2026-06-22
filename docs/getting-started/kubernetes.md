@@ -58,7 +58,7 @@ The chart enforces the order via Helm hook weights + initContainer gates:
    `personal-agent` realm (idempotent) from a ConfigMap built from `files/realm-*.json`. It sets
    `IMPORT_VARSUBSTITUTION_ENABLED=true`, so the realm JSON's `${VAR}` placeholders are substituted
    from the Job's environment — supply your origins via `jobs.realmImport.realmVars` (`APP_ORIGIN`,
-   `KEYCLOAK_ORIGIN`, `EXTENSION_ID`). See [OIDC provider configuration](../oidc.md) for the realm's
+   `KEYCLOAK_ORIGIN`, `EXTENSION_ID`). See [OIDC provider configuration](oidc.md) for the realm's
    clients and roles.
 3. **api / worker / frontend** roll out only after the hooks succeed.
 
@@ -88,4 +88,4 @@ helm template personal-agent deploy/charts/personal-agent \
 Full reference: the
 [chart README](https://github.com/luebke-dev/personal-assistant/tree/main/deploy/charts/personal-agent),
 the [Configuration reference](configuration.md), and
-[OIDC provider configuration](../oidc.md).
+[OIDC provider configuration](oidc.md).

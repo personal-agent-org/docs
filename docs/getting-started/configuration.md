@@ -12,7 +12,7 @@ secrets below.
 
 !!! note "Identity provider has its own page"
     Issuer, audience, the OIDC clients and how to use a non-Keycloak provider are documented
-    separately in [OIDC provider configuration](../oidc.md).
+    separately in [OIDC provider configuration](oidc.md).
 
 ---
 

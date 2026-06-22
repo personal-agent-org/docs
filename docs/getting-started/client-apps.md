@@ -26,7 +26,7 @@ lives in its own repository,
 [`personal-agent-org/browser-extension`](https://github.com/personal-agent-org/browser-extension),
 and asks for your **Server URL** and **Keycloak issuer** at runtime, so the same build works against
 any instance. Its OAuth redirect URI is keyed to the extension ID and must be registered on the
-`personal-agent-browser` client — see [OIDC provider configuration](../oidc.md) for the client and
+`personal-agent-browser` client — see [OIDC provider configuration](oidc.md) for the client and
 redirect-URI details, and the extension repo for packaging.
 
 ## Android app

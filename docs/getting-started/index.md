@@ -42,7 +42,7 @@ Whichever path you pick, a real instance needs:
   and allows WebSocket upgrades. The Docker path bundles the data services (Postgres, Redis,
   Temporal, Keycloak) — see [Docker / Podman](docker.md); Kubernetes wires them as subcharts.
 - An **OIDC provider**. Keycloak is bundled and its realm is imported for you, but any provider
-  works — see [OIDC provider configuration](../oidc.md).
+  works — see [OIDC provider configuration](oidc.md).
 - An **LLM provider key** (or a local model endpoint), added later in the admin UI — not an env var.
 
 Every environment variable is catalogued in the [Configuration reference](configuration.md), and the

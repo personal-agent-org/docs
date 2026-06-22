@@ -87,12 +87,12 @@ runs `start-dev --import-realm` with the `keycloak/` directory mounted into
 When you adapt the realm to your domain, point each client's redirect URIs / web origins at your
 `APP_ORIGIN` and keep the API audience (`personal-agent-api`) matching
 `PERSONAL_AGENT__OIDC__AUDIENCE`. The full client / mapper / role reference — and how to use a
-non-Keycloak provider — is in [OIDC provider configuration](../oidc.md). The shipped realm also
+non-Keycloak provider — is in [OIDC provider configuration](oidc.md). The shipped realm also
 carries example clients for adjacent standalone apps (a VPN UI, an Open WebUI) that are **not** part
 of Personal Agent; remove or re-point them as needed.
 
 ## Next steps
 
 - [Configuration reference](configuration.md) — every environment variable and the SPA runtime config.
-- [OIDC provider configuration](../oidc.md) — the Keycloak realm and other identity providers.
+- [OIDC provider configuration](oidc.md) — the Keycloak realm and other identity providers.
 - [Client apps](client-apps.md) — build the desktop, browser-extension and Android clients for your instance.
