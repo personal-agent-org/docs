@@ -193,11 +193,19 @@ instance. Two things must match your Keycloak realm:
 - a public client `personal-agent-browser` (auth-code + PKCE, no secret) with
   audience `personal-agent-api`;
 - the extension's OAuth **redirect URI**, which is keyed to its extension ID.
-  Keycloak rejects mid-host wildcards, so pin the extension ID (a packed
-  extension has a stable ID) and add its exact `chrome.identity.getRedirectURL()`
-  value to the client's redirect URIs.
+  Keycloak rejects mid-host wildcards, so the **exact** host must be listed. The
+  shipped `manifest.json` `key` pins the published Chrome Web Store ID; to run your
+  own build with a different, stable ID, replace the `key` (generate one with
+  `chromium --pack-extension`, then
+  `openssl rsa … -pubout -outform DER | base64 -w0`) and add its
+  `chrome.identity.getRedirectURL()` value (`https://<ID>.chromiumapp.org/` and
+  `…/*`) to the client. Firefox derives a separate
+  `https://<hash>.extensions.allizom.org/` redirect from its add-on id — add that
+  host too if you ship the Firefox build.
 
-See `browser-extension/README.md` for packaging and the redirect-URI details.
+See the browser extension repo
+([`personal-agent-org/browser-extension`](https://github.com/personal-agent-org/browser-extension))
+for packaging details.
 
 ### Android app
 
