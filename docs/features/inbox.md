@@ -149,11 +149,22 @@ A draft is in one of these states:
 | `rejected` | You discarded it |
 | `failed` | Sending failed — the error is shown and the draft stays recoverable |
 
+A draft is also **styled for the channel it goes out on**: the agent is told how each
+platform reads, so a Signal or WhatsApp reply comes back short and plain-text while an email
+can be longer and structured. This happens automatically per channel; an admin can tune or
+override the per-channel style hints (see below).
+
 !!! warning "Only you can send"
     The agent has no send tool. Approving a draft is the **only** path that delivers a
     proposed reply, and it sends through the same account the message arrived on. If that
     account isn't linked, or no longer supports sending, approval fails with a clear error
     instead of sending silently.
+
+!!! note "Admin: per-channel style hints"
+    The defaults (short plain-text on Signal/WhatsApp, structured on Email, …) ship built-in
+    and isolated per channel. An admin can supplement or replace them via the
+    `PERSONAL_AGENT__PLATFORM_HINTS` setting; a bad entry falls back to the built-in default
+    for that channel rather than affecting the others.
 
 ## Keeping the noise out
 

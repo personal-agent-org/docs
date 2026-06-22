@@ -61,6 +61,13 @@ servers**:
 
 Both are selectable per chat like any other tools.
 
+!!! note "Lots of tools? They're discovered on demand"
+    When a chat carries many integration and MCP tools, the agent doesn't load every tool
+    description up front. Past a threshold it switches to **progressive disclosure**: it gets
+    a search tool and pulls in the full definitions of the specific tools it needs for the
+    task. This keeps the prompt lean (and cheaper) without hiding any capability — connect as
+    many integrations as you like.
+
 !!! info "Governance"
     Admins can enable or disable each integration platform-wide, restrict which scopes may
     configure it, and require provider **governance tags** — so, for example, an

@@ -38,6 +38,20 @@ message — high-privilege tools are automatically **dropped** from that run, so
 page can't trick the agent into, say, deleting files or sending money. You don't have to do
 anything; it's on by default.
 
+## Extra guardrails on tools
+
+Beyond the security mode, a couple of always-on checks make tool calls safer:
+
+- **Argument validation on high-stakes tools** — some tools validate the model's arguments
+  *before* any device or database action happens, so a bad call is bounced back for the
+  model to self-correct rather than executed. For example, a device setpoint must be a
+  finite number, and a memory-graph traversal is bounded so it can't fan out across the
+  whole graph.
+- **Read vs. write is explicit** — every first-party tool declares whether it only *reads*
+  or also *writes*. This classification feeds the gating above (read-only workers, the
+  untrusted-content drop, approval prompts) so a read-only context can never quietly perform
+  a write.
+
 ## Governance (set by your admin or organization)
 
 Some limits are set above you, and you can only make them **stricter**, never looser:

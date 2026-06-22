@@ -151,6 +151,12 @@ or a command is running.
 
     Reusable capability packages and the skills marketplace.
 
+-   :material-store:{ .lg .middle } __[Marketplace](marketplace.md)__
+
+    ---
+
+    Publish and adopt agents, skills and workflows shared by other users.
+
 -   :material-puzzle:{ .lg .middle } __[Integrations](integrations.md)__
 
     ---

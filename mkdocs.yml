@@ -146,6 +146,7 @@ nav:
           - Workflows & automations: features/workflows.md
           - Dashboards & scenes: features/dashboards.md
           - Skills: features/skills.md
+          - Marketplace: features/marketplace.md
           - Integrations: features/integrations.md
           - Devices & apps: features/devices.md
       - Personalize:
@@ -176,6 +177,7 @@ nav:
       - Config flows: development/config-flows.md
       - Authoring skills: development/skills.md
       - Authoring surfaces & cards: development/surfaces.md
+      - Translations (i18n / Weblate): development/i18n.md
   - Design notes:
       - design/index.md
       - Feature comparison: feature-comparison.md

@@ -144,9 +144,21 @@ for its detail page. It shows:
   neighbourhood graph.
 - **History** — on any fact, **History** opens its full timeline: each value with the
   window it was valid for and its status (active / superseded).
+- **Statistics graph** — for **numeric** entities (a temperature sensor, a counter, …) a
+  line chart plots the mean per period with a shaded **min–max band**. Toggle the bucket
+  between **Hour** (last 7 days) and **Day** (last 90 days). Categorical or empty entities
+  show a brief *"no statistics"* note instead. The same graph appears on the live-only
+  entity dialog in the Knowledge panel.
 - **Cause & effect** — a timeline of the events linked to the entity's changes: what run,
   message or sync caused a change and its outcome. This is the quickest way to answer
   *"why did this change?"*.
+
+!!! note "How long history is kept"
+    Raw state history is rolled up into long-term per-period statistics on a schedule, then
+    trimmed to a bounded window so the database can't grow without limit. The graph keeps
+    working past that window because it reads the rolled-up statistics, not the raw rows.
+    The retention window is one admin setting — see
+    [Platform settings](../administration/platform-settings.md#entity-history-retention).
 
 !!! note
     Live-only integration entities (the grey **Live** badge) open a lighter attributes

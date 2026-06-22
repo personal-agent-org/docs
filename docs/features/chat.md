@@ -29,18 +29,26 @@ An answer is more than text. Inline, in the order they happened, you may see:
 - **Reasoning** — a collapsible block showing the model's thinking, on models that support
   it. It's collapsed by default so it never gets in the way.
 - **Tool-call cards** — one per tool the agent used, with friendly names ("Read file",
-  "Searched the web", "Drafted reply", …). Expand a card to see its **arguments** and
-  **result**. File edits render as **diffs**; a planning step renders as a checklist; a
-  task list renders with live status icons. When the agent fires many tools in a row, they
-  collapse into a single "Ran *N* actions" header you can expand.
+  "Searched the web", "Drafted reply", …). Each card's icon is **colour-coded by status** —
+  running, succeeded or failed — so you can scan a long turn at a glance. Expand a card to
+  see its **arguments** and **result**. File edits render as **diffs**; a planning step
+  renders as a checklist; a task list renders with live status icons. When the agent fires
+  many tools in a row, they collapse into a single "Ran *N* actions" header you can expand.
 
 ### The context gauge
 
 A thin bar at the top edge of the composer shows how full the model's **context window**
 is. Click it for a breakdown — system prompt, skills, project rules, memory, history
-summary and tools. When a conversation gets long, older messages are automatically
-**compacted** into a summary so the chat keeps going; the gauge turns amber as you approach
-that threshold and notes when compaction has happened.
+summary and tools — which opens straight away rather than waiting for the next turn. When a
+conversation gets long, older messages are automatically **compacted** into a summary so the
+chat keeps going; the gauge turns amber as you approach that threshold and notes when
+compaction has happened. (Compaction is applied on both the inline and the durable run
+paths, and an overflow self-heals even when no window is known.)
+
+Alongside the live window, the breakdown shows the **session token total** — everything this
+chat has spent across all its turns — split by **kind** (input / output / cached) and with
+the **share attributed to sub-agents** broken out, so you can see how much of the total a
+delegated worker accounted for.
 
 ## The composer
 
@@ -100,6 +108,15 @@ clear themselves once you respond:
   [security modes](chat-controls.md#security-mode).
 - **A draft reply** — for incoming messages, the agent proposes a reply you can edit and
   then **Approve & send**. More in [Inbox & contacts](inbox.md).
+
+## When something goes wrong
+
+Runs are resilient. A transient provider hiccup (rate-limit, a 5xx, a dropped connection) is
+**retried automatically**, and the [fallback chain](chat-controls.md#provider-diverse-fallback-chains)
+can cascade to another model rather than failing the turn. If an answer does end in an error,
+any text the model had **already streamed is kept** — it isn't thrown away — and an explicit
+**Retry** button appears so you can re-run the turn without retyping. Work that was already
+done can resume rather than starting from scratch.
 
 ## Sharing a chat
 
