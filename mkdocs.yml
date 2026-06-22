@@ -127,6 +127,9 @@ nav:
       - Run locally: getting-started/run-locally.md
       - Docker / Podman: getting-started/docker.md
       - Kubernetes: getting-started/kubernetes.md
+      - Configuration: getting-started/configuration.md
+      - OIDC provider configuration: getting-started/oidc.md
+      - Client apps: getting-started/client-apps.md
   - User guide:
       - features/index.md
       - Chatting:
@@ -168,7 +171,6 @@ nav:
   - Operation:
       - Architecture: architecture/index.md
       - Frozen contracts: architecture/frozen-contracts.md
-      - Self-hosting: self-hosting.md
       - FCM push setup: fcm-push-setup.md
   - Development:
       - development/index.md

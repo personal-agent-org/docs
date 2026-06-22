@@ -34,6 +34,20 @@ pick the one that matches your goal:
 
 </div>
 
+## What you'll need
+
+Whichever path you pick, a real instance needs:
+
+- **DNS + TLS** for your app and Keycloak hostnames, behind a reverse proxy that doesn't buffer SSE
+  and allows WebSocket upgrades. The Docker path bundles the data services (Postgres, Redis,
+  Temporal, Keycloak) — see [Docker / Podman](docker.md); Kubernetes wires them as subcharts.
+- An **OIDC provider**. Keycloak is bundled and its realm is imported for you, but any provider
+  works — see [OIDC provider configuration](oidc.md).
+- An **LLM provider key** (or a local model endpoint), added later in the admin UI — not an env var.
+
+Every environment variable is catalogued in the [Configuration reference](configuration.md), and the
+optional native clients in [Client apps](client-apps.md).
+
 !!! tip "Use `just`"
     The repo ships a [`just`](https://github.com/casey/just) task runner. Run
     `just` (or `just --list`) to see every recipe — `just setup`, `just up`,

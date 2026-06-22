@@ -137,4 +137,4 @@ runs at every model-resolution entry, so there is no path to an uncleared provid
 [Architecture overview](architecture/index.md) ·
 [Frozen contracts](architecture/frozen-contracts.md) ·
 [Get started](getting-started/index.md) ·
-[Self-hosting guide](self-hosting.md)
+[Configuration](getting-started/configuration.md)

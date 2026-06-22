@@ -54,9 +54,12 @@ The chart enforces the order via Helm hook weights + initContainer gates:
 
 1. **`db-migrate`** Job (pre-install/upgrade) — waits for the database, runs
    `alembic upgrade head`.
-2. **`realm-import`** Job — waits for Keycloak, imports the `personal-agent` realm
-   (idempotent). The realm is domain-agnostic; supply your origins via
-   `jobs.realmImport.realmVars` (`APP_ORIGIN`, `KEYCLOAK_ORIGIN`, `EXTENSION_ID`).
+2. **`realm-import`** Job — waits for Keycloak, then runs `keycloak-config-cli` to import the
+   `personal-agent` realm (idempotent) from a ConfigMap built from `files/realm-*.json`. It sets
+   `IMPORT_VARSUBSTITUTION_ENABLED=true`, so the realm JSON's `${VAR}` placeholders are substituted
+   from the Job's environment — supply your origins via `jobs.realmImport.realmVars` (`APP_ORIGIN`,
+   `KEYCLOAK_ORIGIN`, `EXTENSION_ID`). See [OIDC provider configuration](oidc.md) for the realm's
+   clients and roles.
 3. **api / worker / frontend** roll out only after the hooks succeed.
 
 !!! note "Frozen Contract #8"
@@ -69,7 +72,8 @@ The chart enforces the order via Helm hook weights + initContainer gates:
 - `externalSecrets.data` — DB DSN, Redis URL, BYOK master key, provider keys.
 - `api.autoscaling.*`, `worker.keda.*`, `gateway.sse.*`, `gateway.tls.*`.
 
-See `values.yaml` (defaults) and `values-prod.yaml` (example).
+See `values.yaml` (defaults) and `values-prod.yaml` (example); the `PERSONAL_AGENT__*` settings
+themselves are documented in the [Configuration reference](configuration.md).
 
 ## Offline render
 
@@ -82,5 +86,6 @@ helm template personal-agent deploy/charts/personal-agent \
 ```
 
 Full reference: the
-[chart README](https://github.com/luebke-dev/personal-assistant/tree/main/deploy/charts/personal-agent)
-and the [Self-hosting guide](../self-hosting.md).
+[chart README](https://github.com/luebke-dev/personal-assistant/tree/main/deploy/charts/personal-agent),
+the [Configuration reference](configuration.md), and
+[OIDC provider configuration](oidc.md).

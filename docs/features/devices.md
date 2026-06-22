@@ -96,7 +96,7 @@ chat's [security mode](security.md):
   revokes its tokens.
 
 Self-hosting the extension (your own Keycloak client + redirect URI) is covered under
-[Self-hosting](../self-hosting.md#browser-extension-chrome-mv3).
+[OIDC provider configuration](../getting-started/oidc.md), and building it under [Client apps](../getting-started/client-apps.md).
 
 ## Use this assistant from other tools (MCP)
 
