@@ -177,6 +177,7 @@ nav:
       - Config flows: development/config-flows.md
       - Authoring skills: development/skills.md
       - Authoring surfaces & cards: development/surfaces.md
+      - Translations (i18n / Weblate): development/i18n.md
   - Design notes:
       - design/index.md
       - Feature comparison: feature-comparison.md
