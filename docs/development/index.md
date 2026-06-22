@@ -16,7 +16,7 @@ proper Python packages; everything else is loaded by the running app or built se
 | `services/worker/` | The Temporal worker (`personal_agent_worker`) — the durable `ChatAgentWorkflow` plus curator / goal / workflow-schedule / entity-sync / world-maintenance workflows and their activities. |
 | `integrations/<domain>/` | Home-Assistant-style integration folders (manifest + config flow + integration class), discovered at runtime by the `IntegrationRegistry`. **Not** uv-workspace members. |
 | `apps/web/` | The Quasar / Vue 3 single-page app. `apps/android/` and `apps/desktop/` are shells wrapping it. |
-| `clients/` | The Rust `device-agent` (jailed FS + PTY), the terminal client (`tui`), and the browser-extension / browser-sandbox device flavors. |
+| `clients/` | The Rust `device-agent` (jailed FS + PTY), the terminal client (`tui`), and the `browser-sandbox` cloud `browser` device. (The Chrome/Firefox extension, the other `browser` device, lives in its own repo `personal-agent-org/browser-extension`.) |
 
 Supporting directories: `deploy/` (Compose, Helm charts, Keycloak realm-as-code,
 observability), `docs/` (these pages), and `tools/` (scripts).

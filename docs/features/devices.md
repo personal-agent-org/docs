@@ -31,7 +31,7 @@ one-liner. You can **rotate** a device's credentials or **remove** it at any tim
 A **browser** device lets the assistant navigate, click, type and screenshot real web
 pages. Two flavours:
 
-- the **browser extension** (Chrome/Edge) — acts in *your* logged-in session (see
+- the **browser extension** (Chrome/Firefox) — acts in *your* logged-in session (see
   [below](#the-browser-extension)); or
 - an on-demand **cloud browser** — **Settings → Devices → Start cloud browser** spins up a
   headless Chromium in the cloud with nothing to install.
@@ -62,17 +62,41 @@ login and microphone access. Find downloads under **Settings → App**.
 - **Android** — download the APK, allow installing it, then open and sign in.
 - **Desktop (Linux)** — a desktop app, offered as an AppImage (portable), a `.deb`, or a
   single binary.
-- **Browser extension (Chrome/Edge)** — see below.
+- **Browser extension (Chrome/Firefox)** — see below.
 - **Terminal client** — a terminal chat client that speaks the same API; sign in with the
   device flow and chat from your shell.
 
 ### The browser extension
 
-Download the extension archive, then load it unpacked: unzip it, open the browser's
-extensions page, enable **Developer mode**, click **Load unpacked**, and select the folder.
-Open the popup and **Connect (sign in)** — it authenticates through your normal login and a
-**Browser** device appears under **Settings → Devices**. Select it in a chat to give the
-assistant the browser tools.
+The **browser extension** turns Chrome or Firefox into a `kind=browser` device that acts in
+*your* logged-in session, so the assistant can read and drive pages you're already signed in to.
+It lives in its own repository,
+[`personal-agent-org/browser-extension`](https://github.com/personal-agent-org/browser-extension).
+
+**Install.** On Chrome, install it from the **Chrome Web Store**. For Firefox, or to run it
+unpacked, build it from source and load it (see the repository's README). Open the popup, enter
+your **Server URL**, and **Connect (sign in)** — it authenticates through your normal login and a
+**Browser** device appears under **Settings → Devices**. Select it in a chat to give the assistant
+the browser tools (navigate, click, type, scroll, read the page, screenshot, and more).
+
+**Debug mode (Chrome only).** A few tools attach the active tab to the Chrome DevTools Protocol to
+reach things the plain page can't: an accessibility-tree snapshot, console messages, network
+requests, full-page screenshots, and *trusted* input for sites that ignore synthetic events. Chrome
+shows a yellow "started debugging this browser" banner while attached; click **Cancel** to end it.
+Firefox has no equivalent, so those extras aren't offered there.
+
+**Safety.** Because the extension drives your real session, the popup adds guardrails on top of the
+chat's [security mode](security.md):
+
+- **Per-tool exposure** — switch individual `browser_*` tools off (for example `eval_js`); the
+  device stops announcing them and refuses them if asked anyway. You review the set on first sign-in.
+- **Origin guard** — the assistant can never drive the Personal Agent app's own origin or your login
+  provider (that could expose your tokens); you can add more blocked hosts (e.g. your bank).
+- **HTTPS only** for the server/issuer URLs, and a **secure disconnect** that deletes the device and
+  revokes its tokens.
+
+Self-hosting the extension (your own Keycloak client + redirect URI) is covered under
+[Self-hosting](../self-hosting.md#browser-extension-chrome-mv3).
 
 ## Use this assistant from other tools (MCP)
 
