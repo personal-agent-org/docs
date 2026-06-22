@@ -135,8 +135,12 @@ redirects work for your hostnames:
   `webOrigins`, and `post.logout.redirect.uris` — point them at your `APP_ORIGIN`;
 - the API resource server audience (`personal-agent-api`) — keep it matching
   `PERSONAL_AGENT__OIDC__AUDIENCE`;
-- the device client (`personal-agent`) and the browser-extension client
+- the device client (`personal-agent-device`) and the browser-extension client
   (`personal-agent-browser`) — see §7.
+
+For the full token contract, every client and mapper, the realm's roles and the steps to
+use a **non-Keycloak OIDC provider**, see
+[OIDC provider configuration](oidc.md).
 
 The shipped realm file carries example clients for adjacent standalone apps
 (a VPN UI, an Open WebUI) that are **not** part of Personal Agent; remove or
