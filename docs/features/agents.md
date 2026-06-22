@@ -49,6 +49,14 @@ available to everyone (see [global agents](../administration/agents.md)).
     request a faster or cheaper model by capability tag, and your monthly
     [budget](settings.md#usage-budget) is the real ceiling on how many run at once.
 
+    Sub-agents are also **strictly one level deep**: a worker can never spawn another worker.
+    The hierarchy is always *your chat → its sub-agents*, so a delegation can't fan out into
+    a runaway tree.
+
+A sub-agent's tokens and cost are tracked on its own run, and roll up into the chat's
+**session token total** — where the [context gauge](chat.md#the-context-gauge) breaks out
+the share attributed to sub-agents, so a delegated worker's spend is never hidden.
+
 ## The goal loop
 
 Type `/goal <objective>` (in any session chat) to hand the assistant an objective it should
@@ -57,6 +65,11 @@ the active goal with a live spinner and a **Stop goal** button. The agent keeps 
 planning, acting, checking progress — until it decides the goal is complete (a strict
 verifier has to agree) or you stop it. It's the right tool for "keep going until it's done"
 work rather than a single question.
+
+The goal **survives a page reload** — reopen the chat and the banner (with its live
+iteration count) is right where you left it. Cancelling the active run **auto-pauses** the
+goal rather than silently abandoning it, and the loop is bounded so a stuck step can't retry
+forever.
 
 ## Background and durable runs
 

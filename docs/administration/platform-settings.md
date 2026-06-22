@@ -57,6 +57,21 @@ Each flag is enforced at the feature's own gate: `proactive` gates the hourly pr
 scheduler, and `voice` gates the voice endpoints (and is surfaced to clients so the UI
 hides voice controls when it is off).
 
+## Entity history retention
+
+Numeric entity state is recorded as raw history, periodically **rolled up** into long-term
+per-period statistics, and then the now-rolled-up raw rows are **trimmed** to a bounded
+window. This setting is the **single source of truth** for that window.
+
+| Setting | Key | Default | Effect |
+| --- | --- | --- | --- |
+| Entity history retention (days) | `entity_history_retention_days` | `30` | How far back raw entity state history is kept before being pruned. |
+
+Both paths read the same value: the roll-up's trim (it only ever deletes raw rows already
+captured in a statistics period) and the backstop prune. The backstop never deletes data
+newer than the window. Statistics graphs on the [entity detail page](../features/entities.md#per-entity-detail-state-history-cause-effect)
+keep working past the window because they read the rolled-up statistics, not the raw rows.
+
 ## Extension point
 
 Platform settings is the GUI home for global knobs. It is designed to grow: new

@@ -146,6 +146,7 @@ nav:
           - Workflows & automations: features/workflows.md
           - Dashboards & scenes: features/dashboards.md
           - Skills: features/skills.md
+          - Marketplace: features/marketplace.md
           - Integrations: features/integrations.md
           - Devices & apps: features/devices.md
       - Personalize:
