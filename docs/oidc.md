@@ -7,7 +7,8 @@ IdP and ships as realm-as-code, but any standards-compliant OIDC provider works 
 mint access tokens in the shape described in [§2](#2-the-token-contract).
 
 This page is the canonical reference for that setup. For *how* the bundled Keycloak realm is
-imported (Compose vs. Helm), see [Self-hosting §5](self-hosting.md#5-how-the-keycloak-realm-is-imported-with-your-domain).
+imported, see the realm-import steps for [Docker](getting-started/docker.md#keycloak-realm) and
+[Kubernetes](getting-started/kubernetes.md#install-order).
 
 ---
 
@@ -79,17 +80,17 @@ issuer (via the `OIDC_ISSUER` Compose alias) and leave the rest at their default
 | `PERSONAL_AGENT__OIDC__ORG_HEADER` | `X-Personal-Agent-Org` | Header the SPA sends to select the active org. |
 
 The Compose `.env` exposes the common ones as plain knobs — `OIDC_ISSUER` (feeds both the backend
-issuer and the SPA's `PA_OIDC_AUTHORITY`), `KEYCLOAK_ORIGIN`, `REALM`, `PA_OIDC_CLIENT_ID`. See
-[Self-hosting §2](self-hosting.md#2-canonical-environment-knobs).
+issuer and the SPA's `PA_OIDC_AUTHORITY`), `KEYCLOAK_ORIGIN`, `REALM`, `PA_OIDC_CLIENT_ID`. See the
+[Configuration reference](getting-started/configuration.md#environment-variables).
 
 ---
 
 ## 4. Keycloak (the reference setup)
 
 The fastest path is to **import the shipped realm** and re-point its hostnames to your domain — see
-[Self-hosting §5](self-hosting.md#5-how-the-keycloak-realm-is-imported-with-your-domain). The rest
-of this section documents what that realm contains, so you can verify it or build it by hand on an
-existing Keycloak.
+the realm-import steps for [Docker](getting-started/docker.md#keycloak-realm) and
+[Kubernetes](getting-started/kubernetes.md#install-order). The rest of this section documents what
+that realm contains, so you can verify it or build it by hand on an existing Keycloak.
 
 ### Clients
 

@@ -1,7 +1,8 @@
 # Run locally
 
 This page covers the developer workflow. For a production deployment on your own
-domain, see the [Self-hosting guide](../self-hosting.md).
+domain, see [Docker / Podman](docker.md) (or [Kubernetes](kubernetes.md)) and the
+[Configuration reference](configuration.md).
 
 ## Prerequisites
 

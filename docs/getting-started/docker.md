@@ -13,6 +13,16 @@ Temporal, Keycloak and the three app workloads (API, worker, frontend) together.
   (`podman compose`).
 - A domain (or hostnames) for the app + Keycloak, and a model-provider key (or a
   local model endpoint) to add later in the admin console.
+- A **reverse proxy** terminating TLS in front of the stack (Caddy, nginx,
+  Traefik, …). It must route the app origin to the `frontend` container (`:80`) and
+  the `/api`, `/webhooks`, SSE and WebSocket paths to the `backend` container
+  (`:8000`); it must **not buffer** SSE responses and must allow WebSocket
+  upgrades. The reverse proxy lives outside this repo.
+- A reachable **Keycloak** (the OIDC provider). The compose file bundles one for
+  single-host use and imports the realm for you (see [Keycloak realm](#keycloak-realm)).
+
+Postgres+pgvector, Redis and a single-host Temporal dev server are bundled in the
+compose file — you don't provide those yourself.
 
 ## Bring it up
 
@@ -60,7 +70,29 @@ Podman 4.4+ is a drop-in replacement — swap `docker compose` for `podman compo
     docker compose -f deploy/compose/docker-compose.yml up
     ```
 
-## Putting it on your own domain
+## Configuration
 
-Origins, the Keycloak realm, TLS, and wiring up the device clients are covered in
-the **[Self-hosting guide](../self-hosting.md)**.
+The `.env` knobs above (origins, OIDC issuer, CORS, secrets) plus the SPA's runtime config are the
+full set — see the [Configuration reference](configuration.md). Health endpoints on the backend:
+`GET /healthz` (liveness), `GET /readyz` (DB + Redis), `GET /health/deps` (soft deps: Temporal,
+JWKS).
+
+## Keycloak realm
+
+The realm definition lives at `keycloak/realm-personal-agent.json` and is imported
+**idempotently** — you don't click through the Keycloak admin UI. The bundled `keycloak` service
+runs `start-dev --import-realm` with the `keycloak/` directory mounted into
+`/opt/keycloak/data/import`, so the realm is created (or overwritten) on start.
+
+When you adapt the realm to your domain, point each client's redirect URIs / web origins at your
+`APP_ORIGIN` and keep the API audience (`personal-agent-api`) matching
+`PERSONAL_AGENT__OIDC__AUDIENCE`. The full client / mapper / role reference — and how to use a
+non-Keycloak provider — is in [OIDC provider configuration](../oidc.md). The shipped realm also
+carries example clients for adjacent standalone apps (a VPN UI, an Open WebUI) that are **not** part
+of Personal Agent; remove or re-point them as needed.
+
+## Next steps
+
+- [Configuration reference](configuration.md) — every environment variable and the SPA runtime config.
+- [OIDC provider configuration](../oidc.md) — the Keycloak realm and other identity providers.
+- [Client apps](client-apps.md) — build the desktop, browser-extension and Android clients for your instance.
