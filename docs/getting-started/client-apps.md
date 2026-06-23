@@ -6,18 +6,19 @@ are for **building your own** against your instance.
 
 ## Desktop app (Tauri)
 
-The desktop shell wraps your live SPA and is configured at build time (`personal-agent-desktop/`):
+The desktop app is a native Tauri v2 shell (Linux) that loads your live SPA. It lives in its
+own repository,
+[`personal-agent-org/desktop`](https://github.com/personal-agent-org/desktop). You enter your
+**Server URL** on first launch and can change it later from the tray. It surfaces background
+pushes as native OS notifications and keeps the SPA's in-window Keycloak login.
+
+Build it with the repo's Docker image (produces an AppImage + `.deb`):
 
 ```bash
-docker build personal-agent-desktop \
-  --build-arg PA_APP_URL=https://app.example.com \
-  --build-arg TAURI_IDENTIFIER=com.example.personalagent.desktop \
-  -t personal-agent-desktop
+docker build -t personal-agent-desktop .
 ```
 
-`PA_APP_URL` (defaults to `http://localhost:9000`) is your SPA's public origin; the navigation
-allowlist and the Tauri `remote.urls` capability derive from it. See
-`personal-agent-desktop/README.md` for the full build-arg table.
+See the repo's `README.md` for the build details and the optional `TAURI_IDENTIFIER` build-arg.
 
 ## Browser extension
 
@@ -31,22 +32,12 @@ redirect-URI details, and the extension repo for packaging.
 
 ## Android app
 
-The Android WebView shell (`personal-agent-android/`) bakes its instance config at build time via
-Gradle properties (example.com defaults). Copy `personal-agent-android/gradle.properties.example`
-and set your values, or pass them on the command line:
+The Android app lives in its own repository,
+[`personal-agent-org/android`](https://github.com/personal-agent-org/android). It's self-hostable:
+build the APK once and enter your **Server URL** in-app on first launch (the OIDC issuer and client
+id are discovered from the instance). Build via the repo's Docker image, or
+`./gradlew assembleMinimalRelease`.
 
-```bash
-./gradlew assembleMinimalRelease \
-  -PpaBaseUrl=https://app.example.com \
-  -PpaOidcIssuer=https://id.example.com/realms/personal-agent \
-  -PpaOidcClientId=personal-agent-app
-```
-
-The app's OIDC redirect URI is `<applicationId>:/oauth/callback` (`applicationId` defaults to
-`dev.luebke.personalagent`); register that exact value on the `personal-agent-app` Keycloak client
-(change `applicationId` in `app/build.gradle.kts` if you fork the package name).
-
-`assembleMinimalRelease` (the default flavor) uses the foreground-WebSocket push path and needs no
-Google services. To wake a backgrounded phone via **Firebase Cloud Messaging** — and to reliably
-deliver the agent's device commands (alarms, timers) when the screen is off — build the `full`
-flavor and configure the server side: see [FCM push setup](../fcm-push-setup.md).
+Register the app's OIDC redirect URI `org.personalagent.android:/oauth/callback` on the
+`personal-agent-app` Keycloak client. The default flavor uses foreground-WebSocket push (no Google
+services); the `full` flavor adds **Firebase Cloud Messaging** (see [FCM push setup](../fcm-push-setup.md)).
