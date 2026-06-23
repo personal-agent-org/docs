@@ -87,10 +87,12 @@ issuer and the SPA's `PA_OIDC_AUTHORITY`), `KEYCLOAK_ORIGIN`, `REALM`, `PA_OIDC_
 
 ## 4. Keycloak (the reference setup)
 
-The fastest path is to **import the shipped realm** and re-point its hostnames to your domain — see
-the realm-import steps for [Docker](docker.md#keycloak-realm) and
-[Kubernetes](kubernetes.md#install-order). The rest of this section documents what
-that realm contains, so you can verify it or build it by hand on an existing Keycloak.
+The repo ships a **minimal example realm** — only the `personal-agent-*` clients, with `${VAR}`
+placeholders — that you can import to bootstrap local dev or a new instance: see the realm-import
+steps for [Docker](docker.md#keycloak-realm) and [Kubernetes](kubernetes.md#install-order). It is a
+starting point, **not** a production realm; for a real deployment (or any non-Keycloak provider),
+configure the clients from the reference below rather than relying on the import. This section
+documents exactly what the realm needs to contain.
 
 ### Clients
 
@@ -145,10 +147,9 @@ with no `organization` claim the user simply operates without an org scope.
 ### Groups (optional)
 
 Add a **Group Membership** mapper (full path, claim name `groups`) to enable group-shared chats,
-workflows and folders. The shipped realm also gates *which* app a user may log into by group →
-realm-role (e.g. membership in group *Personal Agent* → role `app-pa`) via a Keycloak browser-flow
-override; that gating is **Keycloak-side, not enforced by the backend**, so omit it if you don't
-need per-app access control. New users get no groups by default (and self-registration is off), so
+workflows and folders. (You can optionally add a Keycloak browser-flow override to gate *which* app a
+user may log into by group → role — that is **Keycloak-side, not enforced by the backend**, and the
+example realm does not include it.) New users get no groups by default (and self-registration is off), so
 grant access by adding users to a group.
 
 ---
