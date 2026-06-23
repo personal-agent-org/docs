@@ -31,22 +31,12 @@ redirect-URI details, and the extension repo for packaging.
 
 ## Android app
 
-The Android WebView shell (`personal-agent-android/`) bakes its instance config at build time via
-Gradle properties (example.com defaults). Copy `personal-agent-android/gradle.properties.example`
-and set your values, or pass them on the command line:
+The Android app lives in its own repository,
+[`personal-agent-org/android`](https://github.com/personal-agent-org/android). It's self-hostable:
+build the APK once and enter your **Server URL** in-app on first launch (the OIDC issuer and client
+id are discovered from the instance). Build via the repo's Docker image, or
+`./gradlew assembleMinimalRelease`.
 
-```bash
-./gradlew assembleMinimalRelease \
-  -PpaBaseUrl=https://app.example.com \
-  -PpaOidcIssuer=https://id.example.com/realms/personal-agent \
-  -PpaOidcClientId=personal-agent-app
-```
-
-The app's OIDC redirect URI is `<applicationId>:/oauth/callback` (`applicationId` defaults to
-`dev.luebke.personalagent`); register that exact value on the `personal-agent-app` Keycloak client
-(change `applicationId` in `app/build.gradle.kts` if you fork the package name).
-
-`assembleMinimalRelease` (the default flavor) uses the foreground-WebSocket push path and needs no
-Google services. To wake a backgrounded phone via **Firebase Cloud Messaging** — and to reliably
-deliver the agent's device commands (alarms, timers) when the screen is off — build the `full`
-flavor and configure the server side: see [FCM push setup](../fcm-push-setup.md).
+Register the app's OIDC redirect URI `org.personalagent.android:/oauth/callback` on the
+`personal-agent-app` Keycloak client. The default flavor uses foreground-WebSocket push (no Google
+services); the `full` flavor adds **Firebase Cloud Messaging** (see [FCM push setup](../fcm-push-setup.md)).

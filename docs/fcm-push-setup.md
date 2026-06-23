@@ -28,8 +28,9 @@ Without either, everything degrades cleanly to the WebSocket path.
 2. **Project settings → Cloud Messaging:** confirm the *Firebase Cloud
    Messaging API (V1)* is **Enabled**.
 3. Register an **Android app** in the project with the companion app's
-   application id (`dev.luebke.personalagent`, or your own if you re-brand it via
-   the `applicationId` in `apps/android/app/build.gradle.kts`).
+   application id (`org.personalagent.android`, or your own if you re-brand it via
+   the `applicationId` in `app/build.gradle.kts` in the Android app repo,
+   `personal-agent-org/android`).
 
 You do **not** need `google-services.json` — the app initializes Firebase
 programmatically from four build values (see §3).
@@ -81,8 +82,8 @@ Set `0` to disable the reaper.
 ## 3. Android: build the `full` flavor with the client config
 
 The `full` flavor reads four **gradle properties** at build time
-(`apps/android/app/build.gradle.kts`). Get the values from the Firebase Android
-app you registered in §1 (Project settings → General → *Your apps*):
+(`app/build.gradle.kts` in the Android app repo, `personal-agent-org/android`). Get the values from
+the Firebase Android app you registered in §1 (Project settings → General → *Your apps*):
 
 | Gradle property              | Firebase value                          |
 | ---------------------------- | --------------------------------------- |
@@ -94,7 +95,7 @@ app you registered in §1 (Project settings → General → *Your apps*):
 Build the `full` variant (not the default `minimal`), e.g.:
 
 ```bash
-cd apps/android
+# in a clone of personal-agent-org/android:
 ./gradlew :app:assembleFullRelease \
   -PpersonalAgentFcmProjectId=my-project \
   -PpersonalAgentFcmAppId=1:1234567890:android:abcdef \
