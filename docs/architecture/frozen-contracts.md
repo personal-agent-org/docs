@@ -1,8 +1,8 @@
 # Frozen contracts
 
 These are the seams where slices otherwise drift — the invariants the codebase
-holds frozen. They are verified against pydantic-ai 1.104 and live authoritatively
-in [`CLAUDE.md`](https://github.com/luebke-dev/personal-assistant/blob/main/CLAUDE.md).
+holds frozen. They are verified against pydantic-ai 1.104 and enforced across the
+[backend services](https://github.com/personal-agent-org/backend).
 
 !!! danger "Do not violate"
     Each of these is a contract other parts of the system rely on. Changing one

@@ -86,6 +86,6 @@ helm template personal-agent deploy/charts/personal-agent \
 ```
 
 Full reference: the
-[chart README](https://github.com/luebke-dev/personal-assistant/tree/main/deploy/charts/personal-agent),
+[chart README](https://github.com/personal-agent-org/deploy/tree/main/charts/personal-agent),
 the [Configuration reference](configuration.md), and
 [OIDC provider configuration](oidc.md).

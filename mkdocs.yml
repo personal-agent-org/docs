@@ -5,8 +5,8 @@ site_description: >-
 site_author: luebke.dev
 site_url: https://personal-agent.org/
 
-repo_name: luebke-dev/personal-assistant
-repo_url: https://github.com/luebke-dev/personal-assistant
+repo_name: personal-agent-org/docs
+repo_url: https://github.com/personal-agent-org/docs
 edit_uri: edit/main/docs/
 
 copyright: Copyright &copy; 2026 luebke.dev
@@ -71,7 +71,7 @@ extra_css:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/luebke-dev/personal-assistant
+      link: https://github.com/personal-agent-org
       name: Personal Agent on GitHub
   generator: false
 
