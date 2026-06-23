@@ -1,0 +1,11 @@
+[project]
+name = "personal-agent-docs"
+version = "0"
+description = "Personal Agent documentation site (MkDocs Material)"
+requires-python = ">=3.12"
+
+[dependency-groups]
+docs = [
+    "mkdocs-material>=9.5",
+    "pymdown-extensions>=10.7",
+]

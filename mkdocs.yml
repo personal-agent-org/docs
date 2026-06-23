@@ -172,6 +172,7 @@ nav:
       - Architecture: architecture/index.md
       - Frozen contracts: architecture/frozen-contracts.md
       - FCM push setup: fcm-push-setup.md
+      - Disaster recovery: disaster-recovery.md
   - Development:
       - development/index.md
       - Build an integration: development/integrations.md
