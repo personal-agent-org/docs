@@ -39,6 +39,26 @@ plans — kept alongside the code so the *why* travels with the *what*.
     Unifying the principal scope model (user/group, fail-closed) and merging the
     integration-entity and world-memory entity systems.
 
+-   :material-view-dashboard-variant:{ .lg .middle } __[Surfaces](surfaces.md)__
+
+    ---
+
+    Folding chat modes and dashboards into one Lovelace-style "Surface" concept
+    (regions, view types, strategies).
+
+-   :material-cog-transfer:{ .lg .middle } __[Unified workflows](workflows-unification.md)__
+
+    ---
+
+    How the programmatic-tool-calling scripts and the Automations subsystem were
+    merged into one first-class Workflow.
+
+-   :material-file-document-edit:{ .lg .middle } __[Collaborative notes](notes-collaboration.md)__
+
+    ---
+
+    Turning single-user notes into real-time, shareable collaborative documents.
+
 -   :material-clipboard-list:{ .lg .middle } __[Implementation plan](../implementation-plan.md)__
 
     ---

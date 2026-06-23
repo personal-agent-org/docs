@@ -11,8 +11,9 @@ machen, **existieren in Personal Agent bereits** — Agent-Skill-Authoring
 ein Curator, der **Skills *und* Memory aus Erfahrung vorschlägt**
 (`curator/skill_proposals.py`, Propose→Approve→Commit). Der Hebel liegt also im
 **Ausbau des Vorhandenen**, nicht im Nachbau. Ebenso sind Execution-Backends
-(Monty/Docker/K8s/SSH/AWS/Hetzner) und OpenRouter (first-class, 17 Provider)
-bereits abgedeckt.
+(Monty/Docker/Podman/K8s/SSH/AWS/Hetzner) und ein breiter Provider-Katalog
+(`agent/registry.py`, inkl. OpenRouter first-class, plus admin-definierbare
+OpenAI-kompatible Provider) bereits abgedeckt.
 
 **Strategischer Fokus** (vom Auftraggeber gesetzt): Lernfähigkeit/Self-Improving,
 Developer-Ökosystem, Execution & Tooling — sowie mehr Messaging-Reichweite *unter
@@ -28,7 +29,7 @@ Hermes: man **chattet mit** dem Agent über die Plattform).
 | 1 | Self-Improving Skill-Loop (autonom, konfigurierbar) | Basics vorhanden | **Adopt (Ausbau)** | ★★★ | M |
 | 2 | Skill-Usage-Signale → Lebenszyklus & Verbesserung | Aging nach last_used | **Adopt** | ★★☆ | S |
 | 3 | ACP-Adapter (IDE-Integration VS Code/Zed) | fehlt | **Adapt** | ★★☆ | M |
-| 4 | Mehr Messaging-Kanäle (inbound-lesend) | 6 Kanäle | **Adapt** | ★★★ | M je Kanal |
+| 4 | Mehr Messaging-Kanäle (inbound-lesend) | 5 Kanäle | **Adapt** | ★★★ | M je Kanal |
 | 5 | Konversationeller Agent-Endpoint (Hermes-Modell) | fehlt | **Skip (bewusst)** | — | — |
 | 6 | i18n-Ausweitung (16 Sprachen) | 2 Sprachen | **Adapt (Quick-Win)** | ★★☆ | S–M |
 | 7 | Klassische Chat-CLI | TUI vorhanden | **Skip** | ★☆☆ | S |
@@ -125,8 +126,10 @@ Dev-Ökosystem-Fokus viel Sichtbarkeit. Auth über den bestehenden Device-Flow.
 
 **Hermes:** 16+ Plattformen (Telegram, Discord, Slack, Teams, Feishu, WeChat, …).
 
-**PA heute:** 6 Comms-Domains (email, matrix, signal, zulip, whatsapp, phone),
-inbound-lesend via Listener + Triage; Telegram/Slack/Discord fehlen.
+**PA heute:** 5 inbound-lesende Comms-Kanäle (email, matrix, signal, zulip, whatsapp -
+jeweils `message=True` mit `message_reader/listener_provider`), inbound-lesend via
+Listener + Triage; Telegram/Slack/Discord fehlen. (Die Phone-Integration liefert nur
+Sensor-Entities/`phone` als Kontaktmethode, ist kein Nachrichten-Kanal.)
 
 **Empfehlung — Adapt (PA-Konzept beibehalten):** Neue Kanäle als reguläre
 Integrationen nach bestehendem Muster (`integrations/<domain>/` mit Manifest +

@@ -96,7 +96,7 @@ Each value is an `EntityStateTypeDescriptor`:
 | `state_class` | `"measurement"` / `"total"` / `"total_increasing"` |
 | `unit` | unit of measurement, e.g. `"°C"`, `"%"` |
 | `actions` | a tuple of `EntityStateActionDescriptor` (see §3) |
-| `world_kind` | a graph `EntityKind` key (e.g. `"project"`, `"task"`) → links a `world_entities` node so facts/memories attach to the same thing (identity layer); `None` = live-state only |
+| `world_kind` | a graph `EntityKind` key (e.g. `"project"`, `"task"`) → links a knowledge-graph node (the `entities` table) so facts/memories attach to the same thing (identity layer); `None` = live-state only |
 | `message` | `True` → entities of this type are **inbound comms messages** (see §4) |
 
 OpenProject declares `project` (`world_kind="project"`, not RAG) and `work_package`
@@ -148,8 +148,8 @@ EntityStateActionDescriptor(
 ```
 
 A non-empty `actions` tuple lets a dashboard card render a control (toggle / slider /
-button) and lets the frontend `POST /entities/{id}/action`. `fields` describes the
-action's args (an empty tuple = a no-arg action).
+button) and lets the frontend `POST /entities/{entity_id}/action`. `fields` describes
+the action's args (an empty tuple = a no-arg action).
 
 ```python
 async def async_call_action(
@@ -165,6 +165,40 @@ integration — **only for actions the type declared in `actions`** — passing
 `EntityStateActionResult.records` are fed through the normal upsert→event→history
 pipeline, so a state change emits `entity.updated`. `message` is an optional
 human-readable note.
+
+### Integration-level actions (services)
+
+`async_call_action` acts on one entity. An integration can also declare
+**integration-level actions** (the HA `services.yaml` analog) that aren't tied to any
+entity, e.g. "send a notification" or "run a scene":
+
+```python
+def integration_actions(self) -> dict[str, IntegrationActionDescriptor]:
+    return {"notify": IntegrationActionDescriptor(
+        name="notify", description="Send a notification",
+        fields=(FieldDescriptor(name="text", label="Text"),))}
+```
+
+An `IntegrationActionDescriptor` (`integrations/actions.py`) has `name` (becomes the
+agent tool name, namespaced per integration), `description` (the tool description),
+and `fields` (typed args; empty = a no-arg action).
+
+```python
+async def async_call_integration_action(
+    self, ctx, *, action, args
+) -> IntegrationActionResult:
+    ...
+    return IntegrationActionResult(ok=True, message="Sent.", data={})
+```
+
+**How it is consumed:** `_assemble_integrations` builds one `FunctionToolset` from the
+declared actions (`assembler/integration_actions_toolset.py`) and folds it into that
+entry's toolset list, so each action becomes an ordinary agent tool that rides the
+**same** untrusted-content / trust-tier gates and picker attribution as the
+integration's other tools. The tool validates its typed args and dispatches to
+`async_call_integration_action`. `IntegrationActionResult` is the structured envelope
+(`ok` / `message` / `data`); the default implementation fails closed
+(`IntegrationActionResult.fail`) so a declared-but-unhandled action errors visibly.
 
 ## 4. Inbound comms (messaging) + the unified inbox
 
@@ -183,13 +217,35 @@ three duck-typed providers from `capabilities.py`:
 | Hook | Protocol | Method | Consumed by |
 | --- | --- | --- | --- |
 | `message_reader_provider(ctx)` | `MessageReaderProvider` | `list_messages(folder, limit) -> list[IncomingMessage]` | message ingestion → `*_message` entities |
-| `message_sender_provider(ctx)` | `MessageSenderProvider` | `send(to, subject, body, in_reply_to, cc, attachments) -> dict` | **only** the draft-approval endpoint (`comms/sender.py`) — never a free agent tool |
+| `message_sender_provider(ctx)` | `MessageSenderProvider` | `send(to, subject, body, in_reply_to, cc, attachments, message_id) -> dict` | **only** the draft-approval endpoint (`comms/sender.py`) - never a free agent tool |
 | `message_listener_provider(ctx)` | `MessageListenerProvider` | `listen(controls) -> None` | the `CommsListenerManager` (`comms/listener_manager.py`) |
 
 `IncomingMessage` is channel-neutral (`external_id`, `sender`, `sender_address`,
 `recipients`, `subject`, `body`, `thread_id`, `received_at`, `folder`, `from_me`).
 `MessageSenderProvider.send` is human-in-the-loop by contract: it is reached only via
-the explicit approval endpoint.
+the explicit approval endpoint. Its optional `message_id` lets the caller pin the
+outgoing message's id (an email `Message-ID`) so a new group thread has a stable root
+that replies reference; channels with server-assigned ids ignore it.
+
+A sender-capable integration also declares a few cheap, secret-free capability flags
+read by the send-options / group-compose endpoints (no `ctx`, so they can be listed
+without decrypting anything):
+
+| Hook | Default | Meaning |
+| --- | --- | --- |
+| `supports_message_initiation()` | `True` | the channel can START a 1:1 to a bare recipient (vs only REPLY in a thread). Matrix returns `False` (its `send` target is an existing room id) |
+| `supports_group_creation()` | `False` | the channel can CREATE a named multi-party group from a name + members. Only channels with a persistent group identity declare it (Matrix rooms, Signal groups) |
+| `group_surfaces_via_sync()` | `True` | the group's first (owner-sent) message comes back through the periodic sync (Matrix / Signal / Zulip). `False` for email (the Sent folder isn't synced, so the group-compose endpoint pins the `Message-ID` itself) |
+
+```python
+def group_creator_provider(self, ctx: SetupContext) -> GroupCreatorProvider | None:
+    ...
+```
+
+When `supports_group_creation()` is `True`, `group_creator_provider(ctx)` returns a
+`GroupCreatorProvider` whose `create_group(name, members) -> str` opens the room/group
+and returns its send target (also the conversation's stable thread id), used by the
+group-compose endpoint (`comms/sender.py`).
 
 A `MessageListenerProvider` runs its own loop until `controls.should_run()` is
 `False`, calling `controls.trigger()` (debounced re-pull) when it *detects* activity
@@ -339,10 +395,14 @@ def relation_types(self) -> dict[str, RelationTypeDescriptor]:
     return {"github:reviewed_by": RelationTypeDescriptor(key="github:reviewed_by", name="...")}
 ```
 
-`RelationTypeDescriptor` keys **must** be namespaced (`domain:predicate`); core
-predicates are unprefixed and not integration-registrable. Inference flags
-(`is_transitive` / `is_symmetric`) from an untrusted integration are clamped off by
-the sync, and capability/policy predicates can never be integration-registered.
+`RelationTypeDescriptor` keys **must** be namespaced (`domain:predicate`); core and
+privileged predicates are unprefixed/reserved and not integration-registrable (the
+catalog sync logs and skips a non-namespaced or privileged key). Beyond `key`/`name`,
+a descriptor carries `inverse`, `cardinality` (`functional` / `set`), `subject_kinds`
+/ `object_kinds`, and the inference flags `is_symmetric` / `is_transitive` /
+`is_hierarchical`. The sync stores the flags but **never auto-enables inference**
+(`inference_enabled = False`) for any integration predicate, and stamps it
+`trust_tier = "trusted"`, source = the domain.
 
 ## 9. Health + webhooks
 
@@ -365,11 +425,13 @@ async def async_handle_webhook(self, ctx, payload: dict) -> EntityStateSyncResul
 ```
 
 `async_handle_webhook` handles an inbound PUSH webhook (the HA webhook analog).
-External systems POST to `/webhooks/integration/{entry_id}?token=…` (token =
-`integration_webhook_token`); the dispatcher (`entities/webhook.py`) calls this with
-the request body. Return an `EntityStateSyncResult` to upsert through the normal
-pipeline (events, RAG, live pushes), or `None` to acknowledge without writing. A
-robust pattern is to ignore the payload details and re-poll the source.
+External systems POST to `/api/v1/webhooks/integration/{entry_id}?token=…` (or pass
+the token as `Authorization: Bearer`); the stateless per-entry token
+(`integration_webhook_token`) is constant-time verified, then
+`async_handle_webhook` runs **detached** behind a fast `202` ack. Return an
+`EntityStateSyncResult` to upsert through the normal pipeline (events, RAG, live
+pushes), or `None` to acknowledge without writing. A robust pattern is to ignore the
+payload details and re-poll the source.
 
 ## 10. The trust model
 
@@ -432,15 +494,25 @@ The non-capability `manifest.yaml` keys that shape discovery and the UI:
 | `name`, `version` | display name + version string |
 | `integration_type` | `tool` / `service` / `knowledge` |
 | `config_flow` | whether it has a config-flow wizard |
-| `single_instance` | whether more than one config entry is allowed |
-| `iot_class` | trust/locality descriptor (only `local_in_process` is fully supported) |
-| `requirements` | extra Python requirements |
+| `single_instance` | whether more than one config entry is allowed (default `true`) |
+| `iot_class` | trust/locality descriptor (`local_in_process` / `local_polling` / `local_push` / `cloud_polling` / `cloud_push`; only `local_in_process` is fully supported) |
+| `requirements` | extra Python requirements (import-checked at load) |
+| `requirements_extra` | the pip extra that installs `requirements` (defaults to `integration-<domain>`); when the requirements aren't all importable the loader marks the integration unavailable and names this extra |
 | `provides` | generic capabilities backed (`web_search`, `web_fetch`, …) |
-| `frontend.cards` | predefined dashboard card templates (§6) |
-| `quality_scale` | `internal` / `experimental` / `beta` / `stable` (maturity signal) |
+| `dependencies`, `after_dependencies` | other domains this one needs / loads after |
+| `config_schema_version` | the entry config schema version (drives `async_migrate_entry`) |
+| `frontend.cards` | predefined dashboard card templates (§6); `frontend.renderers` / `panels` / `slash_commands` are reserved |
+| `quality_scale` | `internal` / `experimental` / `beta` / `stable` (maturity signal; default `experimental`) |
 | `documentation`, `issue_tracker`, `codeowners` | metadata |
 
 A config flow (`config_flow.py`, a `ConfigFlow` subclass with `async_step_*`
 methods) drives the setup wizard; each step's form fields are `FieldDescriptor`s the
-generic frontend renderer shows. `password` / `secret` field values are
-envelope-encrypted and surface to setup hooks via `ctx.secrets`.
+generic frontend renderer shows. A field's `type` is one of `text` / `password` /
+`secret` / `number` / `bool` / `select` / `note` (a read-only display field that can
+carry an `image`, e.g. a device-linking QR data-URL) plus the HA-style typed selectors
+`entity` / `device` / `area` / `duration` / `date` / `time` / `datetime` / `color`;
+`filter` narrows a selector and `multiple` makes entity/device/area/select a
+multi-select. `label` / `placeholder` / `description` are i18n keys the engine resolves
+from the integration's `translations/<lang>.json`. `password` / `secret` field values
+are envelope-encrypted and surface to setup hooks via `ctx.secrets` (`password` is
+shown masked, `secret` is write-only).

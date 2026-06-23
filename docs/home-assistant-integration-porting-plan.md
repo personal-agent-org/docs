@@ -63,9 +63,9 @@ The single most important axis for us is **`iot_class` locality**:
 |---|---|---|
 | `manifest.json` | `integrations/<domain>/manifest.yaml` (`IntegrationManifest`) | ✅ direct |
 | `async_setup_entry(hass, entry)` | `PersonalAgentIntegration.async_setup_entry(ctx)` | ✅ direct |
-| `ConfigEntry` (+ `entry.data`/`options`) | `IntegrationConfig` row + `SetupContext.data/secrets` | ✅ (options TBD, §4) |
-| `config_flow.py` / `async_step_user` | `ConfigFlow.async_step_user` (+ multi‑step) | ✅ partial (no OAuth/discovery steps) |
-| Entity platforms (`light`, `sensor`, …) | `EntityStateTypeDescriptor` (generic, `device_class`/`state_class`/`unit`) | ⚠️ generic, not per‑domain |
+| `ConfigEntry` (+ `entry.data`/`options`) | `IntegrationConfig` row + `SetupContext.data/secrets` (options/reconfigure via `flow_kind`, §4.8) | ✅ direct |
+| `config_flow.py` / `async_step_user` | `ConfigFlow.async_step_user` (+ multi‑step, OAuth `EXTERNAL_STEP`) | ✅ (OAuth done §4.1; discovery steps still missing §4.2) |
+| Entity platforms (`light`, `sensor`, …) | `EntityStateTypeDescriptor` (generic) + 10 canonical typed domains in `entity_domains.py` | ✅ §4.4 SHIPPED (typed + generic fallback) |
 | `Entity` + `async_update` | `EntityStateRecord` + `async_sync_entities` (pull) | ✅ direct |
 | `DataUpdateCoordinator` (poll cadence) | scheduled sync (`integrations/sync.py`) | ✅ equivalent |
 | Push (`async_write_ha_state`) | `EntityStateWriter` / `async_handle_webhook` | ✅ direct |
@@ -77,16 +77,17 @@ The single most important axis for us is **`iot_class` locality**:
 | `notify` platform | `MessageSenderProvider` (HITL draft‑approval) | ✅ (different safety model) |
 | `weather` / `*_search` services | capability providers (`weather_provider`, `web_search_provider`) | ✅ direct |
 | `device_tracker` / events | `event_types()` + entity events on the Redis bus | ✅ direct |
-| `requirements` | `manifest.requirements` (**surfaced, not installed** — bake into image) | ⚠️ §4.7 |
-| OAuth2 `application_credentials` | — | ❌ §4.1 |
+| `requirements` | `manifest.requirements` + `requirements_extra` (per-integration pip extra; loader marks unavailable if not importable) | ✅ §4.7 SHIPPED |
+| OAuth2 `application_credentials` | `OAuth2Session` + `FlowResultType.EXTERNAL_STEP` + admin `oauth2_application_credentials` store | ✅ §4.1 SHIPPED |
 | Discovery (zeroconf/SSDP/DHCP/BLE/USB) | — | ❌ §4.2 |
 | Local radio stacks (Zigbee/Z‑Wave/Matter/Thread/MQTT broker) | — | ❌ §4.3 (needs bridge) |
-| `recorder` / long‑term statistics | partial (entity history planned, adoption §2 #1) | ⚠️ |
+| `recorder` / long‑term statistics | `entity_state_history` + `entity_state_statistics` roll‑up (`entities/statistics.py`, `history_retention.py`) | ✅ §4.6 SHIPPED |
 | Voice (`stt`/`tts`/`wake_word`/`conversation`/`assist_pipeline`) | own model pipeline (chat‑first) | ↔️ different subsystem |
 
-**Takeaway:** the per‑*entry* contract is essentially complete. The gaps are (a) **setup flows**
-(OAuth, discovery), (b) **entity‑domain richness**, (c) **transport** for the local tier, and
-(d) **dependency packaging**.
+**Takeaway:** the per‑*entry* contract is essentially complete, and most framework gaps have since
+landed (OAuth, typed entity domains, history/stats, dependency extras, options/reauth, integration
+actions - see §4). The remaining gaps are **discovery** (§4.2), **transport** for the local tier
+(§4.3/§4.5 - no device‑agent LAN bridge yet), and the bulk‑port codegen harness (Phase 0).
 
 ---
 
@@ -109,16 +110,29 @@ The single most important axis for us is **`iot_class` locality**:
 
 Ordered by how much they unblock. Each is **additive** on the existing tier.
 
-### 4.1 — OAuth2 / application‑credentials config flow  **(P0, blocks ~264 cloud integrations)**
+!!! note "Status (verified against the backend repo)"
+    Most of the Phase-0/1 framework gaps have since SHIPPED: **§4.1 OAuth2** (`integrations/oauth2.py`,
+    `FlowResultType.EXTERNAL_STEP`, admin `oauth2_application_credentials` store), **§4.4 richer entity
+    domains** (`integrations/entity_domains.py`, the 10 canonical typed descriptors), **§4.6 history +
+    statistics** (`entity_state_history` + `entity_state_statistics` roll-up), **§4.7 dependency extras**
+    (`manifest.requirements_extra`), **§4.8 options/reauth/reconfigure** (`flow_manager` `flow_kind`),
+    and **§4.9 integration-level actions** (`integrations/actions.py`). Still open: **§4.2 discovery**,
+    **§4.3 radio/serial**, **§4.5 device-agent LAN bridge** (the device-agent has no LAN/discovery
+    runner yet), and the Phase-0 codegen harness (`tools/ha_port/` does not exist).
+
+### 4.1 - OAuth2 / application‑credentials config flow  **(P0 - SHIPPED)**
 HA has a first‑class `config_entry_oauth2_flow` + `application_credentials`: the flow redirects to
 the provider, captures the code at a callback, exchanges + **refreshes** tokens, and stores them on
-the entry. Our `ConfigFlow` only does in‑app forms (`FlowResultType` = FORM/CREATE_ENTRY/ABORT) —
-**no external‑redirect step, no token store, no refresh**.
-- **Add:** `FlowResultType.EXTERNAL_STEP` (+ `external_url`) and an `async_step_oauth`/callback
-  route in the flow manager; an `OAuth2Session` helper (admin‑registered client id/secret per
-  provider, à la `application_credentials`); automatic token refresh in `SetupContext` (decrypt →
-  refresh → re‑encrypt), reusing the BYOK secret envelope. Mirror reauth (token‑expiry) onto the
-  P1 reauth flow already proposed in the adoption doc.
+the entry. The original gap: our `ConfigFlow` only did in‑app forms (FORM/CREATE_ENTRY/ABORT) with
+no external‑redirect step, no token store, no refresh.
+- **Done:** `FlowResultType.EXTERNAL_STEP` (+ `external_url`, `async_external_step`) with the
+  callback resuming `async_step_<step_id>`; an `OAuth2Session` helper (`integrations/oauth2.py`)
+  building the authorize URL, exchanging the `code`, and refreshing on expiry; an admin
+  `oauth2_application_credentials` store (`OAuth2ApplicationCredential` model +
+  `admin_oauth_credentials` router) keyed by domain; the canonical redirect URI
+  `{APP_ORIGIN}/oauth/callback` injected via `FlowContext.redirect_uri`. Tokens are stashed as
+  `secret_fields` on the flow and envelope‑encrypted at rest; never logged or in Temporal inputs
+  (Contracts #5/#15).
 
 ### 4.2 — Discovery (zeroconf / SSDP / DHCP / Bluetooth / USB / HomeKit)  **(P2, UX for the LAN tier)**
 ~250 HA integrations declare discovery so a device is *found*, not hand‑entered. We have **none**;
@@ -138,19 +152,18 @@ on the host. A cloud multi‑tenant runtime cannot host them.
   **defer**; if pursued, start with **MQTT** (a broker the user already runs → cleanest bridge) and
   **Matter** (IP‑based, future‑proof) before Zigbee/Z‑Wave (per‑adapter drivers).
 
-### 4.4 — Richer entity domains  **(P1, quality of Tier A/B ports)**
-Our `EntityStateTypeDescriptor` is **generic** (`state` + `attributes` + `actions`). HA has ~40
-**typed platforms** with domain semantics: `climate` (hvac_modes, target_temp, presets),
-`media_player` (transport state, source list, volume), `cover` (position/tilt), `light` (color
-modes/temp), `fan`, `lock`, `vacuum`, `alarm_control_panel`, `number`/`select`/`button`/`switch`,
-`weather`, `calendar`, `todo`, `camera`/`image`, `update`, `device_tracker`, `event`,
-`date`/`time`/`datetime`/`text`. We can *represent* all of these generically, but the agent and the
-dashboard render them better with first‑class shapes.
-- **Add:** a small set of **canonical entity‑domain descriptors** (a typed `state_schema` +
-  standard action sets) for the high‑frequency domains — `climate`, `media_player`, `cover`,
-  `light`, `lock`, `vacuum`, `weather`, `calendar`, `todo`, `camera`. Generic stays the fallback
-  (backward‑compatible). This is the same shape as the adoption‑doc §2 “units & structured
-  attributes” item — do them together.
+### 4.4 - Richer entity domains  **(P1 - SHIPPED)**
+The original gap: our `EntityStateTypeDescriptor` was **generic** (`state` + `attributes` +
+`actions`), while HA has ~40 **typed platforms** with domain semantics: `climate` (hvac_modes,
+target_temp, presets), `media_player` (transport state, source list, volume), `cover`
+(position/tilt), `light` (color modes/temp), `fan`, `lock`, `vacuum`, `alarm_control_panel`,
+`number`/`select`/`button`/`switch`, `weather`, `calendar`, `todo`, `camera`/`image`, `update`,
+`device_tracker`, `event`, `date`/`time`/`datetime`/`text`.
+- **Done:** `integrations/entity_domains.py` ships the **10 canonical typed descriptors** -
+  `climate`, `media_player`, `cover`, `light`, `lock`, `vacuum`, `weather`, `calendar`, `todo`,
+  `camera` - each a pre‑populated `EntityStateTypeDescriptor` with HA‑aligned standard action sets
+  (filterable per entry via `_filter_actions`). The bare generic descriptor stays the fallback
+  (backward‑compatible).
 
 ### 4.5 — Device‑agent LAN bridge (the local tier’s enabler)  **(P2, gates Tier B+C)**
 The Rust device-agent (repo `personal-agent-org/device-agent`) already connects back over the device WS. Extend it into a
@@ -160,30 +173,39 @@ local‑transport half of a ported integration while the **config flow, entities
 agent stay in the cloud**. This is what turns “cloud‑only product” into “can talk to your house”
 without putting tenant hardware in our k8s.
 
-### 4.6 — Long‑term statistics / recorder  **(P2)**
-HA’s `recorder` + statistics back history graphs and “has been X for Y” conditions. We have entity
-events + a planned `entity_state_history` (adoption §2 #1). Land that table + a stats roll‑up; many
-`sensor`‑heavy ports are dull without history.
+### 4.6 - Long‑term statistics / recorder  **(P2 - SHIPPED)**
+HA’s `recorder` + statistics back history graphs and “has been X for Y” conditions. Done: the sync
+engine writes one `entity_state_history` row per state change, and `entities/statistics.py` rolls
+older numeric data into per‑period min/max/mean (hour buckets over raw rows, day over hour) in
+`entity_state_statistics`. Both are fail‑closed `scope_isolation` RLS and bounded by the admin
+`entity_history_retention_days` setting (default 30); `history_retention.py` is the coarse
+backstop sweep.
 
-### 4.7 — Dependency packaging at scale  **(P1, operational)**
-1 127 distinct PyPI requirements, and our loader **surfaces but never installs** them (full‑trust,
-baked‑into‑image policy). Porting hundreds of integrations means hundreds of new transitive deps —
-unworkable in one image.
-- **Add:** an **opt‑in extras model** — group requirements into installable extras
-  (`personal-agent[integrations-weather]`, …) and/or a per‑integration **sidecar/venv** so a tenant
-  enabling 8 integrations doesn’t drag in 1 127 libs. Keep the trust model (§ integrations/README)
-  intact: still vetted, still first‑party.
+### 4.7 - Dependency packaging at scale  **(P1 - SHIPPED, extras model)**
+1 127 distinct PyPI requirements: porting hundreds of integrations means hundreds of new transitive
+deps, unworkable in one image.
+- **Done:** the **opt‑in extras model**. `manifest.requirements_extra` names the pyproject
+  `[project.optional-dependencies]` key that installs an integration's `requirements` (defaults to
+  `integration-<domain>`). An operator installs only what they need
+  (`pip install 'personal-agent[integration-foo]'`); when the requirements aren't importable the
+  loader marks the integration **unavailable** and names the extra in the message instead of
+  loading‑then‑crashing. The full‑trust, first‑party trust model is unchanged. (A per‑integration
+  sidecar/venv was not pursued.)
 
-### 4.8 — Options / reauth / reconfigure / lifecycle  **(P1, already scoped)**
-`async_step_options` / `reauth` / `reconfigure` + config‑entry `state` (loaded/setup_error/
-setup_retry) + `reload`. Already the adoption‑doc §3 P1/P2 items — pull them forward; OAuth (§4.1)
-*needs* reauth.
+### 4.8 - Options / reauth / reconfigure / lifecycle  **(P1 - SHIPPED)**
+Done: the `FlowManager` opens an entry‑edit with `flow_kind` ∈ `reconfigure` | `options` |
+`reauth`, entering `async_step_<flow_kind>` (each falling back to `async_step_user`);
+`simple_flow.py` provides a standard `async_step_reconfigure`. Config rows carry a `state` column
+(`loaded` | `not_found` | `error`) and a runtime `health` blob (`ok` | `degraded` | `error` from
+`async_health`). Reconfigure preserves untouched fields and decrypts existing secrets for the form.
 
-### 4.9 — Service/automation surface parity  **(P3)**
-HA `services.yaml` (339 integrations) are global, schema’d actions; ours are **entity‑scoped**
-(`async_call_action`). Most device control fits the entity‑action model; a few integration‑level
-services (e.g. “send a notification”, “run a scene”) want an **integration‑level action** registry.
-Small additive: an `integration_actions()` declaration → agent tools / automation steps.
+### 4.9 - Service/automation surface parity  **(P3 - SHIPPED)**
+HA `services.yaml` (339 integrations) are global, schema’d actions; entity actions are
+**entity‑scoped** (`async_call_action`). Done: `integrations/actions.py` adds the integration‑level
+registry - `PersonalAgentIntegration.integration_actions()` returns
+`IntegrationActionDescriptor`s (name → tool, fields → schema) and `async_call_integration_action`
+runs them, returning a structured `IntegrationActionResult`. Covers the few integration‑level
+services (e.g. “send a notification”, “run a scene”) that don't fit the entity‑action model.
 
 ---
 
@@ -196,19 +218,21 @@ skeleton (manifest.yaml + config_flow stub + entity‑type stubs mapped from HA 
 ranked backlog (Tier A first, by popularity). *Deliverable: the backlog + 3 hand‑finished Tier‑A
 ports as templates.*
 
-**Phase 1 — Unblock the cloud tier (P0/P1 framework).**
-Land **§4.1 OAuth2 flow**, **§4.4 richer entity domains** (the 10 canonical ones),
-**§4.7 dependency extras**, **§4.8 options/reauth**. These are the only hard prerequisites for
-Tier A. *Gate: one OAuth integration (e.g. a calendar or a smart‑home cloud) end‑to‑end.*
+**Phase 1 - Unblock the cloud tier (P0/P1 framework). - DONE.**
+**§4.1 OAuth2 flow**, **§4.4 richer entity domains** (the 10 canonical ones), **§4.7 dependency
+extras**, and **§4.8 options/reauth** have all landed (plus §4.6 history and §4.9 actions). These
+were the only hard framework prerequisites for Tier A.
 
-**Phase 2 — Bulk‑port Tier A (cloud APIs, ~500).**
-Generator‑assisted, hand‑finished in priority order. Each port = manifest + config flow (often
+**Phase 2 - Bulk‑port Tier A (cloud APIs, ~500). - NOT STARTED.**
+The Phase‑1 framework is in place, but no bundled folder integration yet uses the OAuth flow, the
+typed entity domains, or integration‑level actions. Generator‑assisted, hand‑finished in priority
+order. Each port = manifest + config flow (often
 OAuth) + a thin client + entity types + actions. Most need **no device‑agent**. Wire each through
 the existing governance/classification/untrusted gates (Contracts #13/#14) — a cloud integration
 that returns attacker‑influenced text declares `trust_tier: untrusted`.
 
 **Phase 3 — LAN bridge + Tier B (local‑IP devices).**
-Land **§4.5 device‑agent LAN runner** + **§4.2 discovery relay** + **§4.6 history**. Port the
+Land **§4.5 device‑agent LAN runner** + **§4.2 discovery relay** (§4.6 history already landed). Port the
 local‑IP devices (ESPHome, Hue bridge, Sonos, printers, routers) running their transport half on
 the bridge. *Gate: ESPHome or a Hue bridge controllable from chat via a home‑run bridge.*
 
@@ -230,7 +254,7 @@ integrations/<domain>/
                      #   async_sync_entities← HA coordinator.async_update (pull)
                      #   async_call_action  ← HA services / entity methods
                      #   *_provider()       ← if it backs a capability (weather/search/notify)
-  config_flow.py     # HA async_step_user (+ OAuth step once §4.1 lands)
+  config_flow.py     # HA async_step_user (+ OAuth EXTERNAL_STEP, §4.1)
   client.py          # the vendor SDK/REST wrapper (HA uses the requirement lib directly)
   mapping.py         # HA state/attrs → EntityStateRecord
   translations/<l>.json
@@ -262,18 +286,19 @@ integrations/<domain>/
 
 ---
 
-## 8. Bottom line — what’s missing, in one list
+## 8. Bottom line
 
-1. **OAuth2 application‑credentials flow** (external‑redirect step + token store + refresh) — P0.
-2. **Dependency packaging at scale** (extras / per‑integration venv) — P1.
-3. **Richer entity domains** (10 canonical typed platforms) — P1.
-4. **Options / reauth / reconfigure / config‑entry lifecycle** — P1.
-5. **Device‑agent LAN bridge** (runs the local‑transport half at home) — P2, gates Tier B/C.
-6. **Discovery relay** (zeroconf/SSDP/DHCP/BLE/USB via the bridge) — P2.
-7. **Entity history + long‑term statistics** — P2.
-8. **Integration‑level action registry** (HA `services.yaml` analog beyond entity actions) — P3.
-9. **Local radio/serial subsystems** (Zigbee/Z‑Wave/Matter/Thread/MQTT/KNX) — P3, separate program.
-10. **A manifest‑driven port generator** (`tools/ha_port/`) to make the bulk feasible — Phase 0.
+**Shipped since this plan** (verified against the backend repo): OAuth2 application‑credentials flow
+(§4.1), dependency extras (§4.7), the 10 canonical typed entity domains (§4.4), options / reauth /
+reconfigure lifecycle (§4.8), entity history + long‑term statistics (§4.6), and the integration‑level
+action registry (§4.9).
+
+**Still open:**
+
+1. **Device‑agent LAN bridge** (runs the local‑transport half at home) - P2, gates Tier B/C.
+2. **Discovery relay** (zeroconf/SSDP/DHCP/BLE/USB via the bridge) - P2.
+3. **Local radio/serial subsystems** (Zigbee/Z‑Wave/Matter/Thread/MQTT/KNX) - P3, separate program.
+4. **A manifest‑driven port generator** (`tools/ha_port/`) to make the bulk feasible - Phase 0.
 
 Everything else (the per‑entry contract, entity sync, actions, devices, webhooks, capability
 providers, governance, multi‑tenancy) **already exists** and matches HA’s shape.

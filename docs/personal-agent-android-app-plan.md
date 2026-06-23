@@ -1,10 +1,14 @@
 # Implementierungsplan: personal-agent Companion App (Android-first)
 
-> **Update 2026-06:** P1 ist ausgeliefert (plus Phone-Commands/Sensorik). Der konkrete
-> Arbeitspaket-Plan für den weiteren Ausbau — nach Quellcode-Abgleich mit der
-> HA-Android-App und Verifikation der Backend-Verträge — liegt in
+> **Update 2026-06:** Die Backend-Seite dieses Plans ist grösstenteils ausgeliefert
+> (Push-Token-Registry, FCM-Wake-and-Fetch, Phone-als-Entity, Phone-Commands, SPA-Bridge
+> V1+V2), allerdings mit anderen konkreten Endpunkten/Tabellen als hier ursprünglich skizziert.
+> Die unten beschriebenen API-Namen wurden an den real implementierten Stand angeglichen; das
+> Phasen-/Architektur-Narrativ bleibt als historische Blaupause erhalten. Der konkrete
+> Arbeitspaket-Plan für den weiteren Ausbau - nach Quellcode-Abgleich mit der HA-Android-App und
+> Verifikation der Backend-Verträge - liegt in
 > [`personal-agent-android-expansion-plan.md`](personal-agent-android-expansion-plan.md)
-> und ersetzt die Phasen P2–P7 unten. Dieses Dokument bleibt die Architektur-Blaupause.
+> und ersetzt die Phasen P2-P7 unten.
 
 > **Prinzip (von Home Assistant übernommen):** Eine native Android-Shell wrappt die **bestehende personal-agent-Quasar-SPA** in einer WebView und ergänzt sie um native Integrationen (Push, Voice/Wake-Word, Sensoren, Deep-Links). Das ist exakt das Modell der HA-App: `WebViewActivity` hostet das HA-Frontend, ein **External Bus** (JS-Bridge) verbindet Web ↔ Native, der Rest (Sensoren, Notifications, Voice) lebt nativ. Wir kopieren die Seams, ersetzen aber HA-spezifische Mechanismen (OAuth/IndieAuth, Multi-*Server*) durch personal-agent-Äquivalente (Keycloak/OIDC, Multi-*Org*).
 
@@ -81,7 +85,13 @@ Eine Compose-Activity lädt `PERSONAL_AGENT_BASE_URL` (`https://pa.luebke.dev`).
 
 ### 2.2 Bridge-Vertrag (External Bus, V1)
 
-Native exponiert `window.personalAgentNative` via `addJavascriptInterface` (HAs `externalApp`-Muster, `FrontendJsBridge.kt`). Nachrichten folgen HAs Discriminator-Design (`id + type + command/result`, `ExternalBusMessage.kt`): die SPA sendet `{id, type, payload}`, Native antwortet asynchron via `evaluateJavascript(window.personalAgentNativeCallback(...))`.
+Native exponiert `window.personalAgentNative` via `addJavascriptInterface` (HAs `externalApp`-Muster, `FrontendJsBridge.kt`). Nachrichten folgen HAs Discriminator-Design (`id + type + command/result`, `ExternalBusMessage.kt`): die SPA sendet `{id, type, payload}`, Native antwortet asynchron via `evaluateJavascript`-Callback bzw. (V2) `personalAgentNative.onmessage`.
+
+> **Real implementiert** (`src/services/nativeBridge.ts`): die SPA unterstützt beide Transporte (V1
+> `addJavascriptInterface` + V2 `postMessage`/`onmessage`). Über die untenstehende Tabelle hinaus
+> existieren bereits weitere Commands: `app/ready`, `notification/show`, `location/request-permission`,
+> `health/request-permission` (Health-Metriken), `app-settings/get`/`set`, `onboarding/show` sowie
+> `saveBlob` für Downloads.
 
 **SPA → Native (Commands):**
 
@@ -104,7 +114,7 @@ Native exponiert `window.personalAgentNative` via `addJavascriptInterface` (HAs 
 
 ### 2.3 SPA-seitige Ergänzungen (klein, additiv)
 
-Die Quasar-SPA bekommt ein dünnes Bridge-Modul (`src/native/bridge.ts`), das prüft, ob `window.personalAgentNative` existiert:
+Die Quasar-SPA bekommt ein dünnes Bridge-Modul (real: `src/services/nativeBridge.ts`, geladen via Boot `src/boot/native.ts`), das prüft, ob `window.personalAgentNative` existiert:
 - **Auth-Handoff:** Wenn `personalAgentNative` vorhanden ist, **überspringt die SPA den oidc-client-Redirect-Login** und ruft stattdessen `personalAgentNative.getExternalAuth()` → speichert den Token im oidc-Store / setzt den Bearer für HTTP+WS. (Dies ist HAs `getExternalAuth`-Vertrag, übertragen auf oidc-client.) Bei Ablauf ruft die SPA erneut `getExternalAuth(force_refresh)`.
 - **Capability-gating:** `config/get` steuert, ob native Mic-/Wake-Word-Buttons sichtbar sind (statt Browser-`getUserMedia`).
 - **Notifications/Permissions/Haptics/Share/Theme:** dünne Wrapper, die in der reinen Browser-Variante No-Ops/Web-APIs bleiben (Progressive Enhancement).
@@ -127,7 +137,7 @@ HA nutzt OAuth authorization_code mit WebView-Redirect-Intercept (`ConnectionVie
 ### 3.1 Flow
 
 1. **Kein Server-Picker** (anders als HAs `ServerDiscoveryViewModel`/NSD): personal-agent hat genau einen Server (`PERSONAL_AGENT_BASE_URL`). Optional ein einzelnes „Server-URL"-Feld für Self-Hosting, default vorbelegt.
-2. **OIDC Auth-Code-Flow + PKCE** via AppAuth gegen `id.luebke.dev` (Keycloak): Discovery via `.well-known/openid-configuration`, Redirect-URI `dev.luebke.personalagent://oauth/callback` (Custom Tab, nicht eingebettete WebView — Store-/Security-Best-Practice). Entspricht funktional HAs `/auth/authorize` + Redirect-Intercept, nur mit Keycloak-Endpunkten.
+2. **OIDC Auth-Code-Flow + PKCE** via AppAuth gegen Keycloak: Discovery via `.well-known/openid-configuration`, Redirect-URI `dev.luebke.personalagent:/oauth/callback` (Custom-Scheme, im Realm via `${ANDROID_REDIRECT_SCHEME}` templatisiert; Custom Tab, nicht eingebettete WebView - Store-/Security-Best-Practice). Entspricht funktional HAs `/auth/authorize` + Redirect-Intercept, nur mit Keycloak-Endpunkten.
 3. **Token-Exchange** am Keycloak-Token-Endpoint (`grant_type=authorization_code`) — Pendant zu HAs `AuthenticationService.getToken()`.
 4. **Provisioning:** Nach Login ruft die App (oder die SPA nach Handoff) `GET /me` → personal-agent lazy-provisioniert den User (bestehendes Verhalten). Org-Auswahl bleibt in der SPA (`X-Personal-Agent-Org`).
 
@@ -185,11 +195,15 @@ Wir standardisieren auf HAs flaches Schema (ein Renderer für beide Pfade):
 
 | personal-agent `user_events_channel`-Event | Notification | Actions | Deep-Link |
 |---|---|---|---|
-| Chat-Antwort fertig / Chat-Title | Info | „Öffnen" | `personal-agent://chat/<id>` |
+| `chat_reply` (Antwort fertig; `chat_title` ist WS-only) | Info/Normal | „Öffnen" | `personal-agent://chat/<id>` |
 | `agent_question` (`ask_user`) | High | Optionen als Buttons + ggf. `textinput` | `personal-agent://chat/<id>?run=<rid>&q=<qid>` |
 | `tool_approval` (security-mode) | High | „Erlauben"/„Ablehnen" | `personal-agent://chat/<id>?approve=<call_id>` |
-| `draft_ready` (Comms/HITL) | High | „Ansehen"/„Senden" | `personal-agent://drafts/<draft_id>` |
-| `automation_fired` / Background-Run resumed | Default | „Öffnen" | `personal-agent://chat/<id>` |
+| `draft_pending` (Comms/HITL) | Normal | „Ansehen"/„Senden" | `personal-agent://drafts/<draft_id>` |
+| `phone_command` (Geräte-Aktuation) / Background-Run resumed | High/Default | - | `personal-agent://chat/<id>` |
+
+> Real implementierte push-würdige Frame-Typen (`realtime/fcm.py`): `push_notification`, `agent_question`,
+> `tool_approval`, `phone_command` (high), `chat_reply`, `draft_pending` (normal). Frames ausserhalb dieser
+> Liste (z. B. `chat_title`, `chat_run`, `entity_changed`) bleiben WS-only und wecken das Telefon nicht.
 
 **Action-Callback (HAs `NotificationActionReceiver`-Muster):** Tap auf „Erlauben"/„Ablehnen"/Reply → `NotificationActionReceiver.onReceive()` → POST an personal-agent (s. §9 `POST /api/v1/mobile/actions`), das die wartende Temporal-Workflow-Resumption auslöst — analog HAs `fireEvent("mobile_app_notification_action", …)`. Für `textinput`/`reply` hängen wir wie HA ein `RemoteInput` an. Tap auf den Body → Deep-Link öffnet die App auf der richtigen SPA-Route (§2.2 `navigate`).
 
@@ -272,30 +286,76 @@ Eigene Shell(s) gegen denselben Bridge-Vertrag und dieselben personal-agent-Endp
 
 Bewusst minimal-invasiv — wir bauen auf `user_events_channel`, Control-WS und Temporal auf.
 
-1. **Push-Token-Registry** (neu)
-   - Tabelle `mobile_devices` (RLS-tenant-scoped, Owner = `user_id`): `id (uuid7)`, `user_id`, `org_id`, `device_id` (client-generiert), `platform` (`android`/`ios`), `flavor` (`full`/`minimal`), `push_provider` (`fcm`/`apns`/`ws`), `push_token` (nullable für WS-Only), `app_version`, `created_at`, `last_seen_at`, `enabled`. Unique `(user_id, device_id)`.
-   - `POST /api/v1/mobile/devices` (register/upsert, HAs `/api/mobile_app/registrations`-Pendant), `DELETE /api/v1/mobile/devices/{device_id}` (Logout/Unregister), `PATCH` für Token-Refresh. Re-Registration-Resilienz wie HA.
+> **Stand-Hinweis:** Punkte 1-5 sind ausgeliefert, aber mit anderen konkreten Endpunkten/Tabellen
+> als ursprünglich skizziert. Die folgenden Beschreibungen wurden an den realen Code angeglichen.
 
-2. **FCM-Sender** (neu, serverseitig)
-   - Ein `MobilePushService`, der bei jedem Event auf `user_events_channel` prüft, ob der User aktive **FCM**-Geräte hat, und das flache Payload-Schema (§4.3) an FCM (HTTP v1, Service-Account) sendet. WS-Geräte erhalten dasselbe Payload über den **bestehenden** WS-Push (keine Änderung am WS-Protokoll außer optionalem `delivery_id`/Ack).
-   - Konfiguration via `PERSONAL_AGENT__PUSH__FCM__*` (Service-Account-File aus `/run/secrets`, Konvention des Projekts). FOSS-Deployments ohne FCM-Credentials fallen automatisch auf den WS-Only-Pfad zurück.
+1. **Push-Token-Registry** (ausgeliefert) - `services/api` `api/routers/push.py`, Modell
+   `db/models/push_token.py`
+   - Tabelle `push_tokens` (RLS, Owner = `owner_sub`): `id (uuid7)`, `owner_sub`, `org_id`,
+     `platform` (`android`/`ios`/`web`), `push_type` (`fcm`/`ws`), `token` (Push-Token, Unique),
+     `label` (freitext, z. B. "Pixel 8"), `last_seen_at`, `created_at`/`updated_at`. Kein separates
+     `device_id`/`flavor`/`app_version`/`enabled`-Feld - der `token` ist der Identitäts-Schlüssel.
+   - `POST /api/v1/push/tokens` (register/upsert), `DELETE /api/v1/push/tokens/{token}` (Unregister),
+     `GET /api/v1/push/tokens` (Liste, nur Last-4 des Tokens). Re-Registration-Resilienz: tote
+     Tokens (FCM `UNREGISTERED`/404/410) werden beim Senden gelöscht; ein täglicher Maintenance-Job
+     (`worker/push_maintenance_workflow.py`) reapt seit `token_ttl_days` (default 90) stille Tokens.
 
-3. **Notification-Payload-Mapper** (neu, dünn)
-   - Eine zentrale Funktion, die bestehende `user_events_channel`-Eventtypen (chat-reply/title, `agent_question`, `tool_approval`, `draft_ready`, `automation_fired`, background-resume) → flaches Notification-Schema inkl. `deeplink` + `actions` (§4.4) übersetzt. Genutzt von FCM-Sender **und** vom WS-Push (ein Schema für beide Pfade).
+2. **FCM-Sender** (ausgeliefert) - `realtime/fcm.py`
+   - `FcmSender` (process-global, via `configure_fcm` in API-Lifespan **und** Worker-Startup): bei
+     jedem `publish_user_event`-Fanout prüft `maybe_send`, ob der User aktive **FCM**-Tokens hat, und
+     sendet best-effort. FCM HTTP v1, OAuth2-Token aus dem Service-Account selbst gemintet (PyJWT
+     RS256 → token endpoint via httpx, gecacht), **kein** Google-SDK. WS-Geräte erhalten dasselbe
+     Event über den bestehenden Control-WS-Push.
+   - **Wake-and-Fetch (Privacy):** die FCM-Data-Message trägt **nur** `{type, payload_id}` (kein
+     Inhalt). Der volle Frame liegt kurzlebig in Redis (`push_payload`-Key, TTL 3600 s) und wird von
+     der App über `GET /api/v1/push/payload/{payload_id}` (owner-scoped) nachgeladen - so transitiert
+     Benachrichtigungsinhalt nie über Google. Nur push-würdige Frame-Typen wecken das Telefon:
+     `push_notification`, `agent_question`, `tool_approval`, `phone_command` (alle high), `chat_reply`
+     + `draft_pending` (normal).
+   - Konfiguration via `PERSONAL_AGENT__PUSH__FCM_CREDENTIALS_FILE` (Service-Account-JSON, konventionell
+     aus `/run/secrets`) + `PERSONAL_AGENT__PUSH__TOKEN_TTL_DAYS`. FOSS-Deployments ohne FCM-Credentials
+     fallen automatisch auf den WS-Only-Pfad zurück (Sender = No-Op).
 
-4. **Mobile-Action-Callback** (neu)
-   - `POST /api/v1/mobile/actions` `{event_type:"mobile_action", action, action_data, run_id?, call_id?, draft_id?, reply_text?}` — Pendant zu HAs `mobile_app_notification_action`. Routet auf die **bestehenden** Resumption-Pfade (Tool-Approval, `ask_user`-Answer, Draft-Send), die heute schon die Temporal-Workflows fortsetzen. Idempotent über `call_id`/`run_id`.
+3. **Ein Frame, ein Renderer** (ausgeliefert)
+   - Es gibt **keinen** separaten serverseitigen Payload-Mapper: der Frame reist sowohl über WS als
+     auch (per Wake-and-Fetch) über FCM **as-is**; die App rendert WS- und FCM-Frames durch **einen**
+     `NotificationRenderer`. Das per-User-Fanout (`realtime/bus/user_events.py:publish_user_event`)
+     ist der einzige Funnel; die FCM-Spiegelung ist zusätzlich per Notify-Prefs gegated (Master-Toggle
+     + Per-Event-Toggle + Quiet-Hours), der WS-Publish wird nie unterdrückt. `phone_command` umgeht das
+     Gate (funktionale Geräte-Aktuation, kein Notification).
 
-5. **Mobile Entity-Ingest** (P5, neu)
-   - `POST /api/v1/mobile/entities` (Batch der geänderten Sensoren) → `EntityWriter.upsert` mit `domain="device"`, per-User. Dedup/Disabled-Handling serverseitig.
+4. **Action-Callback** (ausgeliefert, **kein** dedizierter Mobile-Endpoint)
+   - Es gibt **kein** `POST /api/v1/mobile/actions`. Notification-Actions routen direkt auf die
+     **bestehenden** Resumption-Endpunkte: Tool-Approval → `POST /api/v1/approvals/{approval_id}/approve`
+     bzw. `/reject`; `ask_user`-Antwort → `POST /api/v1/chats/{chat_id}/questions/{question_id}/answer`;
+     Draft-Send → Drafts-Router. Diese setzen die wartenden Temporal-Workflows wie gehabt fort.
 
-6. **Deep-Link-Vertrag** (Doku, evtl. minimale Route-Aliase)
-   - `personal-agent://chat/{id}?run=&q=&approve=`, `personal-agent://drafts/{id}`, `personal-agent://voice`, `personal-agent://share`. Die SPA muss diese Query-Parameter beim Laden auswerten (kleine Router-Erweiterung) — die App übersetzt den `personal-agent://`-Intent in die passende SPA-URL/`navigate`-Bridge-Message.
+5. **Phone-als-Entity / Sensor-Ingest** (P5, ausgeliefert) - `me.py` + `integrations/phone/`
+   - `PUT /api/v1/me/phone/state` (kompletter On-Device-Sensor-Snapshot, ~alle 15 min) → gespeichert
+     verbatim in `phone_states` (gelesen von `read_phone_status`) **und** projiziert in das
+     Entity-Subsystem über die `phone`-Integration (`EntityStateRecord`, eine Entity pro Sensor,
+     gruppiert per `EntityStateDevice`). Damit sind Phone-Sensoren erst-klassig: `search_entities`,
+     historisiert (Logbook), Automation-Trigger (z. B. "Akku < 15 %"). Push-only, keine Pull-Sync,
+     kein Config-Flow (Eintrag wird beim ersten Report auto-provisioniert).
+   - Begleitend: `POST /api/v1/me/phone/command-result` (App-Ack für `phone_command`),
+     `GET /api/v1/me/phones`, `GET /api/v1/me/phone/sensor-catalog`,
+     `PATCH /api/v1/me/phones/{device_id}/sensors` (Per-Sensor opt-in),
+     `DELETE /api/v1/me/phones/{device_id}`.
 
-7. **OIDC-Client-Registrierung** in Keycloak
-   - Public-Client (PKCE) mit Redirect-URI `dev.luebke.personalagent://oauth/callback` + zugehöriger Logout-Redirect. Realm-as-code-Ergänzung (bestehender Mechanismus).
+6. **Phone-Commands** (ausgeliefert, zusätzlich zum Originalplan) - `agent/phone_toolset.py`
+   - Der Agent kann das Companion-Telefon nativ steuern (DnD, Klingelton, Taschenlampe, Media,
+     Sprechen/`speak`, Benachrichtigen, Alarm setzen, navigieren). Tool → `dispatch_phone_command`
+     publiziert einen `phone_command`-Frame und wartet kurz (~5 s) auf den Ausführungs-Ack des
+     Telefons (Redis-Ack-Channel), damit der Agent das echte Ergebnis statt eines angenommenen
+     Erfolgs erfährt.
 
-8. **CORS/CSP/Origin**: WebView lädt dieselbe Origin wie der Browser — keine CORS-Änderung. Falls Bridge V2 Origin-Filter nutzt, SPA-Origin whitelisten.
+7. **Deep-Link-Vertrag** (Doku, evtl. minimale Route-Aliase)
+   - `personal-agent://chat/{id}?run=&q=&approve=`, `personal-agent://drafts/{id}`, `personal-agent://voice`, `personal-agent://share`. Die SPA muss diese Query-Parameter beim Laden auswerten (kleine Router-Erweiterung) - die App übersetzt den `personal-agent://`-Intent in die passende SPA-URL/`navigate`-Bridge-Message.
+
+8. **OIDC-Client-Registrierung** in Keycloak (ausgeliefert)
+   - Public-Client (PKCE) "Personal Agent Android app" mit Redirect-URI `${ANDROID_REDIRECT_SCHEME}:/oauth/callback` (default `dev.luebke.personalagent`) + Logout-Redirect, im Realm-as-code (`keycloak/realm-personal-agent.json`, Scheme aus den Helm-Values).
+
+9. **CORS/CSP/Origin**: WebView lädt dieselbe Origin wie der Browser - keine CORS-Änderung. Falls Bridge V2 Origin-Filter nutzt, SPA-Origin whitelisten.
 
 ---
 

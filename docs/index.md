@@ -1,5 +1,5 @@
 ---
-title: Personal Agent — your own LLM chat + agent platform
+title: Personal Agent - your own LLM chat + agent platform
 template: home.html
 hide:
   - navigation
@@ -15,8 +15,8 @@ hide:
     ---
 
     Per-chat model, mode and security pickers (or `auto`, with a governance-aware
-    fallback chain). Sub-agents, a `/goal` loop, slash commands, voice in/out,
-    checkpoint/rewind and best-of-N attempts.
+    fallback chain). Sub-agents (incl. `delegate_to` and best-of-N), a `/goal` loop,
+    slash commands, voice in/out, plus regenerate, rewind and run revert.
 
     [:octicons-arrow-right-24: Chat & agents](features/chat.md)
 
@@ -24,8 +24,8 @@ hide:
 
     ---
 
-    A chat is a configurable layout of regions — the thread plus editor, terminal
-    or dashboard-card panels — not a fixed mode. *standard* and *coding* are just
+    A chat is a configurable layout of regions - the thread plus editor, terminal
+    or dashboard-card panels - not a fixed mode. *standard* and *coding* are just
     builtin surfaces; define your own, and the same model powers chat-less dashboards.
 
     [:octicons-arrow-right-24: Surfaces](design/surfaces.md)
@@ -34,7 +34,7 @@ hide:
 
     ---
 
-    A bitemporal, causal entity-state graph — not a flat note store. Live integration
+    A bitemporal, causal entity-state graph - not a flat note store. Live integration
     entities and long-term memory are one graph: two time axes, provenance, and a
     read / propose / write split.
 
@@ -45,7 +45,7 @@ hide:
     ---
 
     Drop a `manifest.yaml` + config flow under `integrations/` and it contributes its
-    tools — plus agents, surfaces, dashboard cards, entities and message providers.
+    tools - plus agents, surfaces, dashboard cards, entities and message providers.
     Capability providers, and MCP & OpenAPI in both directions.
 
     [:octicons-arrow-right-24: Integrations](features/integrations.md)
@@ -64,7 +64,7 @@ hide:
     ---
 
     First-class Notes, Files, Calendar and Contacts pages, plus an agenda merging
-    commitments and events — with hourly proactive nudges in your main chat.
+    commitments and events - with hourly proactive nudges in your main chat.
 
     [:octicons-arrow-right-24: Notes, files & agenda](features/notes-files.md)
 
@@ -73,7 +73,7 @@ hide:
     ---
 
     Sandboxed scripts run durably on Temporal. A workflow with triggers *is* an
-    automation — schedules plus event and entity-state conditions.
+    automation - schedules plus event and entity-state conditions.
 
     [:octicons-arrow-right-24: Workflows](features/workflows.md)
 
@@ -81,7 +81,7 @@ hide:
 
     ---
 
-    Card dashboards — the chat-less Surfaces — over your entities: cards, sections,
+    Card dashboards - the chat-less Surfaces - over your entities: cards, sections,
     conditions, scenes and a logbook.
 
     [:octicons-arrow-right-24: Dashboards](features/dashboards.md)
@@ -110,7 +110,7 @@ hide:
     ---
 
     Per-chat security modes, untrusted-content gating, BYOK envelope encryption, RLS
-    tenancy, monthly budget caps, and fail-closed ABAC data-classification — no path
+    tenancy, monthly budget caps, and fail-closed ABAC data-classification - no path
     to an uncleared provider.
 
     [:octicons-arrow-right-24: Security & governance](features/security.md)
@@ -119,8 +119,8 @@ hide:
 
     ---
 
-    A web SPA + PWA, Android and desktop shells, a Chrome extension, and a native Rust
-    terminal client (TUI) — all over the same HTTP/SSE API.
+    A web SPA, Android and desktop shells, a Chrome extension, and a native Rust
+    terminal client (TUI) - all over the same HTTP/SSE API.
 
     [:octicons-arrow-right-24: Apps & clients](features/devices.md#native-apps)
 

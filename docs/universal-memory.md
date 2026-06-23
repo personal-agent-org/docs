@@ -1,8 +1,30 @@
 # Universal Temporal Entity-State Memory — Implementierungsplan
 
-> Personal Agent · **World-State Memory** (UI-Name: „Gedächtnis") · Stand 2026-06-08
+> Personal Agent · **World-State Memory** (UI-Name: „Memory") · Stand 2026-06-08
 > Ersetzt das flache `MemoryEntry`-Gedächtnis durch einen **bitemporalen, kausalen
 > Entity-State-Graph** als *einzige* Wahrheitsquelle des Agenten.
+
+!!! note "Status: weitgehend umgesetzt (Plan-Dokument, historisch)"
+    Dieser Plan ist **gebaut und ausgeliefert**. Modell, Contracts, Curator-Pipeline,
+    Read-Tools, Context-Builder, Frontend und der `MemoryEntry`-Ersatz existieren im Code
+    (`db/models/world_memory.py`, `contracts/world_memory.py`, `curator/`, `world/`,
+    `agent/world_memory_toolset.py`, `api/routers/world_memory.py`, `worker/curator_*`).
+    Das Dokument bleibt als Designprotokoll; einige Entscheidungen wurden nach dem Build
+    **weiterentwickelt** (siehe Inline-Hinweise). Die größten Abweichungen:
+
+    - **UI-Name = „Memory"** (englische i18n-Quelle, modell-/i18n-getrieben), nicht „Gedächtnis".
+      Eine Seite `KnowledgePage` (`/knowledge`) bündelt Graph + Live-Entities; `/memory`
+      redirectet dorthin. Decision #14 ist überholt.
+    - **Owner-privat (#19/§10) wurde generalisiert:** statt einer reinen `current_owner`-GUC
+      läuft die RLS jetzt als `scope_isolation` über `current_scopes` (user/group/org)
+      **plus** ein `min_tier`/`current_model_tier`-Lese-Gate (Trust-Tier). Group/Org-Sharing
+      und ein Modell-Trust-Tier-Gate sind also entgegen #19 mittlerweile da.
+    - **„automations" → „workflows":** das Automations-Subsystem wurde in Workflows gemergt;
+      `automations/events.py` → `workflows/events.py`/`event_dispatcher.py`, `automation_id`
+      → `workflow_id` (auf `world_events`).
+    - Zusätzlich gebaute Tabellen ggü. §4: `world_event_types` (löst das alte `event_types`
+      ab), `curator_config` (Admin wählt das Curator-Modell), `memory_suppressions`,
+      `curator_state`; `entity_kinds.nature` (physical/virtual-Achse).
 
 ---
 
@@ -40,12 +62,12 @@ Domänenschicht über Adapter (Strangler, kein Big-Bang) und respektiert die Fro
 | 11 | **Schreib-Autonomie: ausgewogen** | explizit + beobachtet → auto-commit; abgeleitet/privilegiert/untrusted → Review |
 | 12 | **user-model-refresh → durch Curator ersetzt** | Ein Lernprozess; Profil aus `preference`-Facts gerendert |
 | 13 | **Graph-Viz: lokal + globaler Explorer** | Nachbarschaft & Kausal-DAG **plus** filterbarer Gesamtgraph |
-| 14 | **UI-Name: „Gedächtnis"** | Nav/i18n deutsch, passend zu Posteingang/Kontakte/Notizen |
+| 14 | **UI-Name: „Memory"** (überholt: ursprgl. „Gedächtnis") | Nav/i18n (englische Quelle); eine `KnowledgePage` unter `/knowledge` bündelt Graph + Live-Entities |
 | 15 | **Code-Konventionen privat im Graph** | AGENTS.md-Write-Back nur als expliziter Akt, kein Auto-Curator |
 | 16 | **Entity-Merge: konservativ + Main-Chat** | Auto-Merge nur bei starken Signalen; unklar → Merge-Vorschlag im Main-Chat |
 | 17 | **Vergessen = invalidieren** | `invalidated`-Status, Historie/As-Of bleibt; kein Hard-Delete in v1 |
 | 18 | **Melden nur bei Korrekturen/Konflikten** | Neue Learnings still; Änderung/Widerspruch → dezenter Chat-Hinweis |
-| 19 | **Sichtbarkeit: strikt privat (owner-GUC)** | Eigene `current_owner`-GUC / owner_sub DB-seitig *fail-closed* — NICHT das org-GUC fail-open-Muster kopieren |
+| 19 | **Sichtbarkeit: strikt privat (owner-GUC)** *(später generalisiert)* | Start: eigene `current_owner`-GUC, fail-closed (so gebaut, `world_memory_01`). Inzwischen zu `scope_isolation` über `current_scopes` (user/group/org) + `min_tier`-Lese-Gate erweitert - Group/Org-Sharing + Trust-Tier-Gate sind jetzt da |
 | 20 | **Absicht (intent) erfassen** | Hybrid-Capture; `intent`/`expected_effect`/`intent_outcome` auf konsequenten Aktionen |
 | 21 | **Governance im Main-Chat, keine Inbox** | Pending/Merge/Konflikt → proactive-review-Meldung im Main-Chat; Aktionen konversationell + inline |
 | 22 | **DB-`world_events` ≠ Redis-Event-Bus** | `world_events` = Audit/Erklärung/Kausalität; Redis Streams bleibt Dispatch (at-least-once, consumer groups) |
@@ -95,8 +117,9 @@ ist **kein Memory-Duplikat** — `entities` trägt Sync/Visibility/Availability/
    Proactive-Review, Automation **und** UI grün sind (Appendix C).
 
 **Bleibt (vorerst) unangetastet:** `chats`/`messages`, RAG-Infra (`documents`/`*_chunks`/
-`message_memory`/`entity_chunks`), `groups`, `runs`/`usage`, **`automations` + der
-Redis-Streams-Event-Bus** (`automations/events.py` — Dispatch bleibt, §6/#22).
+`message_memory`/`entity_chunks`), `groups`, `runs`/`usage`, **Workflows (vormals Automations)
++ der Redis-Streams-Event-Bus** (jetzt `workflows/events.py`/`event_dispatcher.py` - Dispatch
+bleibt, §6/#22).
 
 **Subsumierungs-Disziplin (integrate-not-parallel):** wo `world_events` später
 `entity_state_history` ablöst, muss es deren *reale* Nutzung voll abdecken — History-Charts
@@ -251,8 +274,8 @@ world_events (RLS, append-only — DB-Audit/Kausalität, NICHT der Redis-Dispatc
   correlation_id text · causation_kind(direct|trigger|inferred)
   -- absicht (nur konsequente agent-aktionen, §6):
   intent text · expected_effect jsonb · goal_ref FK entities · intent_outcome(fulfilled|partial|unfulfilled|NULL)
-  run_id · chat_id · tool_call_id · automation_id
-  payload jsonb · summary · embedding halfvec NULL · retention_class
+  run_id · chat_id · tool_call_id · workflow_id   (gebaut: workflow_id, nicht automation_id - Automations→Workflows)
+  payload jsonb · summary · min_tier · embedding halfvec NULL · retention_class
   INDEX(correlation_id) · INDEX(caused_by_event_id) · INDEX(target_entity_id, occurred_at)
 
 entity_aliases (RLS)
@@ -269,11 +292,18 @@ memory_projections (RLS) — RAG für Derivate/Rollups
 entity_kinds   key PK · name · description · attribute_schema jsonb · rag · category
                · privileged · source · trust_tier · state(loaded|deprecated)
 relation_types predicate PK · inverse_predicate · cardinality(functional|set)
-               · subject_kinds text[] · object_kinds text[]
+               · subject_kinds jsonb · object_kinds jsonb
                · is_symmetric · is_transitive · is_hierarchical
                · inference_enabled · privileged · source · trust_tier · state
-event_types    (bestehend, generalisiert)
+world_event_types  event_type PK · domain · name · payload_schema · category · retention_class · state
+               (gebaut als EIGENE Registry, die das alte per-Integration `event_types` ablöst - scope-unify)
 ```
+
+> Gebaut, aber im §4-Schema oben nicht abgebildet: `entities`/`facts`/… tragen zusätzlich eine
+> `scope_ref`-Spalte (user:/group:/org:) und ein `min_tier` (Trust-Tier-Lese-Gate); `entity_kinds`
+> hat eine `nature`-Achse (physical|virtual). Drei weitere Tabellen kamen hinzu: `curator_config`
+> (Admin-Singleton fürs Curator-Modell), `memory_suppressions` (Anti-Nag, Appendix D),
+> `curator_state` (Per-Chat-Watermark, Appendix G).
 
 **Multi-valued-Fix:** Kardinalität lebt im **Committer** (liest `relation_types.cardinality`):
 `functional` → atomares Supersede des alten Aktiv-Facts; `set` → nur Dedup. `SENTINEL` =
@@ -329,8 +359,8 @@ Jede event-erzeugende Site stempelt `caused_by_event_id` + `correlation_id` + `c
 | Integration-Sync-Change | Aktion auf gleicher `external_id` im Fenster → diese; sonst Wurzel | – | inferred/direct |
 
 *direkt* + *trigger* = **harte** Kanten; *lose Korrelation* = **inferred**
-(`memory_type=hypothesis`, nie harter Fact). Wiederverwendung: `Run.parent_run_id`
-(`run.py:42`), `automation_id`/`trigger_source` (`:49-52`), `snapshot_tree` (`:57`).
+(`memory_type=hypothesis`, nie harter Fact). Wiederverwendung: `Run.parent_run_id`,
+`workflow_id`/`trigger_source` (Automations sind jetzt Workflows), `snapshot_tree`.
 `AuditLog` (`audit.py`) bleibt Security-Spur; Kausalität = Erklärbarkeits-Spur.
 
 ### Absicht (intent, Decision #20)
@@ -368,7 +398,8 @@ beobachtbar (z.B. „Bug gefixt" ohne Testlauf), bleibt `intent_outcome=NULL` (u
 
 **`world_events` ≠ Event-Bus (Decision #22).** `world_events` ist die *DB*-Spur für
 Erklärung/Audit/Kausalität (Replay über die Kausal-DAG). Der **Redis-Streams-Event-Bus**
-(`automations/events.py`) bleibt unverändert der durable Dispatch-Kanal (at-least-once,
+(jetzt `workflows/events.py` + `event_dispatcher.py`, vormals `automations/events.py`)
+bleibt unverändert der durable Dispatch-Kanal (at-least-once,
 Consumer Groups, Replay) für Automation-Trigger — Pub/Sub ist nur at-most-once und ersetzt ihn
 nicht. Eine state-ändernde Aktion schreibt *beides*: ein `world_events`-Row (Audit/Erklärung)
 und ggf. ein Bus-Event (Dispatch).
@@ -456,11 +487,13 @@ bestehenden Aktiv-Fact oder widerspricht ihm, kommt ein dezenter Chat-Hinweis (*
 früher X, jetzt Y — ich aktualisiere das"*). **Neue** Learnings bleiben still (sichtbar nur
 auf der „Gedächtnis"-Seite; Review läuft im Main-Chat).
 
-**Trigger inline ≠ durable:** durable signalisiert aus `ChatAgentWorkflow` nach
-`persist_and_record` (`workflows.py:~97`); inline aus `service.py` nach `record_run`
-(`~L574-581`). Beide → `signal_curator(chat_id, watermark)`. Temporal = Soft-Dep (#9) →
-try/except + Catch-up-Reconciler. **Ersetzt user-model-refresh** (Curator schreibt
-`preference`-Facts; der „learned about the user"-Block wird daraus gerendert).
+**Trigger (gebaut):** inline aus `agent/service.py` nach `record_run` →
+`curator/trigger.py:trigger_curator_inline` → `temporal/client.py:signal_curator` (signal-with-start
+des Per-Chat-Debounce-`CuratorWorkflow`). Der durable Chat-Pfad ist nach der Executor-Konsolidierung
+**derselbe** Inline-Executor in einer Activity; sein `run_script_workflow`-Tail ruft nach
+`persist_and_record` die `curator_activities.request_curate`-Activity. Temporal = Soft-Dep (#9) →
+try/except + Catch-up-Reconciler (`world/catchup.py`). **Ersetzt user-model-refresh** (Curator
+schreibt `preference`-Facts; der „learned about the user"-Block wird daraus gerendert).
 
 ---
 
@@ -535,9 +568,13 @@ Roh-Turns dürfen weg.
 
 - **Sichtbarkeit strikt privat (#19) — owner-GUC, fail-closed:** das bestehende RLS ist
   org-GUC-basiert und bewusst *fail-open when unset* (`a1b2c3d4e5f6_rls_tenant_isolation.py`).
-  Für owner-privates Gedächtnis **reicht das nicht** — die neue Policy erzwingt `owner_sub`
+  Für owner-privates Gedächtnis **reicht das nicht** - die erste Policy erzwang `owner_sub`
   DB-seitig gegen eine eigene `current_owner`-GUC (pro Request gesetzt wie die org-GUC),
-  **fail-closed** (unset → kein Zugriff). Kein Ordner/Gruppen-Sharing in v1.
+  **fail-closed** (unset → kein Zugriff; so gebaut in `world_memory_01`).
+  **Nachträglich generalisiert:** die aktive Policy heißt jetzt `scope_isolation` und gatet
+  über `current_scopes` (user:/group:/org:) **plus** `min_tier <= current_model_tier`
+  (Trust-Tier-Lese-Gate, `world_tier_01`). Entgegen #19 gibt es damit Group/Org-Sharing
+  und ein modellbasiertes Lese-Gate; der Fail-closed-Default (unset → kein Zugriff) bleibt.
 - **Prompt-Injection → Memory-Poisoning:** Facts aus untrusted-behafteten Runs + alle
   `policy`/Capability-Facts → **immer Review**, nie Auto-Commit. Trust-Tier in jeder Provenienz.
 - **Memory ≠ Permissions:** ein `controls`-Fact erlaubt keine Aktion; Policy-Schicht entscheidet.
@@ -599,10 +636,11 @@ kein Posteingang.
 As-Of-Zeitreise · lokaler Nachbarschaftsgraph · **globaler Explorer später** (#13;
 Hairball-Mitigation: Filter-first, Knoten-Limit).
 
-**Dependency:** `@vue-flow/core` (nur lokaler Graph + Kausal-DAG + globaler Explorer).
+**Dependency:** `@vue-flow/core` (+ `@vue-flow/background`) für lokalen Graph + Kausal-DAG.
 **Ambient:** „basierend auf: <fact>"-Affordance in der Chat-Antwort → Provenienz; NL-Korrekturen
-lernt der Curator. **Nav:** „Gedächtnis" in `MainLayout` + `router/routes.ts`; `stores/world.ts`;
-i18n `worldMemory.*` (de+en).
+lernt der Curator. **Nav (gebaut):** „Memory" → eine `KnowledgePage.vue` unter `/knowledge`
+(`/memory` + `/entities` redirecten dorthin); Detail = `MemoryEntityDetailPage.vue`; Graph =
+`components/MemoryGraph.vue`; `stores/world.ts`; i18n-Quelle `en-US` (`worldMemory.*`).
 
 ---
 
@@ -632,7 +670,7 @@ i18n `worldMemory.*` (de+en).
 | #6 Toolset-Snapshot frozen | Curator in Activity, ändert laufenden Run nicht |
 | #8 Extensions via CNPG | nutzt `vector`/`citext`/`pgcrypto` |
 | #9 Temporal Soft-Dep | Inline-Trigger try/except + Catch-up |
-| #11 Tenancy+RLS | owner-GUC *fail-closed* (nicht org-GUC fail-open); eigener Owner-Dep statt `ScopedDbDep`; Registries global |
+| #11 Tenancy+RLS | fail-closed RLS (nicht org-GUC fail-open) - gebaut als `scope_isolation` (current_scopes + min_tier), Router nutzt `ScopedDbDep` mit zusätzlich gesetztem Scope/Owner-Kontext; Registries global |
 | #13 Untrusted-Gating | auf Schreibpfad ausgedehnt (§7/§10) |
 | #15 keine Secrets in Spans | Curator-Input scrubbed |
 
@@ -641,11 +679,11 @@ i18n `worldMemory.*` (de+en).
 ## 15. Kritische Dateien & Pattern
 
 **Contracts** `…/personal_agent/contracts/world_memory.py` (`ConfigDict(frozen=True)`, `StrEnum`; offen `str` für Kinds/Prädikate)
-**DB** `db/models/world_memory.py` · Migration Stil `f7a8b9c0d1e2_memory_entries.py` (RLS `:54-59`, HNSW `:50-53`) · `db/repositories/world_*_repo.py` (Muster `memory_repo.py`)
-**Curator/Tools/Context** `curator/{service,validator,committer,linker}.py` · `curator/prompts/curator.md` · `agent/world_memory_toolset.py` (Reg. `assembler/assembler.py:137`) · `agent/world_context.py` · `instructions.py:28-101` + `service.py:436-516` · `agent/resolver.py:72-155`
-**Feeder/Kausalität** `entities/sync_runner.py` · `integrations/entities.py:97/139` (+`RelationTypeDescriptor`) · `comms/triage_service.py` · `run.py:42-57` · `audit.py`
-**Worker** `src/personal_agent/worker/workflows.py:~97` (Trigger; Child-Pattern `automation_workflow.py:33-43`) · `entrypoint.py:55-83` · `activities.py:79-153` · `activities/curator.py`
-**Frontend** `pages/WorldMemoryPage.vue` · `pages/EntityDetailPage.vue` · `components/memory/{CausalTrace,NeighborhoodGraph,AsOfBar}.vue` (Governance via Main-Chat/Proactive, keine Inbox-Page) · `stores/world.ts` · `wsClient.ts`(+`onMemoryCommitted`) · `MainLayout.vue` · `router/routes.ts` · `i18n/{en,de}` · Rewire `Entities/Contact/Agenda/Logbook` · `package.json`(+`@vue-flow/core`)
+**DB (gebaut)** `db/models/world_memory.py` · RLS/HNSW in `migrations/versions/world_memory_01.py` (+ Folge-Migrationen `world_tier_01`, `scope_unify_*`, `drop_memory_entries_01`) · `db/repositories/world_memory_repo/` (Paket: `EntityRepo`/`FactRepo`/`AliasRepo`/`EventRepo`/`ProjectionRepo`/`RegistryRepo`/`SuppressionRepo`/`CuratorStateRepo`)
+**Curator/Tools/Context (gebaut)** `curator/{service,validator,committer,pipeline,prefilter,context,disambiguate,prompts,trigger,adapters}.py` · `agent/world_memory_toolset.py` (Reg. `assembler/assembler.py`) · `agent/{world_context,memory_toolset,memory_access}.py`
+**Feeder/Kausalität** `entities/sync_runner.py` · `integrations/entities.py` (+`RelationTypeDescriptor`) · `comms/triage_service.py` · `audit.py`
+**Worker (gebaut)** `worker/curator_workflow.py` (Per-Chat-Debounce) · `worker/curator_activities.py` · `worker/world_workflow.py`/`world_activities.py` (Retention/Reconciler) · Trigger inline via `curator/trigger.py:trigger_curator_inline` + `temporal/client.py:signal_curator`
+**Frontend (gebaut)** `pages/KnowledgePage.vue` (`/knowledge`; `/memory`+`/entities` redirect) · `pages/MemoryEntityDetailPage.vue` · `components/MemoryGraph.vue` · `components/MemoryAccessPicker.vue` · (Governance via Main-Chat/Proactive, keine Inbox-Page) · `stores/world.ts` · `wsClient.ts`(+`onMemoryCommitted`) · `MainLayout.vue` · `router/routes.ts` · i18n-Quelle `en-US` · `package.json`(+`@vue-flow/core`,`@vue-flow/background`)
 
 ---
 
@@ -659,7 +697,7 @@ Pro Phase `uv run pytest -q` (lokales PG+Redis). Zusätzlich:
 5. **P3:** Folgemessage referenziert gespeicherte Zeit; kein user-model-refresh; Korrektur löst Chat-Hinweis aus, neues Learning still.
 6. **P3/P4:** Adapter-Smoke-Tests (Contact/Commitment/Sync/Triage/Proactive/Automation) grün gegen die Fassade → dann Drop-Migration; owner-GUC-RLS *fail-closed*.
 7. **P5 (Frontend):** Entity-Detail mit Provenienz+Supersede-Kette; **Main-Chat** Accept/Reject + Merge; As-Of-Zeitreise; lokaler+globaler Graph; Realtime.
-8. **Konformität:** `tests/worker/test_conformance.py` - Curator inline ≡ durable; Adapter Domain-API alt ≡ graph-backed.
+8. **Konformität:** `tests/api/test_world_conformance.py` - Curator inline ≡ durable; Adapter Domain-API alt ≡ graph-backed. (Weitere Tests: `test_world_memory.py`, `test_curator*.py`, `test_world_feeder.py`, `test_world_jobs.py`.)
 
 ---
 
@@ -753,7 +791,7 @@ Adapter, Drop ganz am Ende.
 und einzeln deploybar; das Risiko konzentriert sich nicht auf einen einzigen Cutover-Moment.
 
 **Tests:** Adapter-Konformität (Domain-API alt ≡ graph-backed) je Subsystem; Conformance
-(`tests/worker/test_conformance.py`) Curator inline ≡ durable; owner-GUC-RLS *fail-closed* (unset → kein Zugriff).
+(`tests/api/test_world_conformance.py`) Curator inline ≡ durable; fail-closed RLS (unset → kein Zugriff).
 
 ---
 

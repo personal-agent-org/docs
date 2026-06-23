@@ -92,8 +92,26 @@ For a message that needs no answer you have two tidy-up actions in the thread he
 
 ### Forwarding
 
-**Forward** sends the conversation's message on to another recipient (address or handle)
-via the same account, with an optional note. This doesn't change the conversation itself.
+**Forward** sends the conversation's anchor message on to another recipient (address or
+handle) via the same account, with an optional note and attachments. This doesn't change the
+conversation itself.
+
+### Starting a new conversation
+
+The **New conversation** button (top of the list) opens a compose dialog to start a thread
+yourself rather than reply to one:
+
+- **Direct** - a 1:1 with a contact (pick from the people you've messaged) or a raw new
+  address. With a contact, only the channels they're reachable on are offered; with a raw
+  address you also pick the channel.
+- **Group** - create a new group room on a group-capable channel (a Matrix room or a Signal
+  group), give it a name and members, and send the first message.
+
+You pick the channel, the from-account (only shown when a channel has more than one), an
+optional subject (email only), the body, and any attachments. Like a typed reply, the
+message is sent immediately - it's a human action, no approval gate. A raw address is matched
+to (or filed as) a [contact](contacts.md) so future replies on any channel merge onto the
+same person.
 
 ### Bulk actions
 
@@ -161,10 +179,12 @@ override the per-channel style hints (see below).
     instead of sending silently.
 
 !!! note "Admin: per-channel style hints"
-    The defaults (short plain-text on Signal/WhatsApp, structured on Email, …) ship built-in
-    and isolated per channel. An admin can supplement or replace them via the
-    `PERSONAL_AGENT__PLATFORM_HINTS` setting; a bad entry falls back to the built-in default
-    for that channel rather than affecting the others.
+    Built-in defaults ship for Email, Signal, WhatsApp, Matrix, Zulip, Telegram and SMS
+    (short plain-text on Signal/WhatsApp, structured on Email, …), isolated per channel. An
+    admin can supplement or replace them via the `PERSONAL_AGENT__PLATFORM_HINTS` setting (a
+    JSON map keyed by channel; each value is `{"append": "…"}`, `{"replace": "…"}`, or a bare
+    string that appends). A bad entry falls back to the built-in default for that channel
+    rather than affecting the others.
 
 ## Keeping the noise out
 

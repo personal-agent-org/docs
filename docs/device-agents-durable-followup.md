@@ -1,10 +1,22 @@
 # Follow-up: device tools in DURABLE (Temporal) runs (a.k.a. "P5")
 
-**Status: NOT built (deliberately deferred).** Device agents (the per-user Linux machines
-that announce coding tools) are fully wired for **inline** chat runs — registry, WS
-connectivity, the device toolset, the approval/policy gate, and the global tool guard all
-work and are deployed. This document records the one remaining gap and exactly how to close
-it, so it can be picked up later.
+!!! success "Status: SHIPPED, but NOT the way this doc planned it."
+    This gap was closed as a side effect of the durable-execution **consolidation** (the
+    `ChatAgentWorkflow` now runs ONE coarse `run_chat_turn` activity that reuses the inline
+    `AgentService.execute_inline_run` executor in the worker process). The fine-grained
+    `TemporalAgent` path and `worker/integration_toolsets.py` were deleted, so the
+    snapshot-based plan below ("How to build it") is obsolete and is kept only as a record.
+    What actually closed it: the worker's `AgentService` is constructed with a worker
+    `DeviceGateway` (`worker/resources.py::device_gateway`), and `execute_inline_run` runs the
+    SAME `ToolsetAssembler` that reads `chat.run_config["devices"]` and builds
+    `build_device_toolset(...)` per online device. A durable run with a device selected now
+    gets the device tools, dispatched cross-pod over Redis. See the section below for the live
+    wiring.
+
+Device agents (the per-user Linux machines that announce coding tools) are fully wired for
+**inline** chat runs - registry, WS connectivity, the device toolset, the approval/policy
+gate, and the global tool guard all work and are deployed. This document originally recorded
+the one remaining gap (durable runs) and how to close it; that gap is now closed.
 
 ## What works today (inline)
 
@@ -15,20 +27,30 @@ fetches the owned + **online** devices, and appends a `build_device_toolset(...)
 `agent/device_policy.gate_device_call` (autonomous / allow-rule / judge / human approval) and
 dispatches over the in-process `DeviceGateway` (`realtime/device_gateway.py`).
 
-## What's missing (durable)
+## The original gap (historical)
 
-A **durable** run executes as a Temporal workflow in `src/personal_agent/worker/`. Per Frozen Contract #6, the
-durable path does NOT query live DB state mid-run - toolsets are **snapshotted** into
-`RunSpec.toolsets` (`src/personal_agent/contracts/runspec.py` `ToolsetSnapshot`) at start and
-the worker rebuilds them from the snapshot via `DynamicToolset`s
-(`src/personal_agent/worker/integration_toolsets.py`, registered in `agents.py`).
+When this was written, a **durable** run rebuilt its toolsets from a frozen `ToolsetSnapshot`
+on the `RunSpec` via per-toolset `DynamicToolset`s in `worker/integration_toolsets.py`, and
+device tools were never put into that snapshot - so a durable run with a device selected
+silently had no device tools. This only happened when a user sent a chat run **"in the
+background"** with a device selected (triggered workflows/triage never set `run_config.devices`
+and must not, since they run over untrusted content), so it was an unsupported edge case, not
+a regression.
 
-**Device tools are not in that snapshot**, so a durable run with a device selected silently has
-no device tools. This only happens when a user sends a chat run **"in the background"** with a
-device selected — triggered workflows/triage never set `run_config.devices` (and must not: they run over
-untrusted content), so there is no functional regression, just an unsupported edge case.
+That whole snapshot-rebuild machinery is gone. The durable consolidation replaced it with a
+single coarse `run_chat_turn` activity that runs the inline `execute_inline_run` executor in
+the worker, which assembles toolsets (devices included) live in-activity. Frozen Contract #6
+(no live DB during a *workflow* replay) is preserved because the assemble happens inside an
+activity, not the workflow, and a chat turn is one non-resumable activity.
 
-## How to build it
+## How it was going to be built (SUPERSEDED, kept as a record)
+
+!!! note "This plan was never implemented."
+    It targeted the fine-grained `TemporalAgent` worker path and
+    `worker/integration_toolsets.py`, both since deleted. The gap was closed differently (see
+    the status note up top and "How it actually works" below). Steps 4 and 5 still describe
+    machinery that now exists in spirit: the worker DOES hold its own `DeviceGateway` and the
+    cross-pod dispatch + approval gate work from any process.
 
 1. **Snapshot** — `runspec.py`: add `DeviceSnapshot(BaseModel, frozen)` with
    `device_id: str` + `announced_tools: dict` (frozen JSON schemas, Contract #6) and
@@ -62,8 +84,28 @@ untrusted content), so there is no functional regression, just an unsupported ed
    is enabled (resolve guard enablement once at snapshot time → carry a flag in `PersonalAgentDeps`, or
    re-read in-activity).
 
-## Verification when built
+## How it actually works (live)
 
-`test_device_durable` (conformance): a durable run with a device selected gets the device tools
-(inline ≡ durable), a `run_command` call routes cross-pod to the agent and returns, and the
-approval gate works inside the activity. Plus the existing inline device tests stay green.
+- **One executor.** `worker/workflows.py::ChatAgentWorkflow` schedules `activities.run_chat_turn`,
+  which calls `AgentService.execute_inline_run` in the worker process - the same code the inline
+  (FastAPI) path runs. So durable chat inherits device tools (plus vision sidecar, context
+  self-heal, transient backoff, resumable partials, follow-ups) for free.
+- **Worker gateway.** The worker's `AgentService` (`worker/goal_activities.py::_agent_service`)
+  is built with `device_gateway=resources.device_gateway()`. That `DeviceGateway`
+  (`worker/resources.py`) is constructed with a `pod_id` of `worker-<hostname>`, so it is never
+  `is_local` for a device and always takes the cross-pod path.
+- **Cross-pod dispatch.** `DeviceGateway._dispatch_remote` publishes on
+  `personal_agent:device:<device_id>:rpc` (`contracts/keys.py::device_rpc_channel`); the API pod
+  holding the device WS forwards the call and the reply comes back on
+  `personal_agent:device:rpc-reply:<req_id>` (`device_rpc_reply_channel`).
+- **Approval gate, unchanged.** `agent/device_policy.gate_device_call` /
+  `request_tool_approval` (autonomous / allow-rule / judge / human-approval) poll the
+  `device_approvals` row in the shared DB and push the approval over Redis
+  (`device_approval_channel`), so they work the same inside the activity. The global
+  `GuardToolset` (`agent/tool_guard.py`) is wrapped on by the shared `assemble()` itself
+  (`wrap_with_guard`), so it covers durable runs without any worker-specific code.
+
+!!! note "Stale code comment"
+    `assembler/assembler.py` still carries an "INLINE only - the durable/Temporal path doesn't
+    snapshot devices yet" comment near the device branch. That comment is out of date: the same
+    `assemble()` runs in the worker. The behaviour is correct; only the comment lags.

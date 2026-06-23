@@ -20,7 +20,17 @@
 >   Chat/Voice/Inbox + 2 QS-Tiles sind da).
 > - **Bonus-Fixes unterwegs:** Notification-Deep-Link `/chat/:id`→`/chats/:id`
 >   (Route existierte nicht) und die Phone-Entity-Projektion verlor `battery_level`/
->   `is_charging` (Spec-Keys `battery`/`charging` — Aliasse ergänzt).
+>   `is_charging` (Spec-Keys `battery`/`charging` - Aliasse ergänzt, `_KEY_ALIASES` in
+>   `integrations/phone/__init__.py`).
+> - **AP8 abweichend ausgeliefert (Privacy hochgezogen):** Der unten als Risiko-Follow-up
+>   geplante „nur stille Wake-Pushes"-Modus ist der **Default** geworden - *Wake-and-Fetch*.
+>   Die FCM-data-Message trägt nur noch `{type, payload_id}` (kein Inhalt); die App holt das
+>   volle Frame über `GET /api/v1/push/payload/{payload_id}` (Redis-TTL 1 h, owner-scoped) ab,
+>   sodass Notification-Inhalte nie über Google laufen. Das „chat_title als Antwort-fertig"-Push
+>   wurde durch einen eigenen `chat_reply`-Frame ersetzt (Preview + Follow-ups, siehe
+>   `agent/reply_push.py`); `phone_command` ist zusätzlich push-würdig (Aktor-Befehle erreichen
+>   das schlafende Telefon). FCM-Push ist per Notify-Prefs gated (Master-Toggle/Quiet-Hours;
+>   `phone_command` umgeht das); ein Reaper räumt stille Tokens (`PUSH__TOKEN_TTL_DAYS`, 90 d).
 
 > **Bezug:** Dies ist der konkrete Arbeitspaket-Plan zur Weiterentwicklung von
 > `personal-agent-android/`. Er ersetzt die Phasen P2–P7 aus
@@ -178,16 +188,18 @@ auslieferbar; Reihenfolge innerhalb eines Releases ist Empfehlung, keine harte A
 - Neue Actions (HA-Katalog als Vorlage, `MessagingManager.kt`):
   - `volume` (`media|ring|alarm` + 0–100, `AudioManager.setStreamVolume`)
   - `screen_on` (kurzer `ACQUIRE_CAUSES_WAKEUP`-WakeLock)
-  - `clear_notification` (Tag) und `tts_stop`
+  - `tts_stop` (`clear_notification` wurde nicht ausgeliefert - nicht in `_CONTROL_ACTIONS`)
   - assistententypisch, hat HA nicht: `set_alarm` / `set_timer`
     (`AlarmClock.ACTION_SET_ALARM|SET_TIMER` mit EXTRA_HOUR/MINUTES/LENGTH/MESSAGE,
     `SKIP_UI=true`) und `navigate_to` (`google.navigation:q=…`, Fallback `geo:`-Intent)
   - `broadcast_intent` **bewusst NICHT** — zu mächtig fürs Agent-Threat-Model
     (beliebige Intents = Quasi-Root auf App-Ebene).
-- Backend: `phone_control`-Docstring erweitern + dedizierte Tools `phone_set_alarm(time,
-  label)` und `phone_navigate(destination)` (bessere Tool-Ergonomie fürs LLM als
-  generisches action/value). Bleiben high-privilege → Contract-#13-Filterung greift wie
-  bisher.
+- Backend (`agent/phone_toolset.py`): generisches `phone_control` (Actions oben) +
+  dedizierte Tools `phone_set_alarm`, `phone_set_timer`, `phone_navigate` sowie `phone_speak`
+  / `phone_notify` (bessere Tool-Ergonomie fürs LLM als generisches action/value). Das
+  Toolset wird zusätzlich auf die vom App gemeldeten Capabilities gefiltert (`_ACTION_CAP`
+  ↔ `core/ExposureCatalog.kt`); ein „alles aus"-Telefon verliert das Tool. Bleiben
+  high-privilege → Contract-#13-Filterung greift wie bisher.
 - **Verifikation:** „Stell einen Wecker auf 7:00" end-to-end (Agent-Tool → WS →
   Systemwecker erscheint); Lautstärke/Screen-on/clear_notification je einmal; unbekannte
   Action degradiert still (heutiges Verhalten).
@@ -213,18 +225,26 @@ auslieferbar; Reihenfolge innerhalb eines Releases ist Empfehlung, keine harte A
   `{token, platform:"android", push_type:"fcm"}`; onMessageReceived →
   bestehender `NotificationRenderer`, gleiches flaches Frame-Schema als data-Message);
   `google-services.json` NICHT einchecken (CI-Secret). `minimal` bleibt exakt heutig.
-- **Scope Backend:** FCM-Sender als Best-Effort-Hook im bestehenden Fanout-Trichter
-  `realtime/bus/user_events.py::publish_user_event` (alle Frames laufen dort durch —
-  auch die vom Temporal-Worker, der das Modul bereits importiert):
-  nach dem Redis-`publish` zusätzlich `await fcm.maybe_send(user_sub, payload)`.
-  - Whitelist push-würdiger Typen: `push_notification`, `agent_question`,
-    `tool_approval`, `draft_pending` (+ optional `chat_title` als „Antwort fertig").
-    Ein zentraler Mapper Frame→flaches Notification-Schema, **derselbe** den der
-    WS-Renderer in der App spiegelt (ein Schema, zwei Transporte — HA-Prinzip).
+- **Scope Backend:** FCM-Sender (`realtime/fcm.py`) als Best-Effort-Hook im bestehenden
+  Fanout-Trichter `realtime/bus/user_events.py::publish_user_event` (alle Frames laufen
+  dort durch - auch die vom Temporal-Worker, der das Modul bereits importiert): nach dem
+  Redis-`publish` zusätzlich `await sender.maybe_send(user_sub, wake)`.
+  - Whitelist push-würdiger Typen (`_PUSH_TYPES`): `push_notification`, `agent_question`,
+    `tool_approval`, `phone_command` (alle `high`), `draft_pending` + `chat_reply` (`normal`).
+    `chat_reply` (eigener Frame, `agent/reply_push.py`) ersetzt den alten „chat_title als
+    Antwort fertig"-Push; `chat_title` ist jetzt ein reines WS-Titel-Update.
+  - **Wake-and-Fetch (ausgeliefert statt der ursprünglich geplanten Inhalts-Zustellung):**
+    Die FCM-data-Message trägt nur `{type, payload_id}` (+ Frame-Version), das volle Frame
+    liegt in Redis (`push_payload_key`, TTL `PUSH_PAYLOAD_TTL_SECONDS` = 1 h) und wird über
+    `GET /api/v1/push/payload/{payload_id}` (owner-scoped) abgeholt. Damit verlassen
+    Notification-Inhalte nie Google. Der FCM-Push ist zusätzlich per Notify-Prefs gated
+    (Master-Toggle/Quiet-Hours; `phone_command` umgeht das); der WS-Publish fließt immer.
   - FCM HTTP v1 mit Service-Account aus `/run/secrets`
-    (`PERSONAL_AGENT__PUSH__FCM__CREDENTIALS_FILE` etc.); ohne Credentials → No-Op
-    (FOSS-Deployments unverändert). Fehler `UNREGISTERED`/404/410 → Token löschen
-    (HA-Resilienzmuster). Wie der Redis-Publish: Exceptions loggen, nie den Run brechen.
+    (`PERSONAL_AGENT__PUSH__FCM_CREDENTIALS_FILE`); ohne Credentials → No-Op
+    (FOSS-Deployments unverändert; OAuth2-Token via PyJWT, kein Google-SDK). Fehler
+    `UNREGISTERED`/404/410 → Token löschen; ein täglicher Reaper räumt stille Tokens
+    (`PERSONAL_AGENT__PUSH__TOKEN_TTL_DAYS`, Default 90). Wie der Redis-Publish:
+    Exceptions loggen, nie den Run brechen.
 - **Doppelzustellung:** Wenn ein FCM-Token registriert ist, stellt die App den
   WS-Modus-Default auf `screen_on` (Vordergrund-Nutzen bleibt: phone_commands,
   Live-Sensorik) und rendert WS-Frames nur bei aktivem Socket; zweites Netz ist der
@@ -278,7 +298,8 @@ auslieferbar; Reihenfolge innerhalb eines Releases ist Empfehlung, keine harte A
 
 - **Scope:** Jetpack-Glance-Widget (Liste: offene Inbox-Items / nächste Agenda-Einträge,
   Badge mit Zähler), `WorkManager`-Refresh (30 min + bei App-Resume), REST
-  `GET /api/v1/inbox` bzw. `/agenda` mit Token aus `AuthRepository`, Tap → Deep-Link.
+  `GET /api/v1/inbox` bzw. `GET /api/v1/commitments` (die „Anstehend"-Agenda; es gibt keinen
+  eigenen `/agenda`-Endpoint) mit Token aus `AuthRepository`, Tap → Deep-Link.
 - **HA-Blaupause:** Todo-Glance-Widget (`widgets/`).
 - **Verifikation:** Widget zeigt nach Login Daten, aktualisiert nach Refresh-Intervall,
   Tap öffnet die Inbox; ausgeloggter Zustand zeigt „Anmelden"-Hinweis statt Fehler.
@@ -354,9 +375,11 @@ Notification-Inhalte verlassen die Infrastruktur Richtung Google).
    AP9/AP12 nicht im ersten Store-Release.
 2. **F-Droid-Reinheit:** `full`-Abhängigkeiten (Firebase, play-services-location,
    Geofencing) strikt flavor-gaten; CI-Check aus AP8-Verifikation dauerhaft behalten.
-3. **Privacy:** AP8 schickt Notification-Inhalte durch FCM/Google. Mitigation: Whitelist
-   klein halten; Option „nur stille Wake-Pushes" (data-only, Inhalt wird nach App-Wake
-   lokal über den WS geladen) als Follow-up, wenn das stört.
+3. **Privacy:** ~~AP8 schickt Notification-Inhalte durch FCM/Google~~ - **adressiert in der
+   Umsetzung:** ausgeliefert wurde direkt das Wake-and-Fetch-Muster (FCM trägt nur
+   `{type, payload_id}`, Inhalt holt die App über `GET /api/v1/push/payload/{id}`), also gar
+   keine Inhalte über Google. Der unten erwähnte „nur stille Wake-Pushes"-Follow-up ist damit
+   erledigt; FCM-Pushes sind zusätzlich per Notify-Prefs gated.
 4. **Akku/Vertrauen:** Dauer-WS bleibt für `minimal` der Preis der GMS-Freiheit — AP4
    macht ihn steuerbar, AP8 macht ihn für `full` optional.
 5. **Bridge-Kopplung App↔SPA:** Neue Bridge-Commands (`app-settings/*`, `download`,

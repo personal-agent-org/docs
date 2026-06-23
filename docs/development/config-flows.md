@@ -21,6 +21,8 @@ handling, single- vs multi-step flows, reconfigure, and i18n.
 | `integrations/flow_manager.py` | `FlowManager` — orchestrates start/advance, encrypts secrets, writes the config entry, localizes labels |
 | `integrations/flow_store.py` | Redis-backed flow state (multi-replica safe) |
 | `integrations/translations.py` | Server-side i18n resolution of label/error keys |
+| `integrations/oauth2.py` | `OAuth2Session` helper for authorization-code flows (build authorize URL, exchange `code`, refresh tokens) + the canonical redirect URI |
+| `integrations/errors.py` | flow/integration errors mapped to RFC 9457 problem+json (`FlowNotFoundError`, `IntegrationNotFoundError`, `IntegrationUnavailableError`, `IntegrationConfigFlowError`) |
 
 The above paths are under `src/personal_agent/integrations/` in the backend repo
 (`personal-agent-org/backend`). The integration folders themselves (`config_flow.py`,
@@ -54,9 +56,14 @@ class ConfigFlow(ABC):
     # helpers
     def async_show_form(self, *, step_id, data_schema, errors=None,
                         description_placeholders=None) -> FlowResult: ...
-    def async_create_entry(self, *, title, data) -> FlowResult: ...
+    def async_create_entry(self, *, title, data, secret_fields=()) -> FlowResult: ...
     def async_abort(self, *, reason) -> FlowResult: ...
+    def async_external_step(self, *, step_id, url) -> FlowResult: ...
 ```
+
+`async_create_entry`'s `secret_fields` names any **derived** secrets a step stashed on
+`self._collected` (e.g. OAuth2 tokens obtained on a callback, never typed into a form);
+the `FlowManager` moves them out of the plaintext config into the encrypted secret set.
 
 A step method receives `user_input`:
 
@@ -79,8 +86,9 @@ steps. Accumulated input from earlier steps is injected by the `FlowManager` as
 | `scope` | `user` / `group` / `org` / `global` |
 | `owner_sub` | the owning user's subject (when user-scoped) |
 | `org_id` | the org id (when org/group-scoped) |
-| `entry_id` | set **only** when reconfiguring an existing entry |
+| `entry_id` | set **only** when editing an existing entry (reconfigure / options / reauth) |
 | `scope_ref` | the unified principal (`user:<sub>` / `group:<id>` / `org:<id>` / `global`) stamped on the created entry |
+| `redirect_uri` | the canonical OAuth2 redirect URI (`{APP_ORIGIN}/oauth/callback`), injected by the `FlowManager` so an OAuth flow never hardcodes it; empty for non-OAuth flows |
 
 ### `FlowResult`
 
@@ -91,6 +99,7 @@ Every step returns a `FlowResult` whose `type` is one of:
 | `FORM` | `async_show_form(...)` | render `data_schema` for `step_id`, surface `errors`, `description_placeholders` |
 | `CREATE_ENTRY` | `async_create_entry(...)` | persist a config entry with `title` + `data`, end the flow |
 | `ABORT` | `async_abort(...)` | end the flow with a `reason` |
+| `EXTERNAL_STEP` | `async_external_step(...)` | hand the user off to an external provider URL (`external_url`, e.g. an OAuth2 authorize page); the flow is persisted and resumed from the callback route (see [OAuth2 / external steps](#oauth2-external-steps)) |
 
 ## Field descriptor types
 
@@ -383,24 +392,34 @@ description text (e.g. an account name read back from the service).
 ## Single- vs multi-step, and reconfigure
 
 - **Single-step**: subclass `SimpleConfigFlow`, declare `SCHEMA`. You get
-  `async_step_user` and reconfigure for free.
+  `async_step_user` and `async_step_reconfigure` for free.
 - **Multi-step**: subclass `ConfigFlow`, write `async_step_user` plus more
   `async_step_<id>` methods, chaining via `async_show_form(step_id=...)`.
 
-**Reconfigure** edits an existing entry in place rather than creating a new one. The
-`FlowManager` starts a reconfigure when called with an `entry_id`:
+**Editing** an existing entry runs the same wizard but updates the entry in place rather
+than creating a new one. The `FlowManager` starts an edit when called with an `entry_id`,
+parameterised by a `flow_kind` that selects the entry step:
+
+| `flow_kind` | Entry step | Purpose |
+| --- | --- | --- |
+| `reconfigure` (default) | `async_step_reconfigure` | re-run the setup form to change config |
+| `options` | `async_step_options` | edit the entry's options surface |
+| `reauth` | `async_step_reauth` | re-authorize an entry whose tokens/credentials failed (state `setup_error`) |
+
+Each `flow_kind` falls back to `async_step_user` when the integration does not define
+that step. The edit then proceeds:
 
 1. The existing entry's non-secret `config` and **decrypted** secrets are pre-loaded
    into `self._collected`, so the first step can reuse or re-show them.
-2. If the flow defines `async_step_reconfigure`, that runs as the first step; otherwise
-   the normal `async_step_user` runs.
+2. `async_step_<flow_kind>` runs as the first step (or `async_step_user` on fallback).
 3. On `CREATE_ENTRY`, the manager **updates** the existing entry instead of inserting a
    new one (no `already_configured` abort, no duplicate). If the entry vanished
    mid-flow it aborts with `entry_not_found`.
 
 `SimpleConfigFlow` provides `async_step_reconfigure` by delegating to the user step, so
 re-running the same form (pre-filled) is the default behaviour. Add a dedicated
-`async_step_reconfigure` only when the edit path should differ from initial setup.
+`async_step_reconfigure` / `async_step_options` / `async_step_reauth` only when that edit
+path should differ from initial setup.
 
 !!! note "Clearing an optional secret on reconfigure"
     A secret field **omitted** from a submission is preserved (the pre-loaded value
@@ -437,16 +456,44 @@ The flow is driven over HTTP by `api/routers/integrations.py`:
 
 | Method + path | Action |
 | --- | --- |
-| `POST /config-flows` | start a new flow (`{domain, scope, …}`) |
+| `POST /config-flows` | start a new flow (`{domain, scope, group_id?}`) |
 | `POST /config-flows/{flow_id}` | advance with `{user_input}` |
+| `GET /config-flows/{flow_id}/callback` | resume a flow paused on an `EXTERNAL_STEP`; the provider's redirect query params (`code`/`state`/…) become the pending step's `user_input` |
 | `DELETE /config-flows/{flow_id}` | abort |
-| `POST /config-entries/{entry_id}/reconfigure` | start a reconfigure flow for an existing entry |
+| `POST /config-entries/{entry_id}/reconfigure` | edit an entry via `async_step_reconfigure` (empty body) |
+| `POST /config-entries/{entry_id}/options` | edit an entry via `async_step_options` |
+| `POST /config-entries/{entry_id}/reauth` | re-authorize an entry via `async_step_reauth` |
+| `POST /config-entries/{entry_id}/reload` | clear the entry's error state and re-sync its entities (not a flow) |
 
-Each call returns the **serialized** `FlowResult`: `type`, `flow_id`, `step_id`,
-`title`, `reason`, localized `errors`, the localized `data_schema`, and
+Each flow call returns the **serialized** `FlowResult`: `type`, `flow_id`, `step_id`,
+`title`, `reason`, `external_url`, localized `errors`, the localized `data_schema`, and
 `description_placeholders`. On `create_entry` the response also carries `entry_id`. The
 serializer resolves every label/placeholder/description/option label and every error
 code to a localized string before it reaches the client.
+
+## OAuth2 / external steps
+
+A flow that needs the user to authorize at an external provider returns an
+`EXTERNAL_STEP` (via `async_external_step(step_id=..., url=...)`) instead of a form. The
+serialized result carries `external_url`; the SPA sends the user there (a popup) and,
+when the provider redirects back to `{APP_ORIGIN}/oauth/callback`, forwards the redirect
+query params to `GET /config-flows/{flow_id}/callback`. The manager `resume()`s the flow
+by re-entering `async_step_<step_id>` with those params as `user_input` - identical to a
+normal `advance` - so the step finishes the token exchange and returns `CREATE_ENTRY`.
+
+`integrations/oauth2.py` provides `OAuth2Session` for the authorization-code grant: build
+the authorize URL, exchange the returned `code` for tokens, and refresh an expired access
+token. The redirect URI is fixed at `{APP_ORIGIN}/oauth/callback` (`oauth_redirect_uri`,
+also exposed on `FlowContext.redirect_uri`), so an integration never hardcodes a URL. The
+client config (client_id/secret/urls/scopes) comes from the admin
+`oauth2_application_credentials` store, keyed by domain.
+
+!!! note "OAuth tokens are derived secrets"
+    The tokens are stashed on `self._collected` under field names declared via
+    `async_create_entry(..., secret_fields=(...))` (or `FlowResult.secret_fields`); the
+    `FlowManager` encrypts them at rest and strips them from the plaintext entry config.
+    The admin `client_secret` and the tokens are never logged or serialized into Temporal
+    inputs (Frozen Contracts #5/#15).
 
 ## Internationalisation of labels
 

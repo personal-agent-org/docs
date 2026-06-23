@@ -26,10 +26,10 @@ first-class · ✗ = nicht vorhanden · — = nicht zutreffend.
 | **State-Persistenz** | PostgreSQL + pgvector + Redis | SQLite (WAL + FTS5), Dateien in `~/.hermes` |
 | **Mandantenfähigkeit** | Echte Multi-Tenancy (RLS, Org-Validation) | Single-Operator, per-User-Session-Isolation im Gateway |
 | **Reichweite Messaging** | 5 Kanäle (Email, Signal, WhatsApp, Matrix, Zulip) | **16+ Plattformen** (Telegram, Discord, Slack, Teams, …) |
-| **Modell-Provider** | pydantic-ai-Provider (~10), governance-getaggt | **29+ Provider-Plugins**, OpenRouter 200+ Modelle |
+| **Modell-Provider** | pydantic-ai-Provider (~15 im Katalog), trust-tier-gegated | **29+ Provider-Plugins**, OpenRouter 200+ Modelle |
 | **Memory-Modell** | Bitemporaler Entity-State-Graph (World-Memory) | 8 pluggable Memory-Provider + FTS5-Session-Suche |
 | **Erweiterbarkeit** | HA-Style Integrations (Manifest + Config Flow) | Plugin- + Skill- + MCP-System |
-| **Frontend** | Quasar/Vue 3 SPA (German-first) | React-Dashboard + Ink-TUI + Electron-Desktop |
+| **Frontend** | Quasar/Vue 3 SPA (i18n, EN-Quelle + DE) | React-Dashboard + Ink-TUI + Electron-Desktop |
 | **Lizenz / Modell** | Self-hosted Plattform-Produkt | MIT, Open Source, Community (agentskills.io) |
 | **Reife (Code)** | Production-ready Kern, exp. Clients | v0.17, ~1.600 Testdateien, sehr aktiv |
 
@@ -78,9 +78,9 @@ mid-conversation getauscht.
 | Checkpoint / Rewind | ✓ | ✓ (`/retry`, `/undo`, Session-Branching) |
 | Best-of-N / mehrere Attempts | ✓ | ◑ (Branching) |
 | Goal-Loop (iterative Verfolgung) | ✓ (`/goal`) | ◑ (autonom via Loop + Cron) |
-| Slash-Commands | ✓ (20+) | ✓ (zentrales `COMMAND_REGISTRY`) |
-| Sub-Agenten / Delegation | ✓ (explore/delegate/script) | ✓ (`delegate_task`, leaf/orchestrator) |
-| Parallele Sub-Agent-Batches | ✓ (`delegate_many`) | ✓ (max_concurrent_children) |
+| Slash-Commands | ✓ (13 built-in + eigene) | ✓ (zentrales `COMMAND_REGISTRY`) |
+| Sub-Agenten / Delegation | ✓ (`delegate_to`/`best_of_n`/`run_workflow`) | ✓ (`delegate_task`, leaf/orchestrator) |
+| Parallele Sub-Agent-Batches | ✓ (`delegate_to`-Liste, `delegate_many` im Workflow) | ✓ (max_concurrent_children) |
 | Spawn-Tiefe begrenzbar | ✓ | ✓ (max_spawn_depth) |
 | Mehrere Chat-Modi | ✓ (Standard/Coding/Custom) | ◑ (TUI/CLI/Dashboard, kein Coding-Modus mit LSP) |
 
@@ -105,7 +105,7 @@ Context/Terminal pro Sub-Agent setzt.
 | Provenance / Read-Propose-Write-Split | ✓ | ◑ |
 | Cross-Session-Volltextsuche | ◑ (RAG/pgvector) | ✓ (SQLite FTS5 + LLM-Summary) |
 | Knowledge-Page / Graphview-UI | ✓ | ✗ |
-| Memory-Zugriffskontrolle pro Chat | ✓ (Full/None/Restricted) | ◑ (skip_memory in Cron) |
+| Memory-Zugriffskontrolle pro Chat | ✓ (full/none/scoped) | ◑ (skip_memory in Cron) |
 
 Das ist ein **fundamentaler Architekturunterschied**. Personal Agent modelliert
 Wissen als *einen* bitemporalen Entity-State-Graph, der Live-Integration-Daten
@@ -122,18 +122,24 @@ SQLite-FTS5-Volltextsuche über alle vergangenen Sessions.
 
 | Feature | Personal Agent | Hermes Agent |
 |---|:---:|:---:|
-| Autonome Skill-Erstellung aus Erfahrung | ✗ | ✓ (nach komplexen Tasks) |
-| Skills verbessern sich bei Nutzung | ✗ | ✓ (LLM-guided patches) |
-| Skill-Lifecycle-Curator | ◑ (Aging active/stale/archived) | ✓ (use/view/patch-count, auto-archive) |
+| Autonome Skill-Erstellung aus Erfahrung | ◑ (`save_skill`-Tool, Agent-initiiert) | ✓ (nach komplexen Tasks) |
+| Skills verbessern sich bei Nutzung | ◑ (`save_skill` überschreibt/refined) | ✓ (LLM-guided patches) |
+| Skill-Lifecycle-Curator | ✓ (active→stale→archived nach Idle) | ✓ (use/view/patch-count, auto-archive) |
 | Skill-Marketplace / Hub | ✓ (curated catalogs) | ✓ (agentskills.io, publish/install) |
 | SKILL.md-Standardformat | ✓ (Claude-kompatibel) | ✓ (eigenes Frontmatter-Schema) |
 
 Hermes' namensgebendes Feature: Der Agent **schreibt nach komplexen Aufgaben
 selbst Skills** (strukturierte Markdown-Playbooks), verbessert sie bei
 wiederholter Nutzung und archiviert ungenutzte automatisch. Personal Agent hat
-zwar ein Skill-System mit Aging und Marketplace, aber **kein autonomes
-Self-Authoring** — Skills werden importiert/kuratiert, nicht vom Agent selbst
-aus Erfahrung generiert.
+mittlerweile ein **eigenes (Hermes-inspiriertes) Self-Improving-Skills**-System:
+ein `save_skill`-Tool, mit dem der Agent nach einer gelösten Aufgabe eine
+wiederverwendbare Prozedur als Skill ablegt oder eine bestehende refined (sofort
+in der Skills-Ansicht und im nächsten Run-Preamble sichtbar), plus einen
+Hintergrund-Skill-Curator, der agent-authored Skills per Idle-Zeit durch
+`active → stale → archived` altern lässt (reaktiviert bei Nutzung, gepinnte
+ausgenommen). Unterschied zu Hermes: bei Personal Agent **entscheidet der Agent
+aktiv** über `save_skill`, statt dass nach jedem komplexen Task automatisch
+geschrieben/gepatcht wird.
 
 ### Personal Agent: Durability + Fail-closed Governance
 
@@ -144,7 +150,7 @@ aus Erfahrung generiert.
 | Fail-closed Data-Classification-Gate | ✓ | ✗ |
 | Durable Agent-Runs (Temporal) | ✓ | ✗ |
 | Untrusted-Content-Tool-Gating | ✓ (automatisch) | ◑ (Approval-Prompts) |
-| Provider-Governance-Tags (local/eu/no-train) | ✓ | ✗ |
+| Provider-Trust-Tier-Gating (0/1/2) | ✓ | ✗ |
 | BYOK Envelope-Encryption | ✓ | ◑ (`.env`-Secrets) |
 
 Personal Agents namensgebendes Feature ist **vertrauenswürdige, mandantenfähige
@@ -221,8 +227,8 @@ und Triage** führt — qualitativ tiefer, aber bei weniger Kanälen.
 
 | Feature | Personal Agent | Hermes Agent |
 |---|:---:|:---:|
-| Anzahl Provider | ~10 (pydantic-ai) | **29+ Plugins** |
-| OpenRouter (200+ Modelle) | ◑ (über compat) | ✓ (first-class) |
+| Anzahl Provider | ~15 im Katalog (pydantic-ai) | **29+ Plugins** |
+| OpenRouter (200+ Modelle) | ◑ (eigener Provider-Slot, `OpenRouterModel`) | ✓ (first-class) |
 | Nous Portal | ✗ | ✓ (300+ Modelle, Tool-Gateway) |
 | OpenAI / Anthropic / Google | ✓ | ✓ |
 | AWS Bedrock | ✓ | ✓ |
@@ -233,12 +239,14 @@ und Triage** führt — qualitativ tiefer, aber bei weniger Kanälen.
 | Aux-Modell pro Task (Curator/Vision/…) | ✓ | ✓ (`auxiliary_client.py`) |
 | Kosten-/Pricing-Tracking | ✓ (genai-prices + Audit-Table) | ◑ |
 | Budget-Caps (User/Org/Global) | ✓ | ◑ |
-| Governance-Tag-Gating der Provider | ✓ | ✗ |
+| Trust-Tier-Gating der Provider | ✓ (ordinal 0/1/2) | ✗ |
 
 **Hermes gewinnt bei Provider-Breite** (29+ Plugins, lazy-loaded, inkl. vieler
 chinesischer und Coding-Provider). **Personal Agent gewinnt bei Kosten-Governance**
-(versioniertes `model_pricing` für Audit, USD-Budget-Caps auf drei Ebenen,
-Provider-Governance-Tags, die Capabilities gaten).
+(versioniertes `model_pricing` für Audit, USD-Budget-Caps auf drei Ebenen, und
+einer ordinalen Provider-Trust-Tier-Achse, 0=unregulated < 1=regulated <
+2=internal, die Tools, Integrationen und Daten-Klassifikation gatet; die alten
+Residency-Tags wurden durch diese Tier-Achse ersetzt).
 
 ---
 
@@ -249,7 +257,7 @@ Provider-Governance-Tags, die Capabilities gaten).
 | Geplante Jobs / Cron | ✓ (Workflow-Trigger) | ✓ (`cron/`, croniter) |
 | Schedule-Formate | ✓ (cron/interval/event) | ✓ (duration/„every"/cron/ISO) |
 | Workflows (ausführbare Skripte) | ✓ (sandboxed Monty-Python) | ◑ (Cron-Scripts + Skills) |
-| Trigger-Typen | ✓ (Schedule/Webhook/Event/Poll/Manual) | ◑ (Cron + Plattform-Events) |
+| Trigger-Typen | ✓ (Schedule/Interval/Webhook/Event/Poll/Manual) | ◑ (Cron + Plattform-Events) |
 | Conditions (Entity-State/Time-Window) | ✓ | ✗ |
 | Headless Background-Runs | ✓ (Temporal Schedule) | ✓ (Cron-Sessions) |
 | Hooks (Before/After Tool/Message) | ✓ (Guardrails) | ◑ (Plugin-Lifecycle-Hooks) |
@@ -269,7 +277,7 @@ Personal Agent nicht hat.
 
 | Feature | Personal Agent | Hermes Agent |
 |---|:---:|:---:|
-| MCP-Client (Server konsumieren) | ✓ (OAuth, encrypted) | ✓ (auto-discovery) |
+| MCP-Client (Server konsumieren) | ✓ (encrypted Auth-Header; OAuth-MCP = Follow-up) | ✓ (auto-discovery) |
 | Als MCP-Server agieren | ✓ (`/api/mcp`) | ✓ (`mcp_serve.py`) |
 | OpenAPI-Spec → Tools | ✓ | ◑ |
 | Plugin-System | ◑ (Integrations) | ✓ (umfangreich: memory/model/browser/…) |
@@ -318,12 +326,12 @@ deny-by-default Gateway-Allowlists.
 | Web-SPA | ✓ (Quasar/Vue 3, PWA) | ✓ (React/Vite) |
 | Terminal-UI (TUI) | ✓ (Rust/ratatui) | ✓ (Ink/React + tui_gateway) |
 | Klassische CLI | ◑ | ✓ (prompt_toolkit) |
-| Desktop-App | ◑ (Electron, experimentell) | ✓ (Tauri, eigenes Repo `personal-agent-org/desktop`) |
+| Desktop-App | ◑ (Tauri/WebKitGTK, eigenes Repo, experimentell) | ✓ (Tauri, eigenes Repo `personal-agent-org/desktop`) |
 | Android-App | ◑ (experimentell, Companion) | ◑ (via Termux) |
 | Browser-Extension | ✓ (Chrome MV3, Device) | ◑ (Browser-Automation, nicht als Client) |
 | Device-Agent (Rust, jailed) | ✓ | ✗ |
 | Eingebettetes Terminal im Web | ◑ (Coding-Modus) | ✓ (xterm.js + PTY-Bridge) |
-| Sprachen / i18n | German-first + EN | **16 Sprachen** |
+| Sprachen / i18n | i18n, EN-Quelle + DE (Weblate) | **16 Sprachen** |
 
 Hermes deckt **mehr Client-Formfaktoren von Haus aus produktiv ab** (CLI, TUI,
 Web, Desktop, Termux) und lokalisiert in 16 Sprachen. Personal Agent hat dafür
@@ -375,7 +383,8 @@ $5-VPS oder serverless mit near-zero idle cost).
 **Wähle Personal Agent, wenn:**
 - Du **mehrere Nutzer/Organisationen** mit echter Daten-Isolation bedienst.
 - **Daten-Governance & Compliance** kritisch sind (klassifizierte Daten dürfen
-  bestimmte Provider nie erreichen; EU/local-only Provider-Tags).
+  bestimmte Provider nie erreichen; ordinale Provider-Trust-Tiers
+  unregulated/regulated/internal).
 - Agent-Runs **Crashs überleben** müssen (lange, durable Aufgaben via Temporal).
 - Du ein **tiefes, einheitliches Wissensmodell** willst (bitemporaler Entity-Graph,
   der Smart-Home-Zustand + Kalender + gelernte Fakten vereint).
@@ -392,11 +401,13 @@ $5-VPS oder serverless mit near-zero idle cost).
   und **IDE-Integration (ACP)** schätzt.
 
 **Konvergenz / gegenseitige Inspiration:**
-Beide teilen viel DNA — SKILL.md-Skills, MCP in beide Richtungen, Sub-Agenten,
-Context-Kompression, Multi-Provider-Routing, Cron/Scheduling. Personal Agent
-könnte von Hermes' **autonomem Skill-Self-Authoring** und der **Messaging-
-Breite** lernen; Hermes könnte von Personal Agents **durable Execution**,
-**fail-closed Governance** und **bitemporalem Memory-Graph** profitieren.
+Beide teilen viel DNA - SKILL.md-Skills, self-improving Skills mit
+Lifecycle-Curator, MCP in beide Richtungen, Sub-Agenten, Context-Kompression,
+Multi-Provider-Routing, Cron/Scheduling. Personal Agent hat das (Hermes-inspirierte)
+Skill-Self-Authoring inzwischen selbst; offen bleibt Hermes' **automatisches**
+Schreiben/Patchen nach jedem Task sowie die **Messaging-Breite**. Hermes könnte
+von Personal Agents **durable Execution**, **fail-closed Governance** und
+**bitemporalem Memory-Graph** profitieren.
 
 ---
 

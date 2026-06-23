@@ -55,6 +55,27 @@ difference from delegatable agents: `list_visible` **includes** builtins — a b
 `coding` is a normal selectable option, not a hidden default. `get_by_slug` resolves a slug for a
 principal with the user's own surface winning over a global of the same slug.
 
+### HTTP API
+
+Two routers expose surfaces, both under the `/api/v1` prefix (backend repo
+`src/personal_agent/api/routers/surfaces.py` for the user surface, `admin_surfaces.py` for the
+global one):
+
+| Method + path | Scope | Notes |
+| --- | --- | --- |
+| `GET /surfaces` | user + globals | A user's own surfaces plus the visible globals (`list_for_user`). |
+| `GET /surfaces/{id}` | user + globals | A global or the caller's own; otherwise `404`. |
+| `POST /surfaces` | user | Creates a `scope="user"` surface (slug from the name; duplicate name → `409`). |
+| `PATCH /surfaces/{id}` | user | Owner-only (`403` otherwise); editing the name re-slugs. |
+| `DELETE /surfaces/{id}` | user | Owner-only. |
+| `GET·POST·PATCH·DELETE /admin/surfaces[/{id}]` | global | `Role.ADMIN`-gated; manages `scope="global"` rows only. |
+
+`kind` is always recomputed from the posted `config` via `surface_kind` on create/update - the
+client never sends it. The request body (`SurfaceCreate` / `SurfaceUpdate`,
+`src/personal_agent/api/schemas/surface.py`) carries `name`, `description`, `icon`, `config`,
+`show_in_nav`, `require_admin`, `enabled`; `SurfaceOut` adds the derived `id`, `slug`, `kind`,
+`builtin`, `scope`, `owner_sub`, and timestamps.
+
 ## The config blob
 
 `config` is a Lovelace dashboard config, extended with an `arrangement` for the side-by-side
@@ -328,6 +349,7 @@ changes.
 | --- | --- |
 | Surface model | backend repo `src/personal_agent/db/models/surface.py` |
 | Surface repo | backend repo `src/personal_agent/db/repositories/surface_repo.py` |
+| HTTP API | backend repo `src/personal_agent/api/routers/surfaces.py`, `admin_surfaces.py` (DTOs `api/schemas/surface.py`) |
 | Surface resolver + overlay helpers | backend repo `src/personal_agent/agent/surface_resolver.py` |
 | Builtin seed | backend repo `src/personal_agent/db/seed/surface_seed.py` |
 | Integration contribution | backend repo `src/personal_agent/integrations/integration.py` (`SurfaceDescriptor`, `surfaces()`), `src/personal_agent/integrations/contrib.py` (`_project_surfaces`) |

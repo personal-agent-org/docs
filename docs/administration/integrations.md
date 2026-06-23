@@ -45,8 +45,10 @@ is not in its allowed scopes — blocked domains cannot have new instances added
 The **required trust tier** is **read-only** here: it is declared by the
 integration's manifest (`required_tier`), not set by the admin. It is the minimum
 model trust tier needed to use the integration's tools, and it feeds the
-fail-closed governance gate that decides whether a resolved model may touch this
-integration's data. Tiers are shown by name:
+fail-closed governance gate (`provider_tier >= required_tier`) that decides
+whether a resolved model is cleared to assemble this integration's tools. Tiers
+are ordinal (`unregulated` 0 &lt; `regulated` 1 &lt; `internal` 2) and shown by
+name:
 
 | Tier | Label |
 | --- | --- |

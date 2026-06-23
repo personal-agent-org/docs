@@ -38,10 +38,12 @@ The effective mode for a run is resolved in this order:
     precedence over the platform default. If `judge` is selected but no guard model is
     configured, runs fall back to `approve_each`.
 
-The platform default applies on the inline chat path and workflow-script runs. Durable
-chat runs do not yet carry a per-run security mode and instead enforce the
-catastrophic-command deny-floor; full `judge` / `approve_each` parity on the durable path
-is a tracked follow-up.
+The platform default applies on every chat run. Inline and durable chat share one
+executor, so a durable chat run resolves the same effective mode and is wrapped by the
+same guard (`judge` / `approve_each` parity included). Triggered workflow scripts run
+headless: writes stay gated by the effective security mode, but any tool call that would
+need interactive approval fail-denies instead of hanging the background run. When no mode
+is in force, the catastrophic-command deny-floor still blocks destructive shell commands.
 
 ## Feature flags
 

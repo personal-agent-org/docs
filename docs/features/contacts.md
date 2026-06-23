@@ -12,8 +12,8 @@ Most contacts are created **automatically** as messages arrive — see
 
 ## The contacts list
 
-Open **Contacts** from the sidebar to see everyone you correspond with, sorted by name. Each
-row shows:
+Open **Contacts** from the sidebar to see everyone you correspond with, most recently active
+first. Each row shows:
 
 - the person's **name** (with an avatar built from their initials),
 - small **channel icons** for the channels they reach you on, and
@@ -133,7 +133,7 @@ preserved. The merged-away contact disappears from the list.
 
 The **History** card is the contact's **unified timeline across every channel**. Each entry
 shows the channel icon, the subject or sender, the date, and the message's inbox **status**
-(New, Needs reply, Answered, Seen), with the summary underneath when one is available.
+(New, Reply pending, Answered, Seen), with the summary underneath when one is available.
 
 This is the same triaged message data you see in the [Inbox](inbox.md) — here it's filtered
 to a single person and merged across all their channels, so an email thread and a Signal

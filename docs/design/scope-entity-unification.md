@@ -1,13 +1,28 @@
 # Vereinheitlichung: Scope-Modell + Entity-Modell
 
-> Status: Design (Vorschlag). Lead-Architekt-Entwurf. Verifiziert gegen den realen
-> Code-Stand am 2026-06-16. Alle Datei:Zeile-Referenzen sind echt.
+> Status: Design (Vorschlag), inzwischen **VOLLSTÄNDIG UMGESETZT**. Lead-Architekt-Entwurf,
+> ursprünglich verifiziert gegen den Code-Stand am 2026-06-16. Die Datei:Zeile-Referenzen im
+> Fließtext sind der **historische** Stand und teils veraltet (siehe Tabellen-Umbenennung
+> unten); der Plan selbst wurde so umgesetzt.
 >
-> **Umsetzungsstand (2026-06-16):** Phase 0 (additiv) + Phase 1 (RLS-Schnitt) sind
-> **DEPLOYED** auf prod. Phase 1 lief in zwei Schritten: zuerst die 7 World-Memory-Tabellen
-> (`scope_unify_p1`), dann `entities` (`scope_unify_p1_entities`). Der App läuft als
-> unprivilegierte, RLS-pflichtige Rolle `personal_agent_app` (sonst wäre RLS inert). Offen:
-> Phase 2 (Group-Integrationen) + Phase 3 (Entity-Merge).
+> **Umsetzungsstand (Stand 2026-06-23): ALLE Phasen DEPLOYED.** Phase 0 (additiv,
+> `scope_unify_p0`), Phase 1 (RLS-Schnitt, zweistufig `scope_unify_p1` für die 7
+> World-Tabellen, dann `scope_unify_p1_entities`), Phase 2 (Group-Integrationen,
+> `scope_unify_p2`) und Phase 3 (Entity-Merge: `scope_unify_p3_chunks`,
+> `world_entities_group_scope_01`, `facts_group_scope_01`, die RAG-Merge-Reihe
+> `rag_merge_projections_global_01`/`rag_merge_entity_live_02`/`rag_merge_drop_entity_chunks_03`,
+> `drop_entity_types_world_kind_01`, `merge_event_types_01`, `entities_world_fk_01`,
+> `entity_states_rename_01`) sind alle auf prod. Der App läuft als unprivilegierte,
+> RLS-pflichtige Rolle `personal_agent_app` (sonst wäre RLS inert).
+>
+> **⚠ Tabellen-Umbenennung (entity_states_rename_01) - Begriffe im Text sind invertiert:**
+> Beim Merge wurde `world_entities` zur kanonischen Entity und behielt den Tabellennamen
+> `entities` (Modellklasse heißt jetzt schlicht `Entity`, nicht mehr `WorldEntity`). Die alte
+> Integration-`entities`-Tabelle (Live-State) wurde zu **`entity_states`** umbenannt
+> (Modellklasse `EntityState`), `entity_types` → `entity_state_types` (`EntityStateType`). Im
+> Fließtext unten meint also „Integration-`Entity`/`entities`" → heute `EntityState`/
+> `entity_states`, und „World-Memory `WorldEntity`/`world_entities`" → heute `Entity`/
+> `entities`. Konzept unverändert (Identität + Backing-State), nur die Namen tauschten.
 
 ## Problemstellung — der heutige Doppel-Bruch
 
@@ -297,12 +312,13 @@ einer Projektion mit `source_kind='entity'`, `source_id=<world_entity_id>`,
 > `source_id=entities.id`. Zwei `source_kind`, zwei ID-Räume, eine Tabelle, ein HNSW. Idempotenz bleibt
 > sauber, da `find_by_source` auf dem Tripel `(owner_sub, source_kind, source_id)` keyt.
 >
-> **Inkremente (additiv → dual-write → Reader-Vereinheitlichung → Cutover → DROP):** (1) **erledigt
-> 2026-06-19** — `memory_projections`-RLS um den `scope_ref='global'`-Zweig erweitert (kongruent zu
-> `entity_chunks`, Tier-Gate auf beiden Zweigen) + `ProjectionRepo.add(scope_ref=…)` stampt explizit;
-> kein Reader/Indexer berührt. (2) Indexer dual-write nach `memory_projections` (`entity_live`,
-> per-Chunk beibehalten). (3) vereinheitlichter Reader (muss `current_scopes`+`current_model_tier`
-> setzen, nicht nur `owner_sub`). (4) Read-Cutover. (5) `entity_chunks` droppen (soak-gated).
+> **Inkremente (additiv → dual-write → Reader-Vereinheitlichung → Cutover → DROP) - ALLE ERLEDIGT.**
+> (1) `memory_projections`-RLS um den `scope_ref='global'`-Zweig erweitert (kongruent, Tier-Gate auf
+> beiden Zweigen) + `ProjectionRepo.add(scope_ref=…)` (`rag_merge_projections_global_01`). (2) Indexer
+> schreibt nach `memory_projections` als `source_kind='entity_live'`, `source_id=entity_states.id`,
+> + `owner_sub` nullable + `content_hash` (`rag_merge_entity_live_02`). (3)/(4) Reader vereinheitlicht
+> (`current_scopes`+`current_model_tier`) + Read-Cutover (`search_entities` fasst `entity_chunks` nicht
+> mehr an). (5) `entity_chunks` **gedroppt** (`rag_merge_drop_entity_chunks_03`, 0 Zeilen in prod).
 
 ### 2.6 Zieltabellen — Überblick
 
@@ -377,20 +393,46 @@ alten GUCs eine Release lang weiter setzen (toter Code, aber Roll-Back-Sicherhei
 
 ### Phase 2 — Group-Integrationen aktivieren (Feature-Schalter)
 
+> **DEPLOYED (`scope_unify_p2`).** `integration_configs` bekam eine eigene `scope_ref`-Spalte
+> (Backfill aus `owner_sub`/`org_id`/`global`); `"group"` wurde nur den Integrationen in
+> `allowed_scopes` hinzugefügt, die schon `org`/`global` erlaubten (eine bewusst auf `["user"]`
+> verengte sensible Integration bleibt group-verboten). Group-scoped Nodes/Facts wurden durch
+> `world_entities_group_scope_01` + `facts_group_scope_01` ermöglicht (`owner_sub` nullable, da
+> ein Group-Node keinen einzelnen Owner hat - `scope_ref='group:<id>'` ist der Prinzipal).
+
 `IntegrationConfig.scope_ref` akzeptiert `group:<id>`; `allowed_scopes` um `"group"`
 erweitert; Config-Flow-UI lässt Group wählen (nur Groups, in denen der User Mitglied ist).
 Sync propagiert `group:<id>` → Entities **und** Feeder-Nodes/Facts sind sofort team-shared.
 
 ### Phase 3 — Entity-Merge (additiv, pro Subsystem)
 
-1. `entity_kinds` absorbiert `entity_types` (Datenmigration der HA-Semantik), `world_kind`-
-   Indirektion entfernen.
-2. `observed_state`-Fact-Pfad im Sync (§2.4); `entity_state_history` deprecaten.
-3. `memory_projections` absorbiert `entity_chunks` (§2.5); Indexer umlenken.
-4. `entities` wird offiziell Backing-Projektion von `world_entities` (FK/`backing_ref`
-   konsolidieren).
+> **DEPLOYED.** Wie geplant in Einzelschritten, keiner fasste die Scope-RLS neu an. Abweichungen
+> vom Entwurf sind unten markiert.
 
-Jeder Schritt einzeln deploybar; kein Schritt fasst die Scope-RLS erneut an.
+1. `world_kind`-Indirektion **entfernt** (`drop_entity_types_world_kind_01`): der Feeder liest
+   `world_kind` live vom Deskriptor und ruft `ensure_kind()` auf `entity_kinds` direkt. **Aber:**
+   die `entity_types`-Tabelle (heute `entity_state_types`) wurde **nicht** in `entity_kinds`
+   absorbiert - die HA-State-Semantik (`device_class`/`state_class`/`unit`/`category`) blieb dort
+   als per-`(domain,type)`-Catalog-Projektion (vgl. Offene Entscheidung 4, die Projektions-Variante).
+   `event_types` wurde dagegen vollständig in `world_event_types` gemerged (`merge_event_types_01`,
+   neue `domain`-Spalte). Beide einstige `EventType`/`WorldEventType` konvergieren so zu einer
+   `world_event_types`-Registry.
+2. `observed_state`-Fact-Pfad im Sync (§2.4) **umgesetzt** (`_record_observed_state` in
+   `entities/service.py`, `OBSERVED_STATE_PREDICATE='observed_state'`, `memory_type='observed_state'`,
+   `retention_class=windowed`, functional/`assert_fact`-supersede). **Idempotenz weicht ab:** statt
+   des skizzierten partiellen `content_hash`-Unique-Index wird vor dem Schreiben der aktive
+   `observed_state`-Fact gelesen und nur bei tatsächlich geändertem State neu geschrieben (kein
+   Churn). `entity_state_history` blieb (Offene Entscheidung 5.3 ENTSCHIEDEN: behalten).
+3. RAG-Merge **vollständig**: `memory_projections` absorbierte die Integration-Entity-RAG und
+   `entity_chunks` wurde **gedroppt** (`rag_merge_drop_entity_chunks_03`). Die Live-RAG lebt jetzt
+   als `source_kind='entity_live'` / `source_id=entity_states.id` (polymorphes Keying wie im
+   Keying-Nachtrag §2.5 entschieden); `memory_projections` bekam `owner_sub` nullable + `content_hash`,
+   die RLS den `scope_ref='global'`-Zweig (`rag_merge_projections_global_01`) bei beibehaltenem
+   Tier-Gate.
+4. `entity_states` (Live-State) ist offiziell Backing-Projektion von `entities` (dem Node):
+   `entity_states.entity_id → entities.id` (`entities_world_fk_01`), `SET NULL` beim Archivieren.
+
+Jeder Schritt einzeln deploybar; kein Schritt fasste die Scope-RLS erneut an.
 
 ### Daten-Migration org-shared → ?
 
@@ -474,9 +516,10 @@ opt-in/best-effort). `observed_state`-Facts sind eine *Projektion* für das Agen
 Retention und Konsumenten — keine echte Duplikation. Anti-Flooding: Facts nur bei semantischen
 Zustandswechseln, nicht 1-Hz-Telemetrie.
 
-### 5.4 Schreibrecht in eine Group → **ENTSCHIEDEN: rollenbasiert**
-`group_memberships` bekommt ein `role`-Feld (z. B. `owner | editor | viewer`); nur
-`editor`/`owner` dürfen mit `write_scope=group:<id>` schreiben, `viewer` liest nur. Das `role`-
-Feld + die Rollenprüfung beim Setzen von `write_scope` sind Teil von Phase 2 (nicht erst später
-additiv). Mitgliedschaft ist heute rollenlos (`group.py:42-52`) → additive Spalte + Default
-`editor` für bestehende Mitglieder bei der Migration.
+### 5.4 Schreibrecht in eine Group → **ENTSCHIEDEN + UMGESETZT: rollenbasiert**
+`group_memberships` hat ein `role`-Feld (`owner | editor | viewer`, Default `editor`,
+Spalte additiv in `scope_unify_p0` ergänzt - früher als die ursprünglich für Phase 2 geplante
+Stelle). Nur `editor`/`owner` (`GroupRepo.GROUP_WRITE_ROLES`) dürfen mit `write_scope=group:<id>`
+schreiben, `viewer` liest nur (`GroupRepo.membership_role` validiert beim Setzen von `write_scope`).
+Die OIDC-Login-Sync leitet die Rolle für `source='oidc'`-Zeilen aus der Keycloak-Konvention ab;
+ein expliziter Admin-Override (`set_member_role`, `source='manual'`) gewinnt immer.

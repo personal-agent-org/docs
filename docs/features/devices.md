@@ -18,7 +18,9 @@ Linux, macOS and Windows.
 3. The device appears in the list as **online**, along with the tools it offers.
 
 Prefer to do it by hand? **Download the binary** for your operating system instead of the
-one-liner. You can **rotate** a device's credentials or **remove** it at any time.
+one-liner, then run `enroll` (it signs you in via the device flow) followed by `run`. There
+is no per-device secret to manage: the agent logs in as you over OIDC, so to revoke access you
+**remove** the device (which deletes it) and re-connect.
 
 !!! note "Device safety is per chat"
     A device no longer carries its own rules — what the agent may do on it is governed by the
@@ -28,13 +30,15 @@ one-liner. You can **rotate** a device's credentials or **remove** it at any tim
 
 ## Connect a browser
 
-A **browser** device lets the assistant navigate, click, type and screenshot real web
-pages. Two flavours:
+A **browser** device lets the assistant navigate, click, type, scroll and screenshot real
+web pages (`browser_*` tools). Two flavours:
 
-- the **browser extension** (Chrome/Firefox) — acts in *your* logged-in session (see
+- the **browser extension** (Chrome/Firefox) - acts in *your* logged-in session (see
   [below](#the-browser-extension)); or
-- an on-demand **cloud browser** — **Settings → Devices → Start cloud browser** spins up a
-  headless Chromium in the cloud with nothing to install.
+- an on-demand **cloud browser** - a headless Chromium driven by Playwright, spun up in the
+  cloud with nothing to install. It connects back as a managed `kind=browser` device and
+  shows up in the chat device picker; it is reaped when idle. (Requires a configured cloud
+  sandbox provider on the deployment.)
 
 Either way, vision models can read the page straight from screenshots.
 
@@ -43,7 +47,7 @@ Either way, vision models can read the page straight from screenshots.
 Install the **Android app** ([below](#native-apps)) and sign in, and your phone appears as a
 device. With your opt-in, the assistant can read its **status** and **control** it, and the
 phone can report **sensors** for context. You tune all of this under **Settings →
-Companion**:
+Companion** (a tab that only appears inside the app):
 
 - **Push connection** — when the app holds its realtime connection (Always / Only when the
   screen is on / Wi-Fi only / Never) to balance battery against responsiveness.
@@ -59,11 +63,11 @@ Companion**:
 Personal Agent runs in any browser, but native shells add real push notifications, system
 login and microphone access. Find downloads under **Settings → App**.
 
-- **Android** — download the APK, allow installing it, then open and sign in.
-- **Desktop (Linux)** — a desktop app, offered as an AppImage (portable), a `.deb`, or a
-  single binary.
-- **Browser extension (Chrome/Firefox)** — see below.
-- **Terminal client** — a terminal chat client that speaks the same API; sign in with the
+- **Android** - download the APK, allow installing it, then open and sign in.
+- **Desktop (Linux)** - a Tauri desktop app, offered as a portable **AppImage** or a **`.deb`**
+  package (x86_64).
+- **Browser extension (Chrome/Firefox)** - see below.
+- **Terminal client** - a terminal chat client that speaks the same API; sign in with the
   device flow and chat from your shell.
 
 ### The browser extension
@@ -88,8 +92,9 @@ Firefox has no equivalent, so those extras aren't offered there.
 **Safety.** Because the extension drives your real session, the popup adds guardrails on top of the
 chat's [security mode](security.md):
 
-- **Per-tool exposure** — switch individual `browser_*` tools off (for example `eval_js`); the
-  device stops announcing them and refuses them if asked anyway. You review the set on first sign-in.
+- **Per-tool exposure** - switch individual `browser_*` tools off (for example
+  `browser_eval_js`); the device stops announcing them and refuses them if asked anyway. You
+  review the set on first sign-in.
 - **Origin guard** — the assistant can never drive the Personal Agent app's own origin or your login
   provider (that could expose your tokens); you can add more blocked hosts (e.g. your bank).
 - **HTTPS only** for the server/issuer URLs, and a **secure disconnect** that deletes the device and

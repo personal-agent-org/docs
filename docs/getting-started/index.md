@@ -39,16 +39,21 @@ pick the one that matches your goal:
 Whichever path you pick, a real instance needs:
 
 - **DNS + TLS** for your app and Keycloak hostnames, behind a reverse proxy that doesn't buffer SSE
-  and allows WebSocket upgrades. The Docker path bundles the data services (Postgres, Redis,
-  Temporal, Keycloak) — see [Docker / Podman](docker.md); Kubernetes wires them as subcharts.
-- An **OIDC provider**. Keycloak is bundled and its realm is imported for you, but any provider
-  works — see [OIDC provider configuration](oidc.md).
-- An **LLM provider key** (or a local model endpoint), added later in the admin UI — not an env var.
+  and allows WebSocket upgrades. The single-host Docker path bundles the data services (Postgres,
+  Redis and a single-host Temporal dev server) but expects Keycloak and the edge proxy to run
+  outside the stack - see [Docker / Podman](docker.md); Kubernetes wires the data services and
+  platform operators as subcharts (CloudNativePG, Redis, Temporal, KEDA, cert-manager, HAProxy
+  Gateway-API).
+- An **OIDC provider**. The dev compose bundles Keycloak and imports the realm for you; any
+  provider works - see [OIDC provider configuration](oidc.md).
+- An **LLM provider key** (or a local model endpoint), added later in the admin UI, not an env var.
 
 Every environment variable is catalogued in the [Configuration reference](configuration.md), and the
 optional native clients in [Client apps](client-apps.md).
 
 !!! tip "Use `just`"
-    The repo ships a [`just`](https://github.com/casey/just) task runner. Run
-    `just` (or `just --list`) to see every recipe — `just setup`, `just up`,
-    `just migrate`, `just api`, `just worker`, `just web`, `just check`.
+    Each repo ships a [`just`](https://github.com/casey/just) task runner; run
+    `just` (or `just --list`) in a repo to see its recipes. Infra (`just up`)
+    lives in the `deploy` repo, the API + worker (`just setup`, `just migrate`,
+    `just api`, `just worker`, `just check`) in `backend`, and the SPA
+    (`just setup`, `just dev`, `just check`) in the frontend repo.

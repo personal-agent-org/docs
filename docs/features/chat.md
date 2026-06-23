@@ -14,13 +14,14 @@ scroll up.
 
 Under each answer you'll find a compact **footer** with (depending on your preferences):
 
-- **Tokens** — input ↑ and output ↓, plus a ⚡ cache indicator (hits and writes).
-- **Cost** — what this single answer cost.
-- **Model** — which model produced it.
-- **Timing** — send/answer time and throughput in tokens per second.
+- **Cost** - input ↑ and output ↓ tokens, a ⚡ cache indicator (read + write), this single
+  answer's cost, and throughput in tokens per second, all under one toggle.
+- **Model name** - which model produced it.
+- **Timestamp** - when the message was sent.
 
-You choose which of these appear under **Settings → Appearance → Message details**, so the
-chat can be as clean or as instrumented as you like.
+You choose which of these appear under **Settings → Appearance → Message details** (the three
+toggles are *Show timestamp*, *Show model name* and *Show cost*), so the chat can be as clean
+or as instrumented as you like.
 
 ### Reasoning, tool calls and plans
 
@@ -31,30 +32,34 @@ An answer is more than text. Inline, in the order they happened, you may see:
 - **Tool-call cards** — one per tool the agent used, with friendly names ("Read file",
   "Searched the web", "Drafted reply", …). Each card's icon is **colour-coded by status** —
   running, succeeded or failed — so you can scan a long turn at a glance. Expand a card to
-  see its **arguments** and **result**. File edits render as **diffs**; a planning step
-  renders as a checklist; a task list renders with live status icons. When the agent fires
+  see its **arguments** and **result**. File edits render as **diffs**; a plan renders as a
+  prominent plan card; a to-do list renders with live status icons. When the agent fires
   many tools in a row, they collapse into a single "Ran *N* actions" header you can expand.
 
 ### The context gauge
 
 A thin bar at the top edge of the composer shows how full the model's **context window**
-is. Click it for a breakdown — system prompt, skills, project rules, memory, history
-summary and tools — which opens straight away rather than waiting for the next turn. When a
-conversation gets long, older messages are automatically **compacted** into a summary so the
-chat keeps going; the gauge turns amber as you approach that threshold and notes when
-compaction has happened. (Compaction is applied on both the inline and the durable run
-paths, and an overflow self-heals even when no window is known.)
+is, measured against the auto-compaction threshold. Click it for a breakdown - messages,
+system prompt, skills, project rules, memory, history summary, system tools and MCP tools,
+plus the free space left - with a detail list of memory files, MCP tools and the biggest
+system tools. When a conversation gets long, older messages are automatically **compacted**
+into a summary so the chat keeps going; the gauge turns **amber** past 80% and **red** once
+it is full or compaction has happened, and the breakdown notes how many tokens were folded
+into the summary. (Compaction is applied on both the inline and the durable run paths, and
+an overflow self-heals even when no window is known.)
 
-Alongside the live window, the breakdown shows the **session token total** — everything this
-chat has spent across all its turns — split by **kind** (input / output / cached) and with
-the **share attributed to sub-agents** broken out, so you can see how much of the total a
-delegated worker accounted for.
+Alongside the live window, the breakdown shows the **session token total** - everything this
+chat has spent across all its turns, with the running cost - split by **kind** (input,
+output, cache write, cache read) and with the **share attributed to sub-agents** broken out
+(count, their tokens, their cost and the average cost per agent), so you can see how much of
+the total a delegated worker accounted for.
 
 ## The composer
 
 Type your message in the box at the bottom and press **Enter** to send (you can switch
-this to *Cmd/Ctrl+Enter* under **Settings → Appearance → Input**, so plain Enter inserts a
-newline). While the agent is working, the send button becomes a **stop** button, and a new
+this to *Cmd/Ctrl+Enter* under **Settings → Appearance → Composer**, so plain Enter inserts a
+newline; *Shift+Enter* always inserts a newline). While the agent is working, the send button
+becomes a **stop** button, and a new
 message you type is **queued** — sent automatically once the current answer finishes, and
 shown muted in the thread until then.
 
@@ -121,7 +126,7 @@ done can resume rather than starting from scratch.
 ## Sharing a chat
 
 From the chat header menu, **Share** creates a **read-only, password-protected public
-link** to the conversation. Set an **expiry** (never, or a number of days) and **revoke**
+link** to the conversation. Set an **expiry** (never, or 7, 30 or 90 days) and **revoke**
 it anytime. Whoever has the link **and** the password can read the chat at a public `/s/…`
 address; the shared view is read-only and **updates live** as the chat continues. Send the
 password separately — and note that the **whole transcript, including tool calls, becomes

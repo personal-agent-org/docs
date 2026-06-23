@@ -13,11 +13,13 @@ is an EXECUTABLE script. The two keep their own tables, tools and UI.
 
 ## The unified model
 
-A **Workflow** is a named, owner-scoped, **sandboxed Monty Python script** — programmatic
-tool-calling with loops, fan-out and sub-agents (`delegate` / `delegate_many`), running the
-full guard-wrapped toolset. **There is NO `kind`.** The old script-vs-agents split, the
-"static steps" IR (tool/llm/extract) and the "agent prompt" action mode are GONE —
-everything is a script.
+A **Workflow** is a named, owner-scoped, **sandboxed Monty script** (Monty = Pydantic's
+deny-by-default Python interpreter: no imports / file / network) - programmatic tool-calling
+with loops, fan-out and sub-agents (`delegate` / `delegate_many`), running the full
+guard-wrapped toolset. **There is NO `kind`.** The old script-vs-agents split, the "static
+steps" IR (tool/llm/extract) and the "agent prompt" action mode are GONE - everything is a
+script (the `workflow_script_only_01` migration converted any `kind=agent|steps` rows to
+equivalent scripts and dropped the `kind` + `body` columns).
 
 ```
 Workflow {
@@ -32,7 +34,7 @@ Workflow {
 }
 ```
 
-- **Script body** — a sandboxed Monty Python script. Spawning a sub-agent
+- **Script body** - a sandboxed Monty script. Spawning a sub-agent
   (`delegate` / `delegate_many` with an `agent=` selector) is *just another function* in the
   sandbox, alongside the data tools and the full chat toolset. Inner tool calls run through
   the chat's **guard-wrapped** toolset, so every call honors the per-run security mode
@@ -59,6 +61,17 @@ Workflow {
 
 A headless/detached background run is `headless` → the guard **fail-denies** approval
 instead of hanging on a HITL card.
+
+!!! note "Later extension: marketplace (publish / adopt)"
+    A Workflow can be **published** instance-wide (`marketplace_published_at`; admin
+    kill-switch `unlisted_by_admin`) and **adopted** by other users as a **live reference** -
+    the publisher's `script` is the shared definition, but an adopted run executes in the
+    ADOPTER's context (their integrations / devices / model / governance, never the
+    publisher's entry ids or credentials). Adopted rows are read-only and manual-run only
+    (`POST /workflows/adopted/{id}/run`); an adopter may set their OWN triggers/schedule on
+    an adoption (`/workflows/adopted/{id}/triggers`, schedule id `wfadopt:<adoption_id>:<n>`),
+    which fire the published workflow with `WorkflowFireSpec.adopter_sub` set. Browse/publish
+    live on the shared `/marketplace` surface (agents + skills + workflows).
 
 ## Why script-only
 

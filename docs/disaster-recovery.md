@@ -49,7 +49,15 @@ StatefulSet reschedule); no restore procedure required.
 
 ## 1. CloudNativePG - WAL archiving + PITR
 
-### 1.1 Prerequisites (configured in the Helm chart, owned by another agent)
+### 1.1 Prerequisites (CNPG Clusters provisioned alongside the chart)
+
+The `personal-agent` Helm chart bundles the CloudNativePG **operator** as a
+subchart but does NOT define the `Cluster` custom resources; those are
+provisioned separately. The chart references the app DB only by service name:
+`personal-agent-pg-app-rw` (see `jobs.migrate.waitForDb.host` and the API DSN).
+The cluster names used below (`personal-agent-db`, `temporal-db`) are illustrative
+placeholders for your two CNPG Clusters; substitute your real `metadata.name` /
+`serverName` values.
 
 Each CNPG `Cluster` is expected to have continuous WAL archiving to object
 storage (Barman Cloud plugin or `spec.backup.barmanObjectStore`), e.g.:
@@ -93,7 +101,7 @@ metadata:
   namespace: personal-agent
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:18-pgvector   # MUST match pgvector operand
+  imageName: ghcr.io/cloudnative-pg/postgresql:17   # MUST match the running operand major (the app runs Postgres 17 + pgvector)
   bootstrap:
     recovery:
       source: personal-agent-db
@@ -122,10 +130,14 @@ kubectl -n personal-agent get cluster personal-agent-db-restore -w     # wait fo
 > come back automatically on the restored cluster. Never re-create them in
 > Alembic; the app role is unprivileged.
 
-> **BYOK note:** the app DB stores only envelope-encrypted BYOK ciphertext. A
-> restored DB is useless without the `byok_master_key` (ESO/Vault). Ensure the
-> master key is recoverable from Vault as part of DR - losing it permanently
-> bricks all stored provider keys (users must re-enter them).
+> **BYOK note:** the `byok_keys` table stores only envelope-encrypted ciphertext
+> (per-row AES-GCM DEK wrapped by the master key; the master key is never in the
+> DB). These are the admin-managed **platform provider keys** set via
+> `PUT /api/v1/admin/providers/{id}/key`. A restored DB is useless without the
+> master key, injected as `PERSONAL_AGENT__SECURITY__BYOK_MASTER_KEY` from Vault
+> (chart `externalSecrets` maps it from `personal-agent/data/byok`, property
+> `master_key`). Ensure that key is recoverable as part of DR; losing it
+> permanently bricks every stored provider key (re-enter each in the admin UI).
 
 ### 1.3 Quarterly PITR drill (required)
 
@@ -178,8 +190,10 @@ Daily snapshots → ~24h RPO on visibility (acceptable; it is an index).
   `temporal-sql-tool`/`tctl` index setup; visibility back-fills as workflows
   progress (older closed-workflow search may be incomplete but histories are
   intact).
-* Verify the `personal-agent` namespace exists and task queues `personal-agent-agents` /
-  `personal-agent-tools-heavy` are registered before starting workers.
+* Verify the Temporal namespace `personal_agent` (config `temporal.namespace`,
+  underscore) exists before starting workers. The worker registers a single task
+  queue, `personal-agent-agents` (config `temporal.task_queue`); all workflows and
+  activities run on it.
 
 ---
 
@@ -199,11 +213,15 @@ Restore in dependency order; gate each step on the previous being healthy.
    `postInitSQL`.
 5. **Redis** - fresh StatefulSet (no restore; ephemeral). Just needs to be up.
 6. **Temporal** - ES restore/rebuild (§2) + restored `temporal-db`; start
-   frontend/history/matching; confirm `personal-agent` namespace + queues.
-7. **db-migrate Job** - `alembic upgrade head` against restored `personal-agent-db`
-   (no-op if already at head; safe + idempotent). Gated after CNPG Ready.
+   frontend/history/matching; confirm the `personal_agent` namespace exists.
+7. **db-migrate Job** - the `<release>-db-migrate` Helm pre-install/pre-upgrade
+   hook runs `alembic upgrade head` (via `ENTRYPOINT_MODE=migrate`) against the
+   restored app DB (no-op if already at head; safe + idempotent). Its
+   `wait-for-db` initContainer blocks on `personal-agent-pg-app-rw:5432` until CNPG
+   is Ready.
 8. **API + Worker** - roll out `personal-agent-api` then `personal-agent-worker`. KEDA scales the
-   worker from Temporal backlog (`minReplicas>=1`).
+   worker off the `personal-agent-agents` task-queue backlog with
+   `minReplicaCount: 1` (never scale-to-zero, so in-flight runs are not orphaned).
 9. **Verify (smoke):** `/readyz` = 200; `/health/deps` shows Temporal/JWKS
     healthy; `GET /me` works (OIDC); run one INLINE chat (Flow A) and one DURABLE
     run (Flow B) end-to-end; confirm a new `usage_records` row is written with a

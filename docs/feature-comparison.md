@@ -1,16 +1,16 @@
-# Feature Comparison — Personal Agent vs. OpenClaw, Hermes Agent, Home Assistant
+# Feature Comparison: Personal Agent vs. OpenClaw, Hermes Agent, Home Assistant
 
-A side-by-side of what each system has. This compares **Personal Agent** (this repo — a
+A side-by-side of what each system has. This compares **Personal Agent** (this repo, a
 multi-tenant LLM chat + agent SaaS) against three reference systems we researched for the
 roadmap:
 
-- **OpenClaw** — single-operator personal-agent framework (built on Pi/earendil).
-- **Hermes Agent** — NousResearch's autonomous agent runtime.
-- **Home Assistant** — the home-automation platform whose integration/entity/automation
+- **OpenClaw**: single-operator personal-agent framework (built on Pi/earendil).
+- **Hermes Agent**: NousResearch's autonomous agent runtime.
+- **Home Assistant**: the home-automation platform whose integration/entity/automation
   architecture we model our integration + entity + automation subsystems on.
 
 Legend: ✓ = has it · ◑ = partial / via add-on / not first-class · ✗ = no · ? = unknown.
-The comparison is necessarily approximate — the three references move fast and some
+The comparison is necessarily approximate: the three references move fast and some
 capabilities live in add-ons or external companions rather than the core.
 
 ---
@@ -24,12 +24,13 @@ capabilities live in add-ons or external companions rather than the core.
 | Multi-provider models (OpenAI-compat) | ✓ | ✓ | ✓ | ✓ |
 | Per-model pricing / cost attribution | ✓ | ◑ | ◑ | ✗ |
 | Budget caps (user/org/global) | ✓ | ✗ | ◑ | ✗ |
-| Fallback provider chains / routing | ◑ | ◑ | ✓ | ◑ |
+| Fallback provider chains / routing | ✓ (provider-diverse) | ◑ | ✓ | ◑ |
 | In-flight context compression | ✓ | ◑ | ◑ | ✗ |
 | Regenerate / edit-and-rerun | ✓ | ◑ | ? | ✗ |
 | Mid-run follow-up (queue while running) | ✓ | ◑ | ? | ✗ |
 | Rewind / shadow-git undo of agent edits | ✓ | ✗ | ◑ | ✗ |
 | Conversation rewind (truncate + restore) | ✓ | ? | ? | ✗ |
+| Fork a chat from any point | ✓ | ? | ? | ✗ |
 
 ## Tools, Code Execution & Sandboxing
 
@@ -41,8 +42,8 @@ capabilities live in add-ons or external companions rather than the core.
 | On-demand cloud sandbox containers | ✓ | ◑ (Docker) | ✓ (Modal/Daytona) | ✗ |
 | Command approval / security modes | ✓ (autonomous/approve/judge) | ◑ (allowlists) | ✓ (approval modes) | ✗ |
 | LLM "judge" guard over tool calls | ✓ | ✗ | ◑ | ✗ |
-| MCP client | ◑ | ◑ | ✓ | ✓ |
-| MCP server | ✗ | ? | ✓ | ✓ |
+| MCP client (connect external servers) | ✓ (folder integration) | ◑ | ✓ | ✓ |
+| MCP server (expose this assistant) | ✓ (/api/mcp) | ? | ✓ | ✓ |
 
 ## Coding Workspace
 
@@ -107,9 +108,10 @@ capabilities live in add-ons or external companions rather than the core.
 |---|:---:|:---:|:---:|:---:|
 | Email triage + HITL reply | ✓ | ◑ | ◑ | ✗ |
 | Signal | ✓ | ✓ | ✓ | ◑ (add-on) |
-| WhatsApp | ◑ (planned) | ✓ | ✓ | ◑ (add-on) |
+| WhatsApp | ✓ | ✓ | ✓ | ◑ (add-on) |
+| Matrix / Zulip | ✓ | ◑ | ◑ | ◑ (add-on) |
 | Telegram / Slack / Discord | ✗ | ✓ | ✓ | ◑ (add-on) |
-| Multi-channel unified inbox | ✓ (Posteingang) | ✓ | ✓ (gateway) | ✗ |
+| Multi-channel unified inbox | ✓ | ✓ | ✓ (gateway) | ✗ |
 | DM pairing / allowlists | ◑ | ✓ | ✓ | ✗ |
 
 ## Voice
@@ -141,29 +143,32 @@ capabilities live in add-ons or external companions rather than the core.
 | Android app | ✓ (WebView shell) | ✗ | ✗ | ✓ (companion) |
 | Mobile push notifications | ✓ | ✗ | ✗ | ✓ |
 | Slash-command palette | ✓ | ◑ | ◑ | ✗ |
-| Persona / identity files (SOUL.md etc.) | ◑ | ✓ | ✓ | ✗ |
+| Agent persona (name + "Soul") | ✓ (Settings field) | ✓ (SOUL.md) | ✓ (IDENTITY.md) | ✗ |
 
 ---
 
 ## Reading the table
 
 **Where Personal Agent leads:** multi-tenant SaaS foundations the personal-agent frameworks
-don't target — OIDC/Keycloak, row-level tenant isolation, orgs/groups, per-user curated
-models, budgets, cost attribution — plus a deep coding workspace (LSP, formatters, shadow-git
+don't target: OIDC/Keycloak, row-level tenant isolation, orgs/groups, per-user curated
+models, budgets, cost attribution, plus a deep coding workspace (LSP, formatters, shadow-git
 rewind, todo) and the security-mode/judge guard over every tool call.
 
 **Where the references lead:**
-- **OpenClaw / Hermes** — richer channel breadth (Telegram/Slack/Discord out of the box),
-  skill marketplaces (ClawHub / agentskills.io), persona files (SOUL.md/IDENTITY.md), and
-  Hermes' heterogeneous execution backends (Modal/Daytona/Singularity) + MCP **server**.
-- **Home Assistant** — the mature integration ecosystem: blueprints, the registry model
+- **OpenClaw / Hermes**: a couple of channels Personal Agent doesn't bundle yet
+  (Telegram/Slack/Discord out of the box) and Hermes' heterogeneous execution backends
+  (Modal/Daytona/Singularity).
+- **Home Assistant**: the mature integration ecosystem: blueprints, the registry model
   (device/area/floor/label), wake-word voice, and a companion mobile app with native sensors.
 
-**Near-term gaps worth closing:** MCP **server** mode, broader channels (Telegram/Slack/
-Discord), and automation **blueprints** (reusable parameterized templates) — all of which fit
-cleanly into existing subsystems (integration framework, comms channels, automations) rather than
-needing new islands. (A skill marketplace — install from admin-curated GitHub `SKILL.md`
-catalogs, agentskills.io-compatible — is now built into the Skills view.)
+**Near-term gaps worth closing:** broader bundled channels (Telegram/Slack/Discord) and
+automation **blueprints** (reusable parameterized templates), both of which fit cleanly into
+existing subsystems (the integration framework, comms channels, automations) rather than
+needing new islands. (MCP both ways is shipped: Personal Agent is an MCP **client** via the
+`mcp` folder integration and an MCP **server** at `/api/mcp` that external clients reach with a
+Personal Access Token or Keycloak OAuth. A skill marketplace - install from admin-curated
+GitHub `SKILL.md` catalogs, agentskills.io-compatible - is built into the Skills view, and an
+in-instance marketplace lets users publish and adopt agents/skills/workflows.)
 
 > Compiled 2026-06 from public docs/source of each reference project. Cells reflect a
 > best-effort reading at that time and may lag upstream changes.

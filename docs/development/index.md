@@ -14,7 +14,7 @@ integrations and the tools in one `personal_agent` package (src/ layout).
 | --- | --- |
 | backend repo, `src/personal_agent/contracts/` | The single source of truth shared by API + worker: IDs, the `RunSpec`/`ToolsetSnapshot`, AG-UI events, control frames, usage, keys, world-memory and workflow-trigger contracts. |
 | backend repo, `src/personal_agent/` | The FastAPI app (`personal_agent`). App factory `personal_agent.main:create_app` (`app = create_app()`); subpackages for config, DB, auth, the agent, toolset assembly, realtime, integrations, workflows and more. |
-| backend repo, `src/personal_agent/worker/` | The Temporal worker (`personal_agent.worker`) - the durable `ChatAgentWorkflow` plus curator / goal / workflow-schedule / entity-sync / world-maintenance workflows and their activities. |
+| backend repo, `src/personal_agent/worker/` | The Temporal worker (`personal_agent.worker`) - the durable `ChatAgentWorkflow` plus the curator / goal / workflow-schedule / entity-sync / world-maintenance / proactive-review / push-token-maintenance workflows and their activities. |
 | backend repo, `integrations/<domain>/` | Home-Assistant-style integration folders (manifest + config flow + integration class), discovered at runtime by the `IntegrationRegistry`. |
 | `personal-agent-org/frontend` | The Quasar / Vue 3 single-page app (at the repo root). The desktop and Android app shells are separate repos (`personal-agent-org/desktop`, `personal-agent-org/android`). |
 | client repos | The Rust `device-agent` (`personal-agent-org/device-agent`, jailed FS + PTY), the terminal client (`personal-agent-org/tui`), and the cloud `browser` device sandbox (`personal-agent-org/browser-sandbox`). (The Chrome/Firefox extension, the other `browser` device, lives in `personal-agent-org/browser-extension`.) |
@@ -36,7 +36,7 @@ per-run Redis Stream, which the server relays to the client over SSE.
 | | Inline | Durable |
 | --- | --- | --- |
 | Where it runs | A FastAPI background task (`realtime/producers/inline.py`) | A Temporal workflow (`ChatAgentWorkflow` in `src/personal_agent/worker/`) |
-| Streaming | pydantic-ai's `AGUIAdapter` | hand-built identical AG-UI events via a shared converter |
+| Streaming | `agent.run(..., event_stream_handler=...)` feeding the shared `AgUiConverter` | The Temporal model activity feeds the **same** `AgUiConverter` |
 | Used for | Short, interactive turns | Long-running / durable runs that must survive restarts |
 
 `api/routers/runs.py` (`_launch_run`) is the shared chokepoint that decides INLINE vs DURABLE
@@ -44,9 +44,9 @@ and builds the `RunSpec`. The tools available to a run are **snapshotted into th
 at run start — the workflow never queries live DB state during a run or replay.
 
 !!! warning "Streaming is one envelope"
-    AG-UI is the only streaming envelope, on the Redis bus and on the SSE wire. The pydantic-ai
-    `run_stream*` / `iter` helpers are forbidden inside a Temporal workflow — the durable path
-    hand-builds the identical events through the shared converter.
+    AG-UI is the only streaming envelope, on the Redis bus and on the SSE wire. Both paths run
+    the agent through the same `AgUiConverter`, so inline and durable runs render identically. The
+    pydantic-ai `run_stream*` / `iter` helpers are forbidden inside a Temporal workflow.
 
 ## Dev task runner
 

@@ -36,8 +36,8 @@ Generate strong, unique values (e.g. `openssl rand -base64 32`):
 | Variable | Meaning |
 | --- | --- |
 | `POSTGRES_PASSWORD` | Application database password. |
-| `BYOK_MASTER_KEY` | Master key for envelope-encrypting admin-managed provider keys. Required to store/use any provider credential. |
-| `WHATSAPP_WEBHOOK_SECRET` | Shared HMAC secret for the optional WhatsApp bridge webhook. |
+| `BYOK_MASTER_KEY` | Master key for envelope-encrypting admin-managed provider keys (sets `PERSONAL_AGENT__SECURITY__BYOK_MASTER_KEY`). Required to store/use any provider credential. |
+| `WHATSAPP_WEBHOOK_SECRET` | Shared HMAC secret for the optional WhatsApp bridge webhook (sets `PERSONAL_AGENT__INTEGRATIONS__WHATSAPP_WEBHOOK_SECRET`). |
 
 ### Same-origin defaults
 
@@ -80,9 +80,14 @@ bootstrap read it). It must be the externally reachable origin, not an internal 
 unset, the backend falls back to the first `CORS_ORIGINS` entry.
 
 Inside the Compose network, spawned sandbox containers reach the backend by service name via
-`PERSONAL_AGENT__SANDBOX_BACKEND_URL` (`http://backend:8000` by default) on the
-`PERSONAL_AGENT__SANDBOX_NETWORK` network — that internal URL is separate from the public origin
+`PERSONAL_AGENT__SANDBOX__BACKEND_URL` (`http://backend:8000` by default) on the
+`PERSONAL_AGENT__SANDBOX__NETWORK` network - that internal URL is separate from the public origin
 above and normally needs no change.
+
+By default a cloud sandbox's workspace is **ephemeral** (torn down with the container). Set
+`SANDBOX_STORAGE_BACKEND` (which maps to `PERSONAL_AGENT__SANDBOX__STORAGE_BACKEND`) to persist it
+and restore it into a fresh sandbox: `none` (default), `local` (a backend volume), or `s3` (an
+S3/MinIO bucket, configured via the `PERSONAL_AGENT__SANDBOX__STORAGE_S3_*` settings).
 
 The bundled web tools' outbound `User-Agent` and the Met.no weather integration's contact string
 default to a generic project URL; configure a real contact on the weather integration if you use it
@@ -94,5 +99,6 @@ heavily (Met.no's ToS asks for one).
 
 !!! warning "Not environment variables"
     LLM provider credentials are **not** env vars. They are admin-managed "platform keys" entered in
-    the admin UI (**Settings → Providers**) and stored envelope-encrypted in the database using
-    `BYOK_MASTER_KEY`. Set that secret before adding any provider.
+    the admin console (**Admin -> Providers**, at `/admin/providers`) and stored envelope-encrypted in
+    the database using `BYOK_MASTER_KEY`. Set that secret before adding any provider; with no master
+    key set, key storage is disabled.

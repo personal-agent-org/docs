@@ -19,8 +19,9 @@ it takes under a minute:
    and the "power" features (skills, memory, voice).
 3. **Your profile** — your name, timezone and (optional) address, so answers are time- and
    location-aware.
-4. **Your agent** — give the assistant a **name**, a **personality** ("soul") and an
-   avatar. Leave it blank for the default "Personal Agent" persona.
+4. **Your agent** - give the assistant a **name** and a **personality** ("soul"). Leave
+   both blank for the default "Personal Agent" persona. (The agent avatar is set later
+   under **Settings**.)
 5. **Inbox** — optionally connect a message channel (email, Signal, WhatsApp, Matrix,
    Zulip). You can skip and add channels anytime later.
 6. **Done** — you land in your main chat, ready to go.
@@ -60,10 +61,12 @@ Below that: **Recent activity** — your most recent chats.
 Click your avatar at the bottom of the sidebar for everything else:
 
 - **Manage dashboards** — create, rename and delete dashboards
+- **Manage surfaces** - the layouts (chat / editor / terminal / card regions) a chat can use
 - **Skills** — reusable agent capabilities
+- **Marketplace** - publish and adopt agents, skills and workflows shared by other users
 - **Workflows** — reusable plans and automations (badge shows the pending count)
-- **Cloud Tasks** — autonomous coding tasks
-- **Knowledge** — everything the assistant knows: memory and live entities, in one place
+- **Cloud tasks** - autonomous coding tasks
+- **Memory** - everything the assistant knows: remembered facts and live entities, in one place
 - **Logbook** — recent entity state changes
 - **Scenes** — saved entity-state snapshots
 - **Settings**
@@ -73,10 +76,12 @@ Click your avatar at the bottom of the sidebar for everything else:
 ### On a phone
 
 On small screens the chat collapses to a single column with a **bottom navigation bar**.
-In a coding chat the tabs are **Chat / Editor / Terminal / Agents**; in a custom-mode chat
-they're **Chat / Cards / Agents**; otherwise just **Chat / Agents**. The tabs carry live
-badges — unread answers, uncommitted changes, finished commands — and pulse while the agent
-or a command is running.
+A standard chat just has **Chat / Agents**. Any chat with a non-standard surface (coding,
+cards, a custom layout) gets one extra **panel** tab between them, labelled after its first
+region (e.g. the workspace icon for coding, "Cards" for a card layout); inside that panel,
+a layout with more than one region switches between its regions with its own tabs. The tabs
+carry live badges - unread answers, uncommitted changes, finished commands, running
+sub-agents - and pulse while the agent or a command is running.
 
 ## Where to go next
 
@@ -112,8 +117,8 @@ or a command is running.
 
     ---
 
-    The Knowledge page: memory and live entities are one graph — browse, inspect and
-    correct what the assistant knows.
+    The Memory page: remembered facts and live entities are one graph - browse, inspect
+    and correct what the assistant knows.
 
 -   :material-note-text:{ .lg .middle } __[Notes & Files](notes-files.md)__
 

@@ -14,7 +14,11 @@ description and the full playbook) optionally alongside `references/` and
 for example `https://github.com/anthropics/skills`.
 
 In a catalog source, **every folder that contains a `SKILL.md` is offered as a
-separate skill** in the marketplace.
+separate skill** in the marketplace (a repo that is itself one skill works too).
+The repo tree is read via the GitHub API, so the source must be a **public**
+repo; a private or unreachable source is surfaced as a non-fatal error in the
+user marketplace rather than failing the whole browse. An optional
+`GITHUB__TOKEN` env var only raises the GitHub rate limit and is never required.
 
 ## Curating sources
 

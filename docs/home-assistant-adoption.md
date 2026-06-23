@@ -1,4 +1,9 @@
-# Home Assistant adoption — improvement proposals
+# Home Assistant adoption - improvement proposals
+
+!!! note "Status: largely shipped"
+    This was a 2026-06 design proposal. All three areas have since been built (dashboards/cards
+    folded into the **Surfaces** subsystem; the entity-system and config-flow gaps below are in
+    code). The original proposal text is kept for the record; per-section notes mark what shipped.
 
 Research against cloned references `home-assistant/core` + `home-assistant/frontend`, mapped
 onto our existing subsystems. Three areas: **Lovelace dashboards/cards**, the **entity system**,
@@ -15,7 +20,7 @@ card registry maps `type` → component; views use masonry/sections/panel layout
 (card picker + per-card form + drag-grid) builds the config.
 
 **Adoption (Vue/Quasar, not Lit):**
-- **Data:** `Dashboard` model (`owner_sub`, `org_id`, `title`, `url_path`, `config` JSONB, RLS —
+- **Data:** `Dashboard` model (`owner_sub`, `org_id`, `title`, `url_path`, `config` JSONB, RLS -
   mirrors Automations/Notes) + `GET/POST/PATCH/DELETE /dashboards` + a `dashboards` Pinia store.
 - **Card registry:** `type → defineAsyncComponent`. Start with ~12 cards that map to OUR domain:
   `entity`, `entities`, `markdown`, `button`, `heading`, `gauge`, `grid`, `stack`, `conditional`
@@ -27,9 +32,20 @@ Phasing: (1) data layer + viewer, (2) the 12 cards, (3) editor UX. Strategies/ba
 deferred. **Value:** a non-chat surface to see & act on entities/automations/commitments while
 staying agent-first.
 
+!!! success "Shipped (and superseded by Surfaces)"
+    Built and went further than proposed. Dashboards and chat modes were unified into the
+    **Surfaces** subsystem (`db/models/surface.py`, `db/models/dashboard.py`; routers
+    `api/routers/surfaces.py`, `dashboards.py`, `admin_surfaces.py`; Pinia `stores/dashboards.ts`).
+    A Surface is a Lovelace-style `config` of `views` + `arrangement`/`strategy`; a chat mode is a
+    Surface with a `chat` view, a pure dashboard is one without. The card registry
+    (`components/dashboard/card-registry.ts`) ships ~45 card types (entity/entities/glance/gauge/
+    history/logbook/statistic/light/thermostat/scene/agenda/conditional/grid/stack/iframe/…), with
+    a card picker + schema-driven config form (`CardConfigForm.vue`) + `GridBoard`. Strategies and
+    integration-contributed surfaces (`Surface.source_domain`) also shipped.
+
 ---
 
-## 2. Entity system — deepen toward HA parity
+## 2. Entity system - deepen toward HA parity
 
 We already have an HA-style entity system (`db/models/entity.py`, `entities/service.py`, entity
 events → Redis stream, RAG, automation triggers). HA goes deeper. Gaps worth closing, each
@@ -46,11 +62,24 @@ additive on the existing `Entity` model + sync path:
 
 Quick wins (low effort, high leverage): **#1 state timestamps + `old_state` in `entity.*` events**
 (unlocks change-based triggers) and a **`device_class` hint on `EntityTypeDescriptor`** (semantic
-search). Recommended order: 1 → 2 → 3, with 4/5/6 as follow-ups.
+search). Recommended order: 1 -> 2 -> 3, with 4/5/6 as follow-ups.
+
+!!! success "Shipped (#1-#5; #6 partial)"
+    The Home Assistant rename landed as `EntityState` / `EntityStateType` (`db/models/entity.py`),
+    not `Entity`. #1: `state_changed_at`/`state_updated_at`/`availability` columns + an append-only
+    `entity_state_history` table (`entity_history_01`) plus a statistics rollup
+    (`entity_stats_rollup_01`, `entities/statistics.py`, `entities/history_retention.py`); the sync
+    captures `old_state` on `entity.*` events. #2: `Floor`/`Area` registries (`db/models/area.py`,
+    router `areas.py`) + an `EntityStateDevice` device registry (`db/models/entity_device.py`) with
+    `area_id`/`device_id` FKs on the entity. #3: `category`/`hidden`/`disabled` columns. #4:
+    `device_class`/`state_class`/`unit` on `EntityStateType`. #5: `Label` registry
+    (`db/models/label.py`, router `labels.py`) + `entities.labels`. Also shipped beyond the table:
+    `Scene` (`db/models/scene.py`, router `scenes.py`). #6 (registry-updated bus events) was not
+    found as dedicated `*_registry.updated` events.
 
 ---
 
-## 3. Integration / config-flow system — richer flows
+## 3. Integration / config-flow system - richer flows
 
 Our integration framework (`integrations/<domain>/` folder discovery + manifest + config_flow + capability
 providers + entity sync + encrypted secrets) is a solid HA-shaped base. HA is richer in flows and
@@ -65,8 +94,20 @@ field types. Additive extensions:
 | **P4** | **Soft-dependency ordering** | honor `after_dependencies` in the existing topo-sort (reorder, don't block) |
 | Defer | Discovery (zeroconf/SSDP/…) | only if a concrete local-device integration needs auto-detect |
 
-Recommended: **P0 (selectors)** then **P1 (flow variants)** — these unlock the most user-facing value
+Recommended: **P0 (selectors)** then **P1 (flow variants)** - these unlock the most user-facing value
 (e.g. a config field that picks one of the user's entities, and editing a connected integration).
+
+!!! success "Shipped (P0-P4)"
+    P0: `FieldDescriptor.type` (`integrations/manifest.py`) now includes the typed selectors
+    `entity`/`device`/`area`/`duration`/`date`/`time`/`datetime`/`color` (plus `bool`), with
+    `filter` (by domain/entity_type) and `multiple`. P1: `async_step_options`/`reconfigure`/`reauth`
+    via the flow manager, exposed as `POST /config-entries/{id}/reconfigure|options|reauth`
+    (`api/routers/integrations.py`); `SimpleFlow` provides default user+reconfigure steps. P2: a
+    `state` column on `IntegrationConfig` + `POST /config-entries/{id}/reload`; plus a runtime
+    `health` JSONB written by the scheduled sync from the integration's `async_health` hook. P3:
+    `quality_scale` + `issue_tracker` in the manifest. P4: `after_dependencies` honored in the
+    loader topo-sort (`integrations/loader.py:_topo_order`). Discovery (zeroconf/SSDP) remains
+    deferred.
 
 ---
 

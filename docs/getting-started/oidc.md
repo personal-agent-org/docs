@@ -83,6 +83,12 @@ The Compose `.env` exposes the common ones as plain knobs — `OIDC_ISSUER` (fee
 issuer and the SPA's `PA_OIDC_AUTHORITY`), `KEYCLOAK_ORIGIN`, `REALM`, `PA_OIDC_CLIENT_ID`. See the
 [Configuration reference](configuration.md#environment-variables).
 
+!!! note "Client bootstrap endpoint"
+    Thin clients don't need to be told the issuer or client ids: the backend serves the non-secret
+    set unauthenticated at `GET /api/v1/public/client-config` (`oidc_issuer`, `oidc_audience`,
+    `spa_client_id`, `browser_client_id`, `android_client_id`), so the operator configures OIDC once
+    on the server.
+
 ---
 
 ## 4. Keycloak (the reference setup)
@@ -117,7 +123,8 @@ redirect URIs and web origins:
 - the default **`roles`** client scope (carries `realm_access.roles` / `resource_access`);
 - for auth-code clients, **PKCE method S256**;
 - (multi-tenant only) the optional **`organization`** scope, requested by the client;
-- (optional) a **group-membership mapper** emitting full paths into `groups`.
+- a **group-membership mapper** emitting full paths into `groups` (the shipped realm includes one on
+  every login client; harmless if you don't use group sharing).
 
 !!! note "Exact redirect URIs"
     Keycloak only honours a *trailing* `*` in a redirect URI — a mid-host wildcard
@@ -137,20 +144,24 @@ claim.
 
 ### Organizations → tenancy (multi-tenant only)
 
-For a multi-tenant instance, enable **Keycloak Organizations**, add the `organization` client scope
-(an `oidc-organization-membership-mapper` emitting the `organization` claim), and have clients
-request `scope=organization`. The SPA then sends the active org in the `X-Personal-Agent-Org`
-header, which the API validates against the token's `organization` claim every request (Postgres
-row-level security enforces it as defense-in-depth). **Single-tenant instances skip this entirely** —
-with no `organization` claim the user simply operates without an org scope.
+The shipped realm has Organizations **off** (`organizationsEnabled: false`) and exposes
+`organization` only as an *optional* client scope. For a multi-tenant instance, enable **Keycloak
+Organizations**, add the `organization` client scope (an `oidc-organization-membership-mapper`
+emitting the `organization` claim), and have clients request `scope=organization`. The SPA then
+sends the active org in the `X-Personal-Agent-Org` header, which the API validates against the
+token's `organization` claim every request (Postgres row-level security enforces it as
+defense-in-depth). If the header is omitted but the token grants exactly one org, the API defaults to
+it. **Single-tenant instances skip this entirely** - with no `organization` claim the user simply
+operates without an org scope.
 
 ### Groups (optional)
 
-Add a **Group Membership** mapper (full path, claim name `groups`) to enable group-shared chats,
-workflows and folders. (You can optionally add a Keycloak browser-flow override to gate *which* app a
+A **Group Membership** mapper (full path, claim name `groups`) enables group-shared chats, workflows
+and folders; the shipped realm already attaches one to every login client, so you only manage *which*
+groups a user is in. (You can optionally add a Keycloak browser-flow override to gate *which* app a
 user may log into by group → role — that is **Keycloak-side, not enforced by the backend**, and the
-example realm does not include it.) New users get no groups by default (and self-registration is off), so
-grant access by adding users to a group.
+example realm does not include it.) New users get no groups by default (and self-registration is off,
+`registrationAllowed: false`), so grant access by adding users to a group.
 
 ---
 
@@ -216,7 +227,7 @@ HTTPS JWKS, and make the tokens carry `aud=personal-agent-api`.
 | `401` immediately after a successful login | `aud` ≠ `personal-agent-api` (token audienced only to the public client) | add the audience mapper / request the API audience, or set `PERSONAL_AGENT__OIDC__AUDIENCE` to your provider's value |
 | `401` invalid issuer | `iss` ≠ `PERSONAL_AGENT__OIDC__ISSUER` | match the issuer exactly (scheme/host/realm path) |
 | `401` signature / key errors | algorithm ≠ RS256, or JWKS unreachable/HTTP | use RS256; ensure `{issuer}/.well-known/openid-configuration` and its `jwks_uri` resolve over HTTPS |
-| `403` "organization is not granted by the token" | `X-Personal-Agent-Org` value not in the token's `organization` claim | add the user to that org / emit the claim, or run single-tenant (no header) |
+| `403` "requested organization is not granted by the token" | `X-Personal-Agent-Org` value not in the token's `organization` claim | add the user to that org / emit the claim, or run single-tenant (no header) |
 | Logged in but no admin features | `admin` missing from `realm_access.roles` / `resource_access.personal-agent-api.roles` | grant the `admin` realm role |
 | `Invalid parameter: redirect_uri` | the exact redirect URI isn't registered | register it verbatim (no mid-host wildcards) |
 | Group sharing doesn't pick up membership | no `groups` claim (full paths) | add the group-membership mapper |

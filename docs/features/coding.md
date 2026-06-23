@@ -7,13 +7,13 @@ in an editor and terminal right beside the conversation.
 ## Coding mode
 
 Pick **Coding** from the chat-mode switcher (or when starting a new chat). The layout gains
-a workspace on the right (desktop) or **Editor** / **Terminal** tabs in the bottom nav
-(mobile):
+a **Workspace** region beside the conversation - on the right on desktop, or a **Workspace**
+tab in the bottom nav on mobile. The Workspace combines:
 
 - a **Monaco editor** — the same editor that powers VS Code — with a file tree, syntax
   highlighting, and code intelligence (LSP navigation, diagnostics and formatters);
 - a real **terminal** showing the commands the agent runs, live;
-- **save** straight from the editor, with a badge when there are uncommitted changes.
+- **save** straight from the editor (Ctrl/⌘+S), with a dot on any file that has unsaved edits.
 
 The agent's file edits show up in the conversation as **diffs**, and you can **revert** an
 answer's changes (and rewind the chat to before it) from the message actions — see
@@ -59,7 +59,9 @@ For work you'd rather not babysit, **Cloud Tasks** (in the account menu) runs an
 result.
 
 1. **Start a task** — give it a **title**, a **prompt** ("what should the agent do?"), a
-   **repository** and a **base branch**.
+   **repository** (`owner/repo` or a GitHub URL) and a **base branch** (defaults to `main`).
+   You need your [GitHub integration](integrations.md) connected first, since a task clones
+   from and pushes to your repo.
 2. It runs in the background; the status moves through **Starting → Running → Ready to
    review** (or **Failed**).
 3. When it's ready, open it to read the agent's **summary** and **view the diff**.

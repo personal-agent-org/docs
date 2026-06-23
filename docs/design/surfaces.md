@@ -1,6 +1,14 @@
-# Surfaces — dynamically-definable chat modes & dashboards (design)
+# Surfaces - dynamically-definable chat modes & dashboards (design)
 
-Status: **DRAFT / concept** (2026-06-20). Co-designed; decisions in §10 are still open.
+Status: **SHIPPED** (built 2026-06-20). The Surface system is live: model + repo + routers
+(`surfaces`, `admin_surfaces`), `agent/surface_resolver.py`, the builtin seed
+(`db/seed/surface_seed.py`), and the frontend (`SurfaceLayout`, `surface-view-registry.ts`,
+`lib/surfaces/strategy.ts`, the editor). `standard` + `coding` ship as seeded builtin Surfaces; the
+`chat_modes` table was dropped (`chats.mode` now resolves to a Surface). Two design points did NOT
+ship as written: the Dashboard fold (§1, decision 3) was **not** done - `Dashboard` is still a
+separate table/model/router; and sub-agent gating (decision 9) became `DelegatableAgent.requires_surface`
+(a slug) + `required_tools` (capability keys), not a pure `capabilities` match. This doc keeps the
+original design narrative below; concrete divergences are noted inline.
 
 ## Goal
 
@@ -46,7 +54,7 @@ This unifies three things that are separate today into **one** concept:
 | today | becomes |
 |---|---|
 | hardcoded `"standard"` mode | a seeded **builtin Surface** = one `chat` view |
-| hardcoded `"coding"` mode | a seeded **builtin Surface** = `chat` + `editor` + `terminal` views, `needs_workspace` |
+| hardcoded `"coding"` mode | a seeded **builtin Surface** = `chat` + `workspace` views, `needs_workspace` (shipped as ONE combined `workspace` view, not separate `editor`+`terminal`) |
 | dynamic `ChatMode` (cards side-panel) | a user **Surface** = `chat` + `cards` view |
 | a standalone `Dashboard` | a **Surface with no `chat` view** |
 
@@ -94,11 +102,14 @@ class Surface(UUIDPKMixin, TimestampMixin, Base):           # metadata layer
     config: JSONB        # the Lovelace-style blob (the heavy layer) — see §2
 ```
 
-- **`ChatMode` is replaced by `Surface`** (migrate each → a Surface with `[chat, cards]`).
+- **`ChatMode` is replaced by `Surface`** (the `chat_modes` table was dropped). **Shipped.**
 - **`Dashboard` is replaced by `Surface`** with `kind="dashboard"` (its `config` already *is* a
-  Lovelace `{views}` blob — drop-in). Standalone dashboard pages render a chatless Surface.
-- **`chats.mode`** becomes a `surface_id` (FK) — or keeps the string but resolves to a Surface slug.
-  `"standard"`/`"coding"` are seeded builtin Surfaces.
+  Lovelace `{views}` blob - drop-in). Standalone dashboard pages render a chatless Surface.
+  **NOT shipped:** `Dashboard` remains its own table/model/router (`db/models/dashboard.py`,
+  `api/routers/dashboards.py`); the fold (decision 3 / rollout §9.6) was deferred.
+- **`chats.mode`** keeps the string and resolves to a Surface (`surface_resolver.resolve_chat_surface`:
+  `None`/`"standard"` → standard builtin, `"coding"` → coding builtin, else a slug/uuid).
+  `"standard"`/`"coding"` are seeded builtin Surfaces. **Shipped.**
 
 ## 2. Config schema (Lovelace-compatible)
 
@@ -188,7 +199,7 @@ Every hardcoded coding branch is re-pointed at the Surface definition (same mach
 | `mode=="coding"` → implicit workspace device, jailed FS | Surface has an `editor`/`terminal` view ⇒ `needs_workspace` |
 | `CODING_BEHAVIOR` injected | `chat.agent.instructions` (coding Surface seeds it) |
 | auto-model coding boost | `chat.agent.model_tags` |
-| `DelegatableAgent.requires_mode=="coding"` | match against the Surface's `agent.capabilities` keys |
+| `DelegatableAgent.requires_mode=="coding"` | `DelegatableAgent.requires_surface` (a slug) + `required_tools` (capability keys); the worker checks both |
 | `chat_workspace_id/path` gated on `"coding"` | gated on `needs_workspace` |
 | HOME file search only in standard | gated on absence of a workspace |
 | git shadow snapshot (run reversion) | implied by `needs_workspace` (any workspace surface gets it) |
@@ -220,6 +231,13 @@ Mirror HA's `LovelaceCard` contract so every view/card is uniform + pluggable:
 `needs_workspace`, optional `mobileTab`). `custom:`-prefixed types resolve from a registry → enables
 **plugin cards/views/strategies** later (HA's `resources` collection; defer to a later increment).
 
+!!! note "Shipped extension: integration-contributed Surfaces"
+    Beyond user/global Surfaces, an integration can declare `surfaces()` (a `SurfaceDescriptor`
+    map). `integrations/contrib.py:_project_surfaces` upserts these as Surface rows tagged with
+    `source_domain=<domain>`; they are read-only (re-projected on reconfigure) and their lifecycle
+    follows the config entry, mirroring integration-contributed agents. The `Surface.source_domain`
+    column backs this.
+
 ## 9. Incremental rollout (coding stays working throughout)
 
 1. **`Surface` model + repo + router (user/admin)** per the DelegatableAgent pattern; store + Settings
@@ -235,8 +253,9 @@ Mirror HA's `LovelaceCard` contract so every view/card is uniform + pluggable:
    from the Surface).
 5. **Migrate `ChatMode` → Surface**; replace `DashboardModePanel` with the `cards` view.
 6. **Fold `Dashboard` → Surface** (`kind="dashboard"`); standalone dashboard pages render a chatless
-   Surface. (The clean-break step.)
-7. **Strategies** (§5) + **plugin resources** (§8) as follow-ups.
+   Surface. (The clean-break step.) **NOT done:** `Dashboard` is still its own table/router.
+7. **Strategies** (§5) + **plugin resources** (§8) as follow-ups. (Strategy plumbing shipped as a
+   passthrough in `lib/surfaces/strategy.ts`; the agent-strategy generator is still a follow-up.)
 
 ## 10. Decisions
 
@@ -244,17 +263,23 @@ Mirror HA's `LovelaceCard` contract so every view/card is uniform + pluggable:
 1. ✅ **Region = View** (HA-native: views → desktop split / mobile tabs).
 2. ✅ **chat/editor/terminal = new VIEW types** (full stateful panels; cards stay data widgets).
 3. ✅ **Fold fully**: Dashboard + ChatMode + coding → ONE `Surface`. Standalone dashboards = chatless
-   Surfaces. (Biggest step — sequenced last in rollout to keep things shippable.)
+   Surfaces. (Biggest step - sequenced last in rollout to keep things shippable.) *As shipped: ChatMode
+   and coding folded in; the standalone `Dashboard` table/router was NOT folded - still separate.*
 4. ✅ **Strategies plumbing now**, the agent-strategy (LLM builds the layout) as a fast follow.
+   *(Plumbing shipped passthrough; agent-strategy not yet built.)*
 5. ✅ **No id-branching**: `"coding"` is a seeded Surface row like any other; all behavior derives
-   from declared views / agent overlay / capabilities. No `if surface.slug == …` anywhere.
+   from declared views / agent overlay / capabilities. No `if surface.slug == …` anywhere. *Shipped:
+   the resolver still special-cases the strings `"standard"`/`"coding"` only to map them to builtin
+   slugs, not to branch behavior.*
 
 **Defaults (proceed unless objected):**
-6. **Scope** = user + global like `DelegatableAgent` (+ org/group).
+6. **Scope** = user + global like `DelegatableAgent` (+ org/group). *Shipped (scope global/user, RLS).*
 7. **Storage** = extend the existing `dashboards` table into `surfaces` (+ migrate `ChatMode`).
-8. **Workspace** stays per-chat (`run_config`); the Surface only declares `needs_workspace`.
+   *As shipped: `surfaces` is a NEW table (`surfaces_01`); `dashboards` was left in place, not extended.*
+8. **Workspace** stays per-chat (`run_config`); the Surface only declares `needs_workspace`. *Shipped.*
 9. **Sub-agent gating** switches `DelegatableAgent.requires_mode` (string) → match Surface
-   `agent.capabilities` keys.
+   `agent.capabilities` keys. *As shipped: it became `DelegatableAgent.requires_surface` (a slug) +
+   `required_tools` (capability keys); the worker checks both.*
 
 **Still open:**
 10. **Custom plugin cards/views/strategies (HA `resources`)** — in scope eventually, or never

@@ -67,7 +67,7 @@ regress behaviour:
   call sites use genuinely different formats, not duplicates.
 - **`v-html` / markdown** — all bindings go through `renderMarkdown` (DOMPurify, `html:false`, KaTeX
   `trust:false`, DoS guards) or hljs-escaped output. No XSS surface.
-- **i18n parity** — `de-DE` and `en-US` verified equal (2102 leaf keys each, 0 missing either way).
+- **i18n parity** - `de-DE` and `en-US` verified equal (2129 leaf keys each, 0 missing either way).
 - **`useAsyncResource`** — not worth adding: with `Notify` it would double-toast (see above); as a
   loading-only wrapper it saves ~3 lines per store across ~6 stores that can't be smoke-tested.
 

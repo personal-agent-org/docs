@@ -17,7 +17,7 @@ sortable, paginated table (25 rows per page).
 
 | Column | Field | Notes |
 | --- | --- | --- |
-| `Email` | `email` | Shown with a two-letter avatar derived from the email (or `sub`). Falls back to `—` if absent. |
+| `Email` | `email` | Shown with a two-letter avatar derived from the email (or `sub`, falling back to `A`). The email text falls back to `-` if absent. |
 | `Name` | `display_name` | The user's display name, or `—` if not set. |
 | `Subject` | `sub` | The stable Keycloak subject id — the identity key for every user-scoped record. |
 | `Joined` | `created_at` | The date (YYYY-MM-DD) the user row was first provisioned. Sortable. |
@@ -67,5 +67,6 @@ The roster intentionally does **not** display a role column or any role/enable
 
 - Per-user token and cost usage is in the admin console's usage/overview pages
   (`GET /admin/usage`), keyed by the same `sub`.
-- Organization-level governance (minimum model trust tier) is configured on the
-  Groups/organization pages, not here.
+- Organization-level governance (the minimum model trust tier every chat in an
+  org inherits) is configured on the **Providers** admin page via
+  `PATCH /admin/orgs/{org_id}/governance`, not here.

@@ -3,10 +3,20 @@
 Comparison of the Rust terminal client (`personal-agent-org/tui`) against the Quasar/Vue web app
 (`personal-agent-org/frontend`), plus a prioritised roadmap to close the gaps. Snapshot: 2026-06-15.
 
-> **Update 2026-06-15 (commit b1c1bc2):** P1 partially shipped — TUI now has a security-mode
+> **Update 2026-06-15 (commit b1c1bc2):** P1 partially shipped - TUI now has a security-mode
 > picker (F7 / `/security`) and the `/main`, `/rename`, `/summarize`, `/proofread` commands.
 > `/edit` was dropped (awkward in a TUI); the context/budget chip is deferred (needs
 > model-context-window plumbing the TUI doesn't track yet).
+
+> **Update 2026-06-23:** most of P1-P2 has since shipped (verified against
+> `personal-agent-org/tui`). The TUI now has: the **context/budget telemetry strip** (model
+> + context fill % + cumulative tokens + cost + run timer, from `GET /chats/{id}/context`);
+> the **integrations picker** (F8 / `/integrations`, per-chat `disabled_tools` deny-list);
+> the **memory-access picker** (F9 / `/memory`, `run_config.memory_access`); **`/steer`**
+> mid-run course-correction; full **↑/↓ input history**; and **markdown rendering** of message
+> bodies (`tui-markdown`). The tables below are kept as the 2026-06-15 record; deltas are noted
+> inline. Still open: `/goal`, collaboration/classification pickers, inbox extras, the
+> standalone pages, a settings view, voice, and org switching (still `--org`-at-login only).
 
 Legend: ✅ present · ⚠️ partial · ❌ missing
 
@@ -22,8 +32,10 @@ Legend: ✅ present · ⚠️ partial · ❌ missing
 | `/btw` side question (ephemeral) | ✅ | ✅ |
 | Edit a user message | ✅ | ❌ |
 | Rewind / fork (branch from a message) | ✅ | ❌ |
-| Attachments (max 6) | ✅ | ✅ |
-| Input history (↑/↓) | ⚠️ | ✅ |
+| Attachments (max 6) | ✅ | ✅ (Ctrl+O) |
+| Input history (↑/↓) | ✅ | ✅ |
+| Mid-run steer (`/steer`, inject at tool boundary) | ✅ | ✅ |
+| Markdown rendering of bodies | ✅ | ✅ |
 
 ## Model & run controls
 | Feature | Web | TUI |
@@ -34,14 +46,14 @@ Legend: ✅ present · ⚠️ partial · ❌ missing
 | Security mode (autonomous/approve_each/judge) | ✅ | ✅ (F7 / `/security`) |
 | Collaboration mode (plan/execute/pair) | ✅ | ❌ |
 | Data classification (confidential) | ✅ | ❌ |
-| Memory-access policy (scoped) | ✅ | ❌ |
-| Per-run integrations / tool selection | ✅ | ❌ (built-ins only, global) |
+| Memory-access policy (full/none/scoped) | ✅ | ✅ (F9 / `/memory`) |
+| Per-run integrations / tool selection | ✅ | ✅ (F8 / `/integrations`, `disabled_tools` deny-list) |
 
 ## Slash commands
 - Web: `/new /rename /btw /goal /main /summarize /proofread` + coding (`/terminal /review /explain /fix /tests /init`)
-- TUI: `/new /btw /retry /model /think /tools /attach /agents /inbox /logout /help`
-- Custom commands (from `GET /commands`): ✅ both
-- Missing in TUI: `/goal`, coding prompts (`/main /rename /summarize /proofread` now present)
+- TUI: `/btw /retry /steer /model /think /tools /integrations /memory /security /attach /agents /new /main /rename /summarize /proofread /inbox /logout /help` (`/int` aliases `/integrations`)
+- Custom commands (from `GET /commands`, mode-filtered): ✅ both
+- Missing in TUI: `/goal`, coding prompts (`/review /explain /fix /tests /init`)
 
 ## Coding mode
 | Feature | Web | TUI |
@@ -80,15 +92,16 @@ Skills, Tasks, Dashboards, Workflows. TUI surfaces only Chat + Sessions + Inbox 
 | Adopt accent colour (`ui.accent`) | ✅ (source) | ✅ (reads it) |
 | Settings UI (profile/appearance/behavior/devices/MCP tokens/usage/budget) | ✅ | ❌ (CLI flags / config only) |
 | Voice (STT / TTS) | ✅ | ❌ |
-| Context / budget gauges | ✅ | ❌ |
-| Org switching | ✅ | ❌ (decoded, not surfaced) |
+| Context / budget gauges | ✅ | ✅ (status-bar strip, `GET /chats/{id}/context`) |
+| Org switching | ✅ | ⚠️ (pinned via `--org` at login; no in-app switch) |
 
 ## Summary
 The TUI has a solid chat foundation at genuine parity: streaming, model/reasoning,
-follow-ups, `/btw`, sub-agents, **HITL (approvals + question cards)**, inbox basics, coding
-shell with diffs; shares auth/realtime/accent. The gaps are run-governance, voice, the coding
-editor, message lifecycle (edit/rewind/fork), inbox extras, the standalone pages, `/goal`, and
-a settings UI.
+follow-ups + `/steer`, `/btw`, sub-agents, **HITL (approvals + question cards)**, inbox basics,
+coding shell with diffs, the **integrations + memory-access pickers**, security mode, the
+context/budget telemetry strip, and markdown rendering; shares auth/realtime/accent. The
+remaining gaps are voice, the coding editor, message lifecycle (edit/rewind/fork), inbox
+extras, the standalone pages, `/goal`, collaboration/classification pickers, and a settings UI.
 
 ---
 
@@ -104,17 +117,20 @@ Ordered by value-to-effort for a terminal user. Each item notes the backend it a
    `/retry` covers regeneration.
 3. ~~**Missing global slash commands**~~ — DONE (b1c1bc2): `/main [msg]`, `/rename <t>`,
    `/summarize`, `/proofread`.
-4. **Context / budget chip** — DEFERRED: needs the model context window + cumulative history
-   tokens, which the TUI doesn't track (the `chat_run` WS frame carries no context tokens).
-   Plumb `context_tokens`/`threshold_tokens` onto the run/WS event first, then add the chip.
+4. ~~**Context / budget chip**~~ - DONE (2026-06-23): a status-bar telemetry strip shows the
+   model + context fill % (colour-banded vs the model window, `⟲` when compacted) + cumulative
+   session tokens + cost + the active run's elapsed timer, seeded from `GET /chats/{id}/context`
+   and refreshed after each run.
 
 ### P2 — moderate (governance + tools)
-5. **Per-run integrations / tool selection** — let the user toggle integrations/devices for a
-   run (`integration_entries`/`devices` in the run body). Needs a picker popup like the model one.
-6. **Memory-access + collaboration + classification pickers** — same pattern as security mode;
-   group them under one "run settings" popup to avoid F-key sprawl.
-7. **`/goal` autonomous-goal mode** — start a goal loop in a session chat (`chat.startGoal`
-   equivalent endpoint); render goal turns. Higher value for unattended terminal use.
+5. ~~**Per-run integrations / tool selection**~~ - DONE (2026-06-23): F8 / `/integrations`
+   opens the per-chat tool catalogue (`GET /chats/{id}/integrations-catalog`); `Space` toggles
+   a tool or a whole group, persisted as the chat's `disabled_tools` deny-list (`PATCH /chats/{id}`).
+6. **Memory-access + collaboration + classification pickers** - PARTIAL: the memory-access
+   picker shipped (F9 / `/memory`, `run_config.memory_access`); collaboration mode and data
+   classification are still missing.
+7. **`/goal` autonomous-goal mode** - start a goal loop in a session chat (`chat.startGoal`
+   equivalent endpoint); render goal turns. Higher value for unattended terminal use. Still open.
 
 ### P3 — larger surfaces
 8. **Inbox extras** — star/snooze/bulk/reply-all/forward (endpoints exist from the upstream
@@ -131,6 +147,8 @@ Ordered by value-to-effort for a terminal user. Each item notes the backend it a
 13. **Workspace snapshot/revert**, Dashboards, Knowledge/Contacts/Calendar/Workflows — port
     only if a concrete terminal use-case emerges.
 
-Suggested first slice: **P1 (1–4)** — small, all backend-ready, and they remove the most
-friction for a terminal-first user.
+P1 (1-4) is done; the per-run integrations picker (P2.5) and memory-access picker (part of
+P2.6) have also shipped. The next high-value slice is **`/goal`** (P2.7) for unattended
+terminal use, then the remaining run-settings pickers (collaboration/classification) and
+inbox extras (P3.8).
 </content>

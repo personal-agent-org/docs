@@ -7,7 +7,7 @@ assistant proposes new ones for you to confirm, and how to inspect, time-travel,
 and erase what it knows.
 
 Memory and live integration data share **one graph** of entities and facts, surfaced on
-the **Knowledge** page (in the account menu). This page is about the *governance and
+the **Memory** page (in the account menu). This page is about the *governance and
 time-travel* side. For browsing that graph, creating your own entities (helpers), and
 organizing areas, floors and devices, see [Entities](entities.md).
 
@@ -69,7 +69,7 @@ return unconfirmed proposals to the agent, and they respect the chat's
 
 ## Proposals: Keep or Discard
 
-Proposals the curator wants you to confirm appear at the top of the **Knowledge** page
+Proposals the curator wants you to confirm appear at the top of the **Memory** page
 under **Proposals to confirm**. Each row shows the proposed fact, its source, type and
 confidence, with two actions:
 

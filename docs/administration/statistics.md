@@ -8,7 +8,9 @@ user only.
 
 All figures are read from the billing-grade `usage_records` table (tokens and cost)
 and the `runs` table (run counts, success/failure), so they match what the cost and
-budget subsystems charge against.
+budget subsystems charge against. The page is served by the admin-only
+`/admin/usage*` endpoints (gated on the `ADMIN` role) and is reachable only from the
+admin console.
 
 ## Time range
 
@@ -27,14 +29,14 @@ A row of summary tiles covers the selected window:
 | --- | --- |
 | `Tokens` | Total input + output tokens (abbreviated, e.g. `1.2M`) |
 | `Cost` | Total spend in USD |
-| `Runs` | Distinct runs; sub-label shows the run **success rate** (`% OK`) |
+| `Runs` | Distinct runs (counted from `usage_records`); sub-label shows the run **success rate** (`% OK`, derived from the `runs` table) |
 | `Active users` | Distinct users with activity in the window |
 | `Avg cost/run` | Cost divided by runs |
 | `Cache hits` | Cache-read tokens; sub-label shows the **cache hit rate** |
-| `Failed` | Failed runs (`runs.status == failed`) |
+| `Failed` | Failed runs (`runs.status == "failed"`) in the window |
 | `Avg tokens/run` | Total tokens / runs |
-| `Tool calls` | Total tool calls; sub-label `Ø n/Run` |
-| `Tool failures` | Failed tool calls; sub-label shows the failure percentage |
+| `Tool calls` | Total tool calls (transcript `tool-call` parts + sub-agent counters); sub-label `Ø n/Run` |
+| `Tool failures` | Failed tool calls (`retry-prompt` parts that name a tool); sub-label shows the failure percentage |
 | `Chats` | Platform total chats (**not** windowed); sub-label `Ø n/user` |
 
 !!! note
@@ -46,9 +48,9 @@ A row of summary tiles covers the selected window:
 - **Active users & runs per day** — a combined chart: successful vs. failed `Runs`
   as stacked bars, with `Active users` overlaid as a line on a second axis.
 - **Tokens / cost per day (by model)** — stacked bar charts broken down per model;
-  the heaviest models are stacked and the remainder folds into an `Other` series.
+  the six heaviest models are stacked and the remainder folds into an `Other` series.
 - **Tokens by model** — a doughnut of each model's share of total tokens over the
-  range.
+  range (all models, not just the stacked top six).
 - **Cache per day** — cache-read (`Cache hits`) vs. cache-write tokens per bucket,
   with the overall hit rate in the header. Shows a hint when no prompt caching
   occurred in the range.

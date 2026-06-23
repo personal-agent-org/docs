@@ -58,7 +58,8 @@ covers:
 - **Conditions** — show a card, section or badge only when a condition holds: an entity
   **state**, a **numeric** range, the **screen** size (so a board adapts to phone vs
   desktop), the **time**, or a combination with **and / or / not**.
-- **Per-card layout** — width, height and aspect ratio, in a simple or precise grid mode.
+- **Per-card layout** - each card's width and height in grid units, with an optional
+  **precise mode** for setting minimum and maximum column/row bounds.
 - **Tap and hold actions** — what a card does when tapped: toggle, navigate, open a URL,
   perform an action, show more-info, or nothing — optionally behind a confirmation.
 - **Visual or YAML** — edit any card either through its form or as YAML, and edit the whole
@@ -69,10 +70,10 @@ covers:
 There's a broad card set. The main families:
 
 - **Read-outs** — entity, entities list, glance, sensor, gauge, statistic, history,
-  statistics graph, logbook, calendar, agenda, weather forecast, map, clock/date-time,
+  statistics graph, logbook, calendar, agenda, weather forecast, map, clock, plant status,
   markdown (which also renders Mermaid diagrams), picture and iframe.
-- **Controls** — tile, toggle, button, light, thermostat, humidifier, select, number,
-  counter, scene, media control, alarm panel and to-do list.
+- **Controls** - tile, toggle, button, light, thermostat, humidifier, select, number, text,
+  counter, date/time, scene, media control, alarm panel and to-do list.
 - **Pictures & registry** — picture-elements and picture-glance (interactive overlays on
   an image), picture-entity, plus area and device cards.
 - **Layout & logic** — grid, horizontal/vertical stacks, heading, conditional, entity-
@@ -95,6 +96,7 @@ restores them all at once — a one-click "movie night" or "leaving home".
 ## Logbook
 
 The **Logbook** (in the account menu) is a reverse-chronological feed of recent **entity
-state changes** — what changed, from which state to which, and when. Filter it by
-integration to focus on a single domain. It's the quickest way to answer "what just
-happened?" across your connected things.
+state changes**: what changed, from which state to which, and when. Filter it by
+**domain** to focus on a single kind of entity. It's the quickest way to answer "what just
+happened?" across your connected things. A second **Activity** tab logs the assistant's own
+tool calls (which tool ran, by which agent, and whether it succeeded).

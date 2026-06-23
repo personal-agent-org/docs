@@ -11,7 +11,7 @@ Postgres+pgvector, Redis, Kubernetes/Compose.
 | --- | --- |
 | **backend** | `personal-agent-org/backend`, `src/personal_agent/` (FastAPI server + pydantic-ai runtime; Temporal client; AG-UI over Redis Streams → SSE, WebSocket control). |
 | **worker** | `personal-agent-org/backend`, `src/personal_agent/worker/` (Temporal worker subpackage: durable runs, the per-chat memory **Curator**, scheduled maintenance). |
-| **frontend** | `personal-agent-org/frontend` (Quasar (Vue 3) SPA + PWA at the repo root). |
+| **frontend** | `personal-agent-org/frontend` (Quasar (Vue 3) SPA at the repo root). |
 | **keycloak** | `personal-agent-org/deploy`, `keycloak/` (OIDC auth, realm-as-code). |
 | **Postgres + pgvector** | Primary store + vector search. |
 | **Redis** | AG-UI token stream, control/presence pub/sub, rate limits. |
@@ -20,8 +20,9 @@ Postgres+pgvector, Redis, Kubernetes/Compose.
 | **tui** | `personal-agent-org/tui` (Rust terminal client over the same HTTP/SSE API). |
 | **browser-sandbox** | `personal-agent-org/browser-sandbox` (Playwright cloud browser `browser` device). The Chrome/Firefox extension (the other `browser` device) is a separate repo, `personal-agent-org/browser-extension`. |
 
-Shared **contracts** (identity, run spec, bus, control, usage, world memory,
-errors, keys) live in the backend repo at `src/personal_agent/contracts/`.
+Shared **contracts** (identity, run spec, bus record, AG-UI events, control
+frames, usage, world memory, device, workflow triggers, errors, keys) live in the
+backend repo at `src/personal_agent/contracts/`.
 
 ## Two run paths, one envelope
 
@@ -34,7 +35,7 @@ AG-UI events onto a per-run Redis Stream, which `sse_stream` relays to the clien
 
 ```mermaid
 flowchart LR
-    U[Client] -->|POST /runs| R[_launch_run<br/>builds RunSpec]
+    U[Client] -->|POST /chats/id/runs| R[_launch_run<br/>builds RunSpec]
     R -->|inline| I[FastAPI background task]
     R -->|durable| W[Temporal ChatAgentWorkflow]
     I -->|AG-UI events| S[(Redis Stream<br/>per run)]
@@ -47,29 +48,43 @@ flowchart LR
 Lives across `agent/model_pipeline.py`, `agent/auto_model.py`, `agent/governance.py`
 and `agent/resolver.py`:
 
-- `cfg["model"] == "auto"` → `pick_auto_model` (tag-ranked among
-  governance-compatible enabled models).
+- `cfg["model"] == "auto"` → `pick_auto_model`: keep the enabled models whose
+  provider **trust tier** satisfies the chat (`chat_routing_tier`: data
+  classification + org floor, raised to cover the tier the enabled integrations
+  require), then rank the survivors by category tags (`frontier` / `coding` /
+  `reasoning` / `vision` / `fast` / `cheap`), the admin quality nudge, locality and
+  price.
 - An explicit `provider:model` → `resolver.build_byok` with the admin platform key.
 - `enforce_classification(...)` is the **single** fail-closed gate, applied inline,
   in the durable router and in workflows/comms.
 - The fallback chain is a `FallbackModel` built from `ranked_compatible_labels`,
   preferring **provider-diverse** fallbacks.
 
-## Toolset assembly + tag gating
+## Toolset assembly + trust-tier gating
 
 `ToolsetAssembler.assemble()` snapshots the run's tools at run start. After the
-model resolves, its `provider_tags` drive a BLOCK-mode tag gate over integrations /
-MCP / first-party tools, plus the untrusted-content high-privilege gate. Ambient
+model resolves, its provider's **trust tier** (`0=unregulated < 1=regulated <
+2=internal`) gates every integration / MCP server / first-party tool: a resource
+whose `required_tier` exceeds the run's tier is dropped (dropped integrations and
+MCP servers are surfaced as `tag_gated_domains` / `tag_gated_mcp_servers`). On top
+of that runs the untrusted-content high-privilege gate (`apply_untrusted_gate`),
+which uses pydantic-ai's `filtered` view to strip high-privilege first-party tools
+whenever any untrusted (external MCP / OpenAPI) integration is in the run. Ambient
 **capability providers** (`web_search` / `web_fetch` / `weather`) are resolved from
 **all** the user's enabled integrations, independent of the per-chat integration
 toolset selection.
+
+!!! note
+    Trust tier is the single ordinal governance axis; the older provider/residency
+    *tag* gate was removed. Category tags (`frontier` / `coding` / ...) survive only
+    as a routing/ranking hint for Auto model selection.
 
 ## Sub-agents
 
 `explore` (read-only) / `delegate` (inherits tools) / `run_agents_script` spawn
 nested pydantic-ai runs, each with its **own** `run_id` + `Run` row
-(`runs.parent_run_id`) and independent usage. A worker is gated by **its** model's
-provider tags, not the parent's.
+(`runs.parent_run_id`) and independent usage. A worker's inherited toolset is
+tier-gated by **its** model provider's trust tier, not the parent's.
 
 ## Repository layout
 

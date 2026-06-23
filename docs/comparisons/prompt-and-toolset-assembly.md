@@ -73,8 +73,10 @@ Schlüsselideen:
 
 ### 2.2 Personal Agent — ein Layer-Seam, ~20 Schichten (`agent/service.py:_layer_instructions`)
 
-PA baut **pro Run dynamisch** einen einzigen `instructions`-String. Reihenfolge
-(verkürzt, `service.py:983+`):
+PA baut **pro Run dynamisch** die Instructions. `_layer_instructions`
+(`service.py:1045`) liefert heute ein **`(stable, volatile)`-Tupel** (Tier-Split,
+siehe §6/§7); historisch war es ein einziger `instructions`-String. Reihenfolge
+(verkürzt):
 
 1. Basis-Template — `derive_instructions(system_prompt, override)`
    (`agent/factory.py:54`)
@@ -157,11 +159,17 @@ PA baut **pro Run dynamisch** einen einzigen `instructions`-String. Reihenfolge
   wird von pydantic-ai aus der Signatur/Docstring abgeleitet (kein manuelles
   JSON-Dict wie Hermes).
 - **Gating** (`assembler/policy.py`), mehrschichtig — **reicher als Hermes**:
-  - **Tier-Gate** (`apply_tier_gate`): Datenklassifikation, `provider_tier ≥
-    TOOL_REQUIRED_TIER`.
+  - **Tier-Gate** (`apply_tier_gate`): ein First-Party-Tool ist nur verfügbar,
+    wenn `provider_tier ≥ TOOL_REQUIRED_TIER[tool]`. Die Map ist heute **leer**
+    (= Default-Tier 0, jedes Modell) - bewusst gehaltene Seam; Integrationen/MCP
+    werden statt hier an ihrer Quelle per Manifest-`required_tier` getiert.
   - **Untrusted-Content-Gate** (`apply_untrusted_gate`, Frozen Contract #13):
-    wenn untrusted MCP/OpenAPI im Run, fallen `HIGH_PRIVILEGE_TOOLS` (+ Device-
-    `dev_<id>_*`) raus; eine kleine Guard-exempt-Liste bleibt.
+    wenn untrusted MCP/OpenAPI im Run, werden aus jedem *trusted* Toolset die
+    `HIGH_PRIVILEGE_TOOLS` (Memory-Write, send_email/send_message, web_fetch/
+    web_search, shell/delete, die Fan-out-Tools delegate_to/best_of_n/create_plan/
+    run_workflow, control_entity/activate_scene, save_skill/save_workflow,
+    search_files/read_file, phone_*) plus alle Device-`dev_<id>_*`-Tools gefiltert;
+    die untrusted Toolsets selbst bleiben unangetastet.
   - **Tool-Deny-List** aus dem Composer (`cfg["disabled_tools"]` →
     `toolset.filtered()`).
   - **Provider-Tag-Gate** nach Modellauflösung (BLOCK-Mode).
@@ -233,8 +241,10 @@ analog `tools/tool_search.py`, die **First-Party-Core-Tools nie** defert (wie
 - **Muss durch die Governance-Gates** — der Deferral-Katalog ist die *bereits
   gegatete* Slice (Tier/Untrusted/Tag/Deny), niemals der volle Registry-Satz,
   exakt wie Hermes seinen Katalog auf Session-Toolsets beschränkt.
-- Im durable Pfad muss der AG-UI-Stream die Bridge **entpacken** (echter
-  Tool-Name in den Events), analog Hermes' Unwrap (Contract #3 bleibt gewahrt).
+- Echte Tool-Namen in den AG-UI-Events (Contract #3 bleibt gewahrt). *(Umgesetzt
+  ohne Hermes' `tool_call`-Bridge: PA nutzt pydantic-ais `DeferredLoadingToolset`
+  + `ToolSearch`, das die Tools unter ihren echten Namen via `search_tools`
+  freischaltet - kein Wrapper-Tool zum Entpacken; siehe §6.)*
 
 **A4. Deklarative Platform-/Surface-Hints.**
 Hermes' `PLATFORM_HINTS` + `config.yaml`-`append`/`replace` ist ein leichter,
@@ -281,27 +291,27 @@ e2e-/`requires_services`-/`requires_llm`-Tests laufen nur mit lokaler DB/LLM.
 
 | Item | Status | Kernänderung | Tests |
 |------|--------|--------------|-------|
-| **A1** Prompt-Caching | ✅ | `resolver.apply_prompt_cache_settings` in `with_provider_defaults` (geteilte Seam → resolve + override + auto + durable RunSpec). Anthropic: `anthropic_cache_instructions` + `anthropic_cache_tool_definitions`; OpenAI/Google/DeepSeek prefix-cachen automatisch. | `test_model_settings.py` |
+| **A1** Prompt-Caching | ✅ | `resolver.apply_prompt_cache_settings` in `with_provider_defaults` (geteilte Seam → resolve- UND platform-model-override-Pfad, also auto + explizit; greift inline und durable, da durable über `execute_inline_run` resolved). Anthropic: `anthropic_cache_instructions` + `anthropic_cache_tool_definitions`; OpenAI/Google/DeepSeek prefix-cachen automatisch. | `test_model_settings.py` |
 | **A2** Tool-Use-Guidance | ✅ | `run_instructions.tool_use_enforcement(model_label)` — Block für schwächere Caller (GPT/Gemini/Qwen/…), no-op für Claude; im stabilen Cache-Präfix von `_layer_instructions` (getrieben vom RESOLVED Label → folgt Auto). | `test_tool_use_enforcement.py` |
-| **A3** Tool Search | ✅ (inline) | `agent/tool_search.py` über pydantic-ais `DeferredLoadingToolset` + `ToolSearch`-Capability; nur Integrations-/MCP-Toolsets, nur inline-Top-Level (`assembler.tool_search_path`), untrusted-ids auf Wrapper remapped (#13), Capability atomisch via `factory.build(extra_capabilities=…)`. Echte Tool-Namen → AG-UI (#3) unberührt. | `test_tool_search.py` |
+| **A3** Tool Search | ✅ | `agent/tool_search.py` über pydantic-ais `DeferredLoadingToolset` + `ToolSearch`-Capability (kein hand-gebauter `tool_call`-Bridge wie Hermes → das Modell sieht die echten Tool-Namen via `search_tools`). Nur Integrations-/MCP-Toolsets (nicht Sub-Agents); aktiviert nur auf dem `tool_search_path`-Build (`assembler.tool_search_path`, gesetzt in `execute_inline_run` → gilt inline **und** durable, da der durable Chat dieselbe Methode fährt). Untrusted-ids auf die Wrapper remapped (#13). Echte Tool-Namen → AG-UI (#3) unberührt. | `test_tool_search.py` |
 | **A4** Platform-Hints | ✅ | `agent/platform_hints.py` (Domain→Stil + append/replace-Override, fail-safe), in die Comms-Triage-Hülle (`triage_context`) eingehängt; no-op für eigene/unbekannte Domains. | `test_platform_hints.py`, `test_triage_context.py` |
 
-### Follow-ups — ebenfalls umgesetzt
+### Follow-ups
 
 | Follow-up | Status | Kernänderung |
 |-----------|--------|--------------|
 | **A1 / OpenRouter-Caching** | ✅ | `build_byok` baut den `openrouter`-Provider über pydantic-ais dediziertes `OpenRouterModel` (statt generisch `OpenAIChatModel`); `apply_prompt_cache_settings` setzt `openrouter_cache_instructions` + `openrouter_cache_tool_definitions` (an Anthropic/Gemini downstream weitergereicht, no-op sonst). |
 | **A4 / Config-Override** | ✅ | `Settings.platform_hints` (JSON via `PERSONAL_AGENT__PLATFORM_HINTS`, Hermes-Parität); `render_from_raw` faltet die Overrides in `resolve_platform_hint`. |
-| **A3 / durable Worker** | ✅ (opt-in) | Durable Chat-Agent defert die Integrations-/MCP-Toolsets + `ToolSearch` mit **lokaler `keywords`-Strategie** (native Suche ist nicht replay-stabil); hinter `Settings.durable_tool_search` (default **off**, da der Temporal-Pfad hier nicht integrationsgetestet werden kann → Operator schaltet nach Live-Validierung frei). |
+| **A3 / durable Worker** | ⚠ Primitive vorhanden, NICHT verdrahtet | Die Bausteine existieren + sind unit-getestet: `tool_search.build_capabilities(local=True)` (deterministische `keywords`-Strategie für Temporal-Replay statt nativer Suche), `AutoDeferToolset` (zählt die Tools pro Run, replay-safe) und `Settings.durable_tool_search` (default **off**). ABER: der durable Chat läuft über **dieselbe** `execute_inline_run` (`worker/activities.py:run_chat_turn`), die `tool_search_path=True` hartkodiert und die **inline**-Capability (`build_capabilities` ohne `local`) baut; `durable_tool_search` + `AutoDeferToolset` + `local=True` werden derzeit von **keinem** Ausführungspfad konsumiert. |
 | **A3 / Sub-Agents** | ✅ bewusst ausgelassen | Worker sind fokussiert + kurzlebig und laufen schon unter Tool-Constraints (`NoDeferToolset`); Deferral brächte nur Discovery-Round-Trips ohne Nutzen. |
 
-### Abschluss-Runde — alles fertig gebaut
+### Abschluss-Runde
 
 | Item | Status | Kernänderung |
 |------|--------|--------------|
-| **A1 / CachePoint** | ✅ | `agent/prompt_cache.with_cache_point` hängt einen `CachePoint` an den Inline-Prompt → Anthropic/Bedrock/OpenRouter cachen den **Konversations-History-Präfix** über Turns; OpenAI/Google/generisch filtern ihn weg (no-op). Round-trip-sicher über `ModelMessagesTypeAdapter`. |
-| **A1 / Static-Dynamic-Split** | ✅ | `_layer_instructions` liefert `(stable, volatile)`: stabiler Präfix als **statische** (gecachte) Instructions, volatiler Teil (World-State, Kompression, Title/Goal/Tag-Gate, Hook-Output) als **dynamischer** Funktions-Block → echtes **Cross-Turn-Caching**. Gerenderter Text byte-identisch (Test). Inline-Pfad. |
-| **A3 / durable auto** | ✅ (opt-in) | `AutoDeferToolset` zählt pro Run die Tools des dynamischen Integrations-Toolsets (deterministisch → replay-safe) und defert nur über der Schwelle. Hinter `durable_tool_search`. |
+| **A1 / CachePoint** | ✅ | `agent/prompt_cache.with_cache_point` hängt einen `CachePoint` an den Inline-Prompt → Anthropic/Bedrock/OpenRouter cachen den **Konversations-History-Präfix** über Turns; OpenAI/Google/generisch filtern ihn weg (no-op). Round-trip-sicher über `ModelMessagesTypeAdapter`. In `execute_inline_run` (greift inline **und** durable). |
+| **A1 / Static-Dynamic-Split** | ✅ | `_layer_instructions` liefert `(stable, volatile)`: stabiler Präfix als **statische** (gecachte) Instructions, volatiler Teil (World-State, Kompression, Title/Goal/Tag-Gate, Hook-Output) als **dynamischer** Funktions-Block → echtes **Cross-Turn-Caching**. Gerenderter Text byte-identisch (Test). In `execute_inline_run` (greift inline **und** durable). |
+| **A3 / durable auto** | ⚠ gebaut, nicht aktiv | `AutoDeferToolset` zählt pro Run die Tools des dynamischen Integrations-Toolsets (deterministisch → replay-safe) und würde nur über der Schwelle defern. Die Klasse + ihre Tests existieren, aber kein durable Pfad instanziiert sie heute (siehe A3/durable-Worker oben). |
 
 **Generischer OpenAI-kompatibler Anthropic-Proxy:** kein sauberer Weg — pydantic-ais
 OpenAI-Adapter **filtert `CachePoint`** und sendet kein `cache_control`. Nur der dedizierte

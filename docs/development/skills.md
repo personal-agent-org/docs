@@ -104,8 +104,8 @@ agent at `save_skill(...)` so a learned procedure becomes a reusable skill.
 
 **The `use_skill` tool (on demand).** When the current task matches a listed skill, the agent
 calls `use_skill("<name>")`. The toolset (`agent/skill_toolset.py`) looks the skill up
-owner-scoped, marks it used (so the background curator keeps it active), and returns a
-structured `SkillInstructions`:
+owner-scoped, marks it used (`SkillRepo.mark_used`, so the background curator reactivates it),
+and returns a structured `SkillInstructions`:
 
 | Field | Meaning |
 | --- | --- |
@@ -118,6 +118,13 @@ structured `SkillInstructions`:
 The agent then follows `instructions`, loading any referenced resource file with
 `read_skill_file`. The two skill-machinery tools (`use_skill`, `read_skill_file`) always work
 regardless of an active allowlist, so the agent can always load instructions and switch skills.
+
+!!! note "Background lifecycle (authored skills only)"
+    `agent/skill_curator.py:curate_skills` runs periodically and ages **authored** skills by
+    idle time: `active` → `stale` (idle ≥ 30 days) → `archived` (idle ≥ 90 days, which sets
+    `enabled=False`, hiding it from the preamble). Archived skills are never deleted, using one
+    (`mark_used`) reactivates it, and a `meta.pinned` skill is never touched. Imported, catalog
+    and integration skills are not aged.
 
 ### `context: fork` (isolated execution)
 
@@ -149,7 +156,9 @@ names, so an imported skill that lists Claude-Code-style tools still binds:
 | `WebFetch` | `web_fetch` |
 
 A skill with no recognisable allowlist is not restricted; the next `use_skill` replaces the
-active allowlist (and an empty one clears it).
+active allowlist (and an empty one clears it). The skill machinery (`use_skill`,
+`read_skill_file`) plus the guard-exempt chat-internal tools (asking the user, the todo list,
+finishing a goal, …) always pass, regardless of an active allowlist.
 
 ## Bundling skills inside an integration
 
@@ -190,16 +199,16 @@ projection is skipped.
 
 ## How skills reach users
 
-There are three provenances for a skill, tracked in the `source` column:
+There are four provenances for a skill, tracked in the `source` column:
 
 - **`authored`** — created by the user (or by the agent via `save_skill`) in the Skills view.
 - **`imported`** — uploaded as a `SKILL.md` file or skill `.zip` (`POST /skills/import`).
 - **`integration`** — projected from an integration's `skills/` folder (above).
 - **`catalog`** — installed from the admin-curated marketplace.
 
-### The admin catalog → the marketplace
+### The admin catalog (GitHub sources)
 
-The marketplace is not a third-party API: portable skills are distributed as folders in Git
+The catalog is not a third-party API: portable skills are distributed as folders in Git
 repos (today GitHub, e.g. `anthropics/skills`). The admin curates a small allowlist of repos
 under **Admin → Skill catalog**, each stored as a `SkillCatalogSource`
 (`db/models/skill_catalog.py`):
@@ -231,6 +240,26 @@ Users then browse and install across the enabled sources:
 !!! warning "Installed skills are disabled until reviewed"
     A catalog install never auto-enables. The skill (and the tools it's allowed to use) must be
     reviewed and activated by the user before the agent will see or run it.
+
+### The instance marketplace (publish / adopt)
+
+Separate from the GitHub catalog, a user can **publish** one of their own skills to the
+instance-wide marketplace so other users in the same tenant can **adopt** it
+(`api/routers/marketplace.py`). This is orthogonal to the `source` column: any owned skill can
+be published, tracked by the `marketplace_published_at` timestamp on the row:
+
+- **Publish** - `POST /marketplace/skills/{skill_id}/publish?published=true` toggles publish on
+  an owned skill; `published=false` unpublishes it and clears every adoption. An admin can
+  separately **unlist** a published skill (`unlisted_by_admin`) to hide it from browse without
+  the owner unpublishing.
+- **Browse / preview** - `GET /marketplace` (optionally `?item_type=skill`) lists published,
+  non-unlisted items with SAFE fields only; `GET /marketplace/skill/{item_id}` previews one
+  before adopting. Neither ever exposes the raw `instructions`, `resources` or any secret.
+- **Adopt** - `POST /marketplace/adoptions` (and `DELETE` to un-adopt) creates a **live
+  reference**, not a copy. An adopted skill shows up read-only in the adopter's Skills list
+  (`adopted=true`, with the `publisher` label) and runs in the **adopter's** context
+  (their data-classification, integrations, model gating and trust-tier gate apply, never the
+  publisher's).
 
 ## Import / export round-trip
 

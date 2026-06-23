@@ -7,9 +7,10 @@ is **independent** of the others, and each **persists per chat**: change a contr
 it sticks for *this* conversation, so you can keep a fast, autonomous scratch chat and a
 careful, approval-gated work chat side by side without one bleeding into the other.
 
-Most controls have a **Default** option that falls back to your preferences in
-**Settings → Behavior**; set one explicitly here and it overrides the default for this chat
-only.
+Most controls have a **Default** option that falls back to your preferences. The new-chat
+defaults for model, reasoning, mode, and data classification live under
+**Settings → Behavior**; the security-mode and memory-access defaults live under
+**Settings → Profile**. Set one explicitly here and it overrides the default for this chat only.
 
 !!! note
     Message actions (regenerate, edit, …) and the `/` slash-command palette are documented
@@ -29,7 +30,7 @@ composer bar carries the **Integrations** picker — and, in a coding chat, the 
 | Mode (collaboration) | Default / Plan / Execute / Pair | yes | chat |
 | Security mode | Default / Autonomous / Approve each / Judge | yes | chat |
 | Memory access | Default / Full / None / Restricted | yes | chat |
-| Data classification | Standard / Confidential | yes | chat |
+| Data classification | Standard / Internal | yes | chat |
 
 ## Model
 
@@ -65,7 +66,7 @@ not-yet-used provider.
 
 !!! warning
     Fallbacks are always **governance-compatible**: a fallback never routes
-    [Confidential](#data-classification) data to a provider that isn't cleared for it. The
+    [Internal](#data-classification) data to a provider that isn't cleared for it. The
     chain is fail-closed.
 
 ## Reasoning effort
@@ -111,7 +112,7 @@ same guard as everything else.
 
 | Mode | Behaviour |
 | --- | --- |
-| **Default** | Use your default from **Settings → Behavior** (or the platform default) |
+| **Default** | Use your default from **Settings → Profile** (or the platform default) |
 | **Autonomous** | Tools run without asking — fastest, most hands-off |
 | **Approve each** | Every tool call waits for your explicit approval, inline in the chat |
 | **Judge (LLM)** | A safety model classifies each call as allow / approve / deny before it runs |
@@ -160,12 +161,17 @@ Choose the data sensitivity for the chat:
 | Classification | Meaning |
 | --- | --- |
 | **Standard** | Any enabled model may be used |
-| **Confidential** | Only models from a provider cleared for the higher trust tier |
+| **Internal** | Only models from a provider cleared for the internal (on-prem) trust tier |
 
-Confidential is **fail-closed**: there is no path — primary model, `auto` pick, or fallback —
-to a provider that isn't cleared for the data. Raising the classification also narrows the
-model picker to compatible models only. Your organization may set a minimum you can make
-*stricter* but never looser.
+Each classification maps to a minimum model **trust tier**: `standard` requires no tier,
+`internal` requires the top tier (the internal / on-prem tier). The picker filters models by
+their provider's `tier`, so an Internal chat lists only tier-meeting providers (plus `auto`,
+which re-picks compatibly).
+
+Internal is **fail-closed**: there is no path - primary model, `auto` pick, or fallback - to a
+provider that isn't cleared for the data. Your organization may set a governance floor
+(`min_tier`); the chat's effective requirement is the stricter of that floor and its own
+classification, so you can make a chat *stricter* than your org mandates but never looser.
 
 ## How persistence works
 
@@ -176,8 +182,8 @@ are folded into the created chat's configuration so they survive the second turn
 a draft set to *Autonomous*, for example, stays autonomous instead of reverting to your
 default on the next message.
 
-Because each control is independent and stored separately, mixing them is the point: a
-*Confidential, Approve-each, Plan* chat for sensitive work, and a *Standard, Autonomous,
+Because each control is independent and stored separately, mixing them is the point: an
+*Internal, Approve-each, Plan* chat for sensitive work, and a *Standard, Autonomous,
 Execute* chat for quick scratch tasks, both live alongside each other with their own settings
 intact.
 
@@ -203,5 +209,6 @@ In a **coding** chat you also get workspace commands: `/terminal` (toggle the te
 ### Your own commands
 
 Define reusable shortcuts under **Settings → Commands**: give the command a name, a template,
-and an optional description. Use `$ARGUMENTS` in the template to inject whatever you type after
-the command. Your custom commands appear in the same `/` palette alongside the built-ins.
+an optional description, and an optional mode (limit it to **standard** or **coding** chats).
+Use `$ARGUMENTS` (or `{args}`) in the template to inject whatever you type after the command.
+Your custom commands appear in the same `/` palette alongside the built-ins.

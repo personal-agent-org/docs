@@ -2,7 +2,7 @@
 
 Everything the assistant knows about your world — people, places, devices, lights,
 sensors, projects, your own switches and counters — lives as **entities** on the
-**Knowledge** page (in the account menu). This page is the practical, hands-on guide to
+**Memory** page (in the account menu). This page is the practical, hands-on guide to
 working with those entities: creating your own **helpers**, organising entities into
 **areas**, **floors** and **devices**, telling live integration data apart from learned
 memory, and inspecting an entity's history and cause/effect trace.
@@ -17,7 +17,7 @@ memory, see [Memory](memory.md) — this page does not repeat that.
 
 ## Live entities vs. memory nodes
 
-The Knowledge list mixes two things that look alike but come from different places:
+The Memory list mixes two things that look alike but come from different places:
 
 | | Live integration entity | Memory node |
 | --- | --- | --- |
@@ -40,7 +40,7 @@ On the list you can tell them apart by their badges:
   feeds with live state. It opens the full detail page.
 - No badge — a purely-learned memory node.
 
-## What the Knowledge page shows
+## What the Memory page shows
 
 The page is one list (or graph) of everything the assistant knows. The toolbar lets you:
 
@@ -51,15 +51,15 @@ The page is one list (or graph) of everything the assistant knows. The toolbar l
   project, a preference). Nature is a property of the kind, so this filter applies to
   graph nodes only.
 - Switch between **list view** and **graph view**. The graph draws nodes and their
-  relationships and updates as new facts arrive; it shows up to a few hundred nodes, so
-  filter or search to focus it.
+  relationships and updates as new facts arrive; it shows up to 150 nodes (it tells you
+  when it has been capped), so filter or search to focus it.
 
 !!! note
     The kind and nature filters are graph concepts, so applying either hides live-only
     integration entities (which have no kind). Clear them to see the full mixed list.
 
 The `⋮` overflow menu holds the management actions: **New helper**, **Areas**,
-**Devices**, and **Sync now**.
+**Devices**, and **Sync**.
 
 ## Helpers — entities you create
 
@@ -89,7 +89,7 @@ The dialog adapts to the kind:
 - **Device group (optional)** — see [Device groups](#device-groups) below.
 
 !!! note "Helpers don't sync"
-    A helper's state is owned by Personal Agent, not pulled from anywhere, so **Sync now**
+    A helper's state is owned by Personal Agent, not pulled from anywhere, so **Sync**
     never resets it. Its state only changes through its actions (a dashboard control, a
     workflow, or the assistant).
 
@@ -148,7 +148,7 @@ for its detail page. It shows:
   line chart plots the mean per period with a shaded **min–max band**. Toggle the bucket
   between **Hour** (last 7 days) and **Day** (last 90 days). Categorical or empty entities
   show a brief *"no statistics"* note instead. The same graph appears on the live-only
-  entity dialog in the Knowledge panel.
+  entity dialog on the Memory page.
 - **Cause & effect** — a timeline of the events linked to the entity's changes: what run,
   message or sync caused a change and its outcome. This is the quickest way to answer
   *"why did this change?"*.
@@ -169,16 +169,18 @@ for its detail page. It shows:
 
 Many entities are **indexed for semantic search (RAG)** so the assistant can find a
 project, document or issue by *meaning*, not just by exact name. Whether an entity is
-indexed is decided by its type — indexed entities carry a **RAG** marker, and one that is
-still being processed shows **RAG pending**. There is nothing to configure: indexing
-happens automatically as entities sync, and an entity is removed from the search index if
-its type stops being indexable. Helpers and other state-only entities are not indexed.
+indexed is decided by its type, not by you: there is nothing to configure. Indexing
+happens automatically as entities sync (a numeric or state-only entity has nothing
+searchable, so it is not indexed), and an entity is removed from the search index if its
+type stops being indexable. Helpers are never indexed. Indexing only runs when the
+instance has an embedding model configured; with none, semantic recall is simply off.
 
 ## Syncing, archiving and forgetting
 
-- **Sync now** (`⋮ → Sync now`) pulls the latest state from your integrations on demand;
-  with an integration filter active it syncs just that one. Integrations also refresh on
-  their own schedule. Helpers are never reset by a sync.
+- **Sync** (`⋮ → Sync`) pulls the latest state from your integrations on demand; with an
+  integration filter active it syncs just that one, and it reports how many entities were
+  created, updated and removed. Integrations also refresh on their own schedule. Helpers
+  are never reset by a sync.
 - **Archive (automatic)** — when an integration stops reporting an entity, its graph node
   is **archived, not deleted**. Any facts you attached to it survive, and if the
   integration delivers it again the node is automatically reactivated.

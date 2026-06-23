@@ -18,14 +18,15 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
   `duration`/`date`/`time`/`datetime`/`color` + `filter` + `multiple` erweitert; ConfigFlowForm.vue
   rendert sie (entity/device/area mit Async-Optionen, area degradiert bis C3)
 - [x] **B2 (P1)** Reconfigure-Flow: bestehende Integration in-place bearbeiten
-  (`FlowContext.entry_id` + `update_entry` + `POST /integration-configs/{id}/reconfigure` + Frontend
-  „Neu konfigurieren"-Button). Reauth/Options = derselbe Mechanismus (Integration kann
-  `async_step_reauth` definieren, FlowManager dispatcht per hasattr)
-- [x] **B3 (P2)** Reload ohne Restart: `POST /integration-configs/{id}/reload` — clear error state +
+  (`FlowContext.entry_id` + `FlowManager.update_entry` + `POST /config-entries/{entry_id}/reconfigure`
+  + Frontend „Neu konfigurieren"-Button). Reauth/Options = derselbe Mechanismus über eigene Endpoints
+  (`POST /config-entries/{entry_id}/reauth`, `.../options`): die Integration kann `async_step_reauth`
+  bzw. `async_step_options` definieren, sonst Fallback auf den user-Step.
+- [x] **B3 (P2)** Reload ohne Restart: `POST /config-entries/{entry_id}/reload` - clear error state +
   re-sync der Entities (Events feuern). (Vollständige Retry/Backoff-Lifecycle-States = Follow-up;
   in unserer stateless-pro-Run-Architektur ist Reload = Re-Sync.)
-- [x] **B4 (P3)** Quality-Scale (`quality_scale` + `issue_tracker`) im Manifest, in der
-  /integrations-API ausgegeben
+- [x] **B4 (P3)** Quality-Scale (`quality_scale` = `internal`/`experimental`/`beta`/`stable`,
+  Default `experimental` + `issue_tracker`) im Manifest, in der /integrations-API ausgegeben
 - [x] **B5 (P4)** Soft-Dependency-Ordering: `after_dependencies` im Loader-Topo-Sort (lädt
   danach, blockt/dropt aber nie)
 
@@ -50,7 +51,15 @@ einzeln committet; erledigte Punkte werden hier abgehakt.
   feuern `entity.updated` mit `changed`-Feld → Automationen reagieren auf Re-Organisation
 
 ## D. Lovelace-Dashboards & Cards (neue Oberfläche)
-- [x] **D1** `Dashboard`-Modell (config JSONB, RLS, Migration dashboard_01) + CRUD-API + Pinia-Store
+
+> **Hinweis:** Diese Start-Punkte sind inzwischen weit ausgebaut. Das Card-System ist zum
+> vollen HA-Lovelace-Port gewachsen (viele Card-Typen in `card-registry.ts`, View-Typen
+> Sections/Panel/Sidebar, Editoren, Conditions, Badges) und Dashboards + Chat-Modes wurden
+> unter das gemeinsame **Surfaces**-Konzept gefaltet. Die „Follow-up"-Klammern unten sind
+> damit größtenteils erledigt.
+
+- [x] **D1** `Dashboard`-Modell (config JSONB, RLS, Migrationen dashboard_01/dashboard_02) +
+  CRUD-API (`/dashboards` GET/POST/GET/PATCH/DELETE) + Pinia-Store
 - [x] **D2** Card-Registry + 5 Start-Cards (markdown/heading/entities/button/agenda); weitere = Follow-up
 - [x] **D3** Editor: Card-Picker + per-Card JSON-Config + Add/Remove/Save (Grid-Drag = Follow-up)
 - [x] **D4** Responsives Card-Grid + Route `dashboards` + Nav-Eintrag (Multi-View = Follow-up)

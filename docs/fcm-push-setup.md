@@ -3,27 +3,33 @@
 The Android companion app has **two push paths**:
 
 - **WebSocket (default, FOSS).** A foreground `Service` holds a socket on
-  `/api/v1/ws`. Works with no external service — this is the `minimal`
+  `/api/v1/ws`. Works with no external service - this is the `minimal`
   (F-Droid) flavor's only path. The socket sleeps when the screen is off or the
   network is metered, so a backgrounded phone can miss a wake.
 - **FCM (optional, `full`/Play flavor).** Firebase Cloud Messaging wakes the
   phone even when the app is backgrounded and the socket is asleep. Push-worthy
-  frames — including the agent's **device commands** (alarms, timers, speak,
-  navigation) — are mirrored to FCM so they reach the phone reliably.
+  frames - including the agent's **device commands** (`phone_command`: alarms,
+  timers, speak, navigation, and more) - trigger an FCM wake so they reach the
+  phone reliably. The FCM message itself carries no content (see "wake-and-fetch"
+  below); it only nudges the phone to fetch the real frame over its own
+  authenticated channel.
 
 FCM is **off until configured on both sides**: the server needs a Firebase
 service account, and the app's `full` build needs the matching client config.
 Without either, everything degrades cleanly to the WebSocket path.
 
-> The code is already wired end-to-end (`realtime/fcm.py`, the `push_tokens`
-> registry, `PersonalAgentFcmService`). This guide is the **operational setup**.
+> The code is already wired end-to-end: the server sender lives in
+> `realtime/fcm.py` and is fanned out from the single `publish_user_event` funnel
+> (`realtime/bus/user_events.py`); the `push_tokens` table backs the registry; the
+> app's `PersonalAgentFcmService` receives the wake. This guide is the
+> **operational setup**.
 
 ---
 
 ## 1. Create the Firebase project
 
 1. In the [Firebase console](https://console.firebase.google.com/) create a
-   project (or reuse one). FCM uses the **HTTP v1** API — no legacy server key
+   project (or reuse one). FCM uses the **HTTP v1** API - no legacy server key
    needed.
 2. **Project settings → Cloud Messaging:** confirm the *Firebase Cloud
    Messaging API (V1)* is **Enabled**.
@@ -32,7 +38,7 @@ Without either, everything degrades cleanly to the WebSocket path.
    the `applicationId` in `app/build.gradle.kts` in the Android app repo,
    `personal-agent-org/android`).
 
-You do **not** need `google-services.json` — the app initializes Firebase
+You do **not** need `google-services.json` - the app initializes Firebase
 programmatically from four build values (see §3).
 
 ---
@@ -70,7 +76,7 @@ programmatically from four build values (see §3).
 
 3. Restart `backend` + `worker`. On startup each logs
    `fcm_enabled project_id=…`. If the file is missing/unreadable you'll see
-   `fcm_credentials_unreadable` (or nothing) and the sender stays a **no-op** —
+   `fcm_credentials_unreadable` (or nothing) and the sender stays a **no-op** -
    the app keeps working over the WebSocket.
 
 The env var also gates an optional knob, `PERSONAL_AGENT__PUSH__TOKEN_TTL_DAYS`
@@ -118,28 +124,39 @@ default stays **always-on**.
 
 1. **App registers a token.** Sign in on a `full` build. The app POSTs to
    `POST /api/v1/push/tokens` (`push_type:"fcm"`). Confirm with
-   `GET /api/v1/push/tokens` (as that user) — you should see an `fcm` row.
-2. **Server can send.** Trigger a push-worthy event — the simplest is an agent
+   `GET /api/v1/push/tokens` (as that user) - you should see an `fcm` row (the
+   token is returned only as its `last4`, never in full). Tokens deregister via
+   `DELETE /api/v1/push/tokens/{token}`.
+2. **Server can send.** Trigger a push-worthy event - the simplest is an agent
    **device command** (e.g. "weck mich um 7" / set an alarm) with the app
    **backgrounded and the screen off**. The phone should wake and act. Watch the
    backend/worker logs: a failure logs `fcm_send_failed` with the FCM status; a
-   dead token logs `fcm_token_unregistered_dropped` and self-heals on the next
+   dead token (a 404/410 or an `UNREGISTERED` response) logs
+   `fcm_token_unregistered_dropped`, deletes the row, and self-heals on the next
    app launch.
-3. **Quiet hours don't block commands.** Device commands bypass the notify-pref
-   gate (master toggle + quiet hours) — they're functional actuation, not
-   notifications — so a nightly alarm still goes through. Ordinary notifications
-   continue to respect the user's quiet hours.
+3. **Quiet hours don't block commands.** `phone_command` frames bypass the
+   notify-pref gate (master toggle + per-event toggle + quiet hours) - they're
+   functional actuation the user explicitly asked for, not notifications - so a
+   nightly alarm still goes through. Every other push-worthy frame respects the
+   gate (the in-app WebSocket publish is never suppressed, only the FCM wake).
 
 ---
 
 ## Notes & limitations
 
 - **One Firebase project per backend.** The sender is process-global/single
-  project — fine for self-host and single-tenant. Per-org Firebase projects would
+  project - fine for self-host and single-tenant. Per-org Firebase projects would
   need a rethink.
-- **Payload cap.** FCM data messages cap at ~4 KB; oversized frames are skipped
-  for FCM (the WebSocket still delivers them in-app) rather than rejected.
+- **Wake-and-fetch (content stays off Google).** The FCM data message carries
+  only `{type, payload_id}`, never the notification content. The full frame is
+  stashed in Redis under an owner-scoped key (1-hour TTL,
+  `PUSH_PAYLOAD_TTL_SECONDS`); the app fetches it via
+  `GET /api/v1/push/payload/{payload_id}` over its own authenticated connection,
+  so the content never transits FCM/Google. An expired/unknown id is a 404.
+- **Payload cap.** The wake frame is tiny, but the sender still enforces a ~3.8 KB
+  safety cap (`_MAX_DATA_BYTES`): an oversized frame is logged (`fcm_frame_too_large`)
+  and skipped for FCM rather than rejected - the WebSocket still delivers it in-app.
 - **Command acks over FCM.** The agent waits a few seconds for the phone to
   confirm a command. FCM high-priority data messages usually arrive within
   seconds, but under Doze/throttling the agent may report the action as
-  *unconfirmed* (sent, not yet acked) rather than failed — which is accurate.
+  *unconfirmed* (sent, not yet acked) rather than failed - which is accurate.

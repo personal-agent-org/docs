@@ -61,6 +61,7 @@ and the SPA from `personal-agent-org/frontend`. Clone the ones you need.
     uv sync
     uv run alembic upgrade head
     uv run uvicorn personal_agent.main:app --reload --port 9000
+    uv run python -m personal_agent.worker.entrypoint    # Temporal worker
 
     # Frontend (frontend repo):
     git clone https://github.com/personal-agent-org/frontend.git
@@ -110,11 +111,15 @@ uv run pytest -q                           # api/worker/contracts tests
 pnpm test                                  # frontend unit tests (vitest)
 ```
 
-These run per commit via **pre-commit** (`prek`) — ruff, frontend ESLint, file
-hygiene and Conventional Commits. Set up with:
+Per-commit hooks run via **pre-commit** (`prek`): ruff check + format and file
+hygiene in the backend repo, plus a Conventional Commits check on the commit
+message in both repos (pyright, tests and the frontend ESLint/i18n/build run in
+`just check` and CI, not as git hooks). Set up with:
 
 ```bash
-uv tool install prek && prek install
+uv tool install prek
+prek install
+prek install --hook-type commit-msg   # the Conventional Commits check
 ```
 
 !!! note "Tests run from the repo root"

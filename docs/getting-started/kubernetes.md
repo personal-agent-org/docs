@@ -60,11 +60,12 @@ The chart enforces the order via Helm hook weights + initContainer gates:
 1. **`db-migrate`** Job (pre-install/upgrade) — waits for the database, runs
    `alembic upgrade head`.
 2. **`realm-import`** Job — waits for Keycloak, then runs `keycloak-config-cli` to import the
-   `personal-agent` realm (idempotent) from a ConfigMap built from `files/realm-*.json`. It sets
-   `IMPORT_VARSUBSTITUTION_ENABLED=true`, so the realm JSON's `${VAR}` placeholders are substituted
-   from the Job's environment — supply your origins via `jobs.realmImport.realmVars` (`APP_ORIGIN`,
-   `KEYCLOAK_ORIGIN`, `EXTENSION_ID`). See [OIDC provider configuration](oidc.md) for the realm's
-   clients and roles.
+   `personal-agent` realm (idempotent/overwriting) from a ConfigMap built from `files/realm-*.json`.
+   It sets `IMPORT_VARSUBSTITUTION_ENABLED=true`, so the realm JSON's `${VAR}` placeholders are
+   substituted from the Job's environment - supply your values via `jobs.realmImport.realmVars`
+   (`APP_ORIGIN`, `EXTENSION_ID`, `ANDROID_REDIRECT_SCHEME`). The bundled realm ships **no users**;
+   create your own admin in Keycloak after import. See [OIDC provider configuration](oidc.md) for the
+   realm's clients and roles.
 3. **api / worker / frontend** roll out only after the hooks succeed.
 
 !!! note "Frozen Contract #8"
@@ -74,7 +75,9 @@ The chart enforces the order via Helm hook weights + initContainer gates:
 ## Configuration
 
 - `config.*` — all non-secret `PERSONAL_AGENT__*` settings.
-- `externalSecrets.data` — DB DSN, Redis URL, BYOK master key, provider keys.
+- `externalSecrets.data` - DB DSN, Redis URL, BYOK master key, optional Logfire token. Provider/LLM
+  credentials are **not** env secrets; they are admin-managed platform keys, stored
+  envelope-encrypted in the DB and set via the admin UI (the BYOK master key decrypts them).
 - `api.autoscaling.*`, `worker.keda.*`, `gateway.sse.*`, `gateway.tls.*`.
 
 See `charts/personal-agent/values.yaml` (defaults) and `charts/personal-agent/values-prod.yaml`

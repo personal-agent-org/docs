@@ -36,13 +36,16 @@ integrations/<domain>/
   tools.py               # builds the pydantic-ai toolset(s)            (as needed)
   providers.py           # capability-provider backends                (as needed)
   entities.py            # entity sync logic                           (as needed)
-  translations/<lang>.json   # config-flow labels/errors (server-side i18n)
+  translations/<lang>.json     # config-flow labels/errors (server-side i18n)
+  skills/<name>/SKILL.md       # optional bundled skill packages             (as needed)
 ```
 
 Only `manifest.yaml` and `__init__.py` are required. The other modules exist by
-convention — the loader imports `__init__.py` as a synthetic package, so intra-package
+convention - the loader imports `__init__.py` as a synthetic package, so intra-package
 relative imports (`from .tools import build_toolset`) resolve. Split your code however
-you like; the conventional split is `tools.py` / `providers.py` / `entities.py`.
+you like; the conventional split is `tools.py` / `providers.py` / `entities.py`. A
+`skills/<name>/SKILL.md` dir (sibling files become skill resources) is parsed at load
+and projected into the `skills` table when an entry is set up, scoped to the entry.
 
 !!! note "The folder name must equal the `domain`"
     The loader rejects an integration whose `manifest.yaml` `domain` does not match its
@@ -63,7 +66,8 @@ a typo'd key fails loudly at discovery rather than silently dropping config.
 | `single_instance` | `bool` | `true` | `false` allows multiple config entries (e.g. two accounts). |
 | `trust_tier` | `trusted` \| `untrusted` | `trusted` | `untrusted` routes the integration's tools through the Contract #13 high-privilege gate (use for proxies of attacker-influenced external output, e.g. external MCP / arbitrary OpenAPI). |
 | `iot_class` | see below | `local_in_process` | Trust/locality descriptor. |
-| `requirements` | `tuple[str, …]` | `()` | PyPI deps — **surfaced, never auto-installed**. Bake them into the image/venv. |
+| `requirements` | `tuple[str, …]` | `()` | PyPI deps - **surfaced, never auto-installed**. The loader checks each is importable; if any is missing the integration is parsed but marked **unavailable** (visible to admin, skipped at run time) rather than loading-then-crashing. |
+| `requirements_extra` | `str \| None` | `None` | The pip extra (a key under `[project.optional-dependencies]`) that installs `requirements`; named in the unavailable message. Defaults to `integration-<domain>` when unset. |
 | `required_tier` | tier name / int | `0` (`unregulated`) | Minimum model-provider tier for this integration's tools to be assembled (gate = `provider_tier >= required_tier`). Author by name: `unregulated` / `regulated` / `internal`. |
 | `provides` | `tuple[str, …]` | `()` | Generic capabilities this integration backs (e.g. `web_search`, `web_fetch`). A pure capability provider has no directly-selectable tools — the UI hides it and offers the generic tool. |
 | `dependencies` | `tuple[str, …]` | `()` | Hard deps: loaded first; an unmet dep drops the integration. |
@@ -196,13 +200,15 @@ All have sensible no-op/empty defaults — override only what you use:
 | `async_migrate_entry(ctx, from_version)` | Migrate stored entry config across `config_schema_version`. |
 | `entity_types()` / `async_sync_entities(ctx)` | Become an entity provider (pull). |
 | `async_initial_entities(ctx)` | Seed self-owned entities once on first setup. |
-| `async_call_action(ctx, …)` | Handle a controllable entity action. |
-| `async_handle_webhook(ctx, payload)` | Handle an inbound push webhook for an entry. |
-| `async_health(ctx)` | Report live-connection health (default `None` = no connection concept). |
-| `event_types()` / `relation_types()` | Declare custom events / world-memory predicates. |
+| `async_call_action(ctx, …)` | Handle a controllable entity action (only for actions the type declared). |
+| `integration_actions()` / `async_call_integration_action(ctx, …)` | Declare integration-wide actions (HA `services.yaml` analog); each becomes an agent tool the assembler builds and binds to the entry. |
+| `async_handle_webhook(ctx, payload)` | Handle an inbound push webhook POSTed to `/webhooks/integration/{entry_id}?token=…`. |
+| `async_health(ctx)` | Report live-connection health (`HealthResult` with status `ok`/`degraded`/`error`; default `None` = no connection concept). |
+| `event_types()` / `relation_types()` | Declare custom events / world-memory predicates (predicates must be namespaced `domain:predicate`). |
 | `agents()` / `surfaces()` | Contribute delegatable sub-agents / chat-mode-or-dashboard surfaces. |
 | `web_search_provider` / `web_fetch_provider` / `weather_provider` | Back a generic web capability. |
 | `message_reader_provider` / `message_sender_provider` / `message_listener_provider` | Back comms ingestion / sending / real-time listening. |
+| `supports_message_initiation()` / `supports_group_creation()` / `group_creator_provider(ctx)` / `group_surfaces_via_sync()` | Declare/back 1:1-initiation and group-creation for a comms channel. |
 | `compute_provider(ctx)` | Back the on-demand cloud sandbox. |
 
 The entity, capability-provider, agent, and surface hooks are covered in
@@ -257,8 +263,10 @@ canonical multi-step example. Full details are in [config-flows.md](config-flows
 
 ## Discovery & loading
 
-The registry (`IntegrationRegistry`) is built once in the API/worker lifespan from
-`loader.discover(settings)` and stashed on `app.state.integrations`. Discovery:
+The registry (`IntegrationRegistry`) is built once in the API/worker lifespan via
+`IntegrationRegistry.discover(settings.integrations)` (which calls `loader.discover`)
+and stashed on `app.state.integrations` (the worker keeps a module-level copy).
+Discovery:
 
 1. Resolves the dirs to scan: the bundled in-repo dir (`bundled_dir`, default
    `integrations`, resolved relative to the repo root) is always scanned. External
@@ -267,8 +275,9 @@ The registry (`IntegrationRegistry`) is built once in the API/worker lifespan fr
    verifies `domain == folder name`, imports `__init__.py` as a synthetic package, and
    resolves the module-level `INTEGRATION` (must be a `PersonalAgentIntegration`
    instance), injecting `manifest` and `config_flow_cls`.
-3. Checks `requirements` are importable (a missing one is **warned, never installed**),
-   then logs the load at WARNING.
+3. Checks `requirements` are importable (a missing one is **warned, never installed**);
+   if any is missing the integration is kept but marked **unavailable** (the assembler
+   skips it and a config flow refuses), then logs the load at WARNING.
 4. Topologically orders by hard `dependencies` (an unmet dep drops the integration) and
    soft `after_dependencies`.
 

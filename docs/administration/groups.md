@@ -22,7 +22,7 @@ A group has three fields:
 | `external_ref` | Keycloak group path | Optional. Drives OIDC auto-assignment (see below). Labelled *Keycloak group path* in the UI. |
 
 The delete (trash) icon removes the group after a confirmation. Deleting a group does
-not delete its shared resources — **folders revert to private** when their group is
+not delete its shared resources: **folders revert to private** when their group is
 removed.
 
 ## Members and roles
@@ -33,9 +33,9 @@ pick a user from the searchable dropdown, choose a role, and click **Add**.
 
 A member's **source** is one of:
 
-- **OIDC** — synced from the login token's group claim. Managed automatically; do not
+- **OIDC** - synced from the login token's group claim. Managed automatically; do not
   hand-edit (the next login reconciles it).
-- **manual** — pinned by an admin. Never removed by the OIDC sync, even if the user
+- **manual** - pinned by an admin. Never removed by the OIDC sync, even if the user
   loses the matching token path.
 
 Roles are:
@@ -48,7 +48,7 @@ Roles are:
 
 !!! note
     The role dropdown here is the only place a member can be set to read-only
-    `viewer`. The OIDC login sync only ever assigns the default `editor` — unless the
+    `viewer`. The OIDC login sync only ever assigns the default `editor`, unless the
     identity provider explicitly signals the viewer tier (see below).
 
 ## OIDC auto-assignment
@@ -64,7 +64,7 @@ read-only `viewer` instead; if a user matches both the parent path and the viewe
 child, least privilege wins.
 
 !!! note
-    The identity provider is the source of truth for OIDC members' roles — change a
+    The identity provider is the source of truth for OIDC members' roles: change a
     user's Keycloak groups, and their role updates on next login. To override that
     permanently, add them as a **manual** member.
 
@@ -73,9 +73,19 @@ child, least privilege wins.
 Resources can be scoped to a group so that all members get shared access according to
 their role:
 
-- **Folders** — and through them the **chats** and **workflows** they contain.
-- **Integration configuration** scoped to the group.
+- **Folders** - and through them the **chats** and **workflows** they contain. A
+  folder is scoped to a group by setting its `group_id`; clearing it (or deleting the
+  group) reverts the folder to private.
+- **Integration configuration** scoped to the group. Any member (including a `viewer`)
+  can see group-scoped integration entries; only `owner`/`editor` members may create or
+  edit one.
 - Group-scoped **world-memory** proposals and entries.
 
 `owner` and `editor` members may write to group-scoped resources; `viewer` members
 have read-only access.
+
+!!! note
+    A chat inside a group folder has its own visibility: it is `shared` (the default,
+    visible to all group members) or `private` (visible only to its owner). So putting a
+    folder in a group shares its `shared` chats, not every chat its owner ever opened
+    there.
