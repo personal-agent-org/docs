@@ -55,7 +55,7 @@ Each CNPG `Cluster` is expected to have continuous WAL archiving to object
 storage (Barman Cloud plugin or `spec.backup.barmanObjectStore`), e.g.:
 
 ```yaml
-# (reference only - lives in deploy/charts/, not edited here)
+# (reference only - lives in the deploy repo charts/, not edited here)
 spec:
   backup:
     barmanObjectStore:

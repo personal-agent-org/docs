@@ -4,11 +4,11 @@ Personal Agent is **domain-agnostic**: one built image serves every deployment, 
 your own domain through a handful of environment variables. Throughout the docs, `app.example.com`
 and `id.example.com` are **placeholders** — substitute your own hostnames.
 
-All backend settings use the `PERSONAL_AGENT__` env prefix (`__` nests — e.g.
-`PERSONAL_AGENT__OIDC__ISSUER`). The Docker / Compose path reads them from `deploy/compose/.env`;
-the Helm chart sets the non-secret ones under `config.*` and the secrets under
-`externalSecrets.data`. The defaults are sensible — most operators only set the domain knobs and the
-secrets below.
+All backend settings use the `PERSONAL_AGENT__` env prefix (`__` nests - e.g.
+`PERSONAL_AGENT__OIDC__ISSUER`). The Docker / Compose path reads them from `compose/.env` in the
+`personal-agent-org/deploy` repo; the Helm chart (`charts/personal-agent` in the same repo) sets the
+non-secret ones under `config.*` and the secrets under `externalSecrets.data`. The defaults are
+sensible - most operators only set the domain knobs and the secrets below.
 
 !!! note "Identity provider has its own page"
     Issuer, audience, the OIDC clients and how to use a non-Keycloak provider are documented
@@ -18,8 +18,8 @@ secrets below.
 
 ## Environment variables
 
-Everything domain-specific derives from a few top-level variables (in `deploy/compose/.env`, copied
-from `deploy/compose/.env.example`):
+Everything domain-specific derives from a few top-level variables (in `compose/.env`, copied
+from `compose/.env.example`):
 
 | Variable | Example | Meaning |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ The backend config defaults are env-driven and need no changes — only the `.en
 ## How the SPA gets its config
 
 The frontend is **one static image** for every deployment. Runtime config is rendered at container
-start by `deploy/compose/frontend-entrypoint.sh`, which writes `/config.js`
+start by `compose/frontend-entrypoint.sh` (in the `personal-agent-org/deploy` repo), which writes `/config.js`
 (`window.__APRIL_CONFIG__`) from the environment and then runs nginx — no rebuild per environment.
 
 The only value the browser cannot derive on its own is the OIDC authority, so `PA_OIDC_AUTHORITY`

@@ -161,7 +161,7 @@ Security-Modi über einen fremden Chat-Kanal) und hält das Produktkonzept schar
 **Hermes:** 16 Sprachen (`locales/*.yaml`).
 
 **PA heute:** Frontend + TUI je nur de-DE/en-US; das System ist aber i18n-fähig
-(`apps/web/src/i18n/`, `clients/tui/src/i18n.rs`).
+(Frontend `src/i18n/`, TUI `src/i18n.rs`).
 
 **Empfehlung — Adapt (Quick-Win):** Da die Infrastruktur steht, ist das überwiegend
 Übersetzungsarbeit. 3–5 strategische Sprachen ergänzen (z. B. fr/es/it/pt). Hinweis:

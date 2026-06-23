@@ -70,10 +70,10 @@ lost; everything authored as a workflow is one authoring + one execution path.
 
 ## Code map
 
-- **Trigger engine** — `services/api/src/personal_agent/workflows/` (executor, triggers,
+- **Trigger engine** - `src/personal_agent/workflows/` (executor, triggers,
   conditions, schedule_sync, event_dispatcher, tool_emitter, events). The Automations
   subpackage is gone; this is its successor.
-- **Contracts** — `personal_agent_contracts/workflow_trigger.py` (`WorkflowFireSpec`,
+- **Contracts** - `src/personal_agent/contracts/workflow_trigger.py` (`WorkflowFireSpec`,
   `WORKFLOW_SCHEDULE_WORKFLOW`); `RunSpec.script` + `RunSpec.workflow_id`.
 - **DB** — one `workflows` table (+ a `workflow_secrets` webhook sidecar). The migration
   preserved existing automation ids + schedules.

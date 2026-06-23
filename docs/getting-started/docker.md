@@ -4,8 +4,10 @@ The self-contained way to run a real instance on a single machine — the whole
 stack as containers. This is the usual choice for self-hosting on a box or VPS.
 
 It uses the single-host production compose file
-(`deploy/compose/docker-compose.prod.yml`), which ships Postgres+pgvector, Redis,
-Temporal, Keycloak and the three app workloads (API, worker, frontend) together.
+(`compose/docker-compose.prod.yml`) from the `personal-agent-org/deploy` repo, which
+ships Postgres+pgvector, Redis, Temporal, Keycloak and the three app workloads (API,
+worker, frontend) together. The prod stack **pulls** the prebuilt
+`ghcr.io/personal-agent-org/personal-agent-*` images; there is no local build context.
 
 ## Prerequisites
 
@@ -17,7 +19,7 @@ Temporal, Keycloak and the three app workloads (API, worker, frontend) together.
   Traefik, …). It must route the app origin to the `frontend` container (`:80`) and
   the `/api`, `/webhooks`, SSE and WebSocket paths to the `backend` container
   (`:8000`); it must **not buffer** SSE responses and must allow WebSocket
-  upgrades. The reverse proxy lives outside this repo.
+  upgrades. The reverse proxy lives outside the deploy repo.
 - A reachable **Keycloak** (the OIDC provider). The compose file bundles one for
   single-host use and imports the realm for you (see [Keycloak realm](#keycloak-realm)).
 
@@ -27,10 +29,13 @@ compose file — you don't provide those yourself.
 ## Bring it up
 
 ```bash
-cp .env.example .env
-# Edit .env: set APP_ORIGIN, KEYCLOAK_ORIGIN, OIDC_ISSUER and the secrets.
+git clone https://github.com/personal-agent-org/deploy.git
+cd deploy
 
-docker compose -f deploy/compose/docker-compose.prod.yml --env-file .env up -d --build
+cp compose/.env.example compose/.env
+# Edit compose/.env: set APP_ORIGIN, KEYCLOAK_ORIGIN, OIDC_ISSUER and the secrets.
+
+docker compose -f compose/docker-compose.prod.yml --env-file compose/.env up -d
 ```
 
 The `migrate` service runs `alembic upgrade head` automatically before the API
@@ -47,14 +52,15 @@ starts; the app then comes up on the origin you configured.
 after pulling a new image):
 
 ```bash
-docker compose -f deploy/compose/docker-compose.prod.yml --env-file .env run --rm migrate
+docker compose -f compose/docker-compose.prod.yml --env-file compose/.env run --rm migrate
 ```
 
 ## Updating
 
 ```bash
 git pull
-docker compose -f deploy/compose/docker-compose.prod.yml --env-file .env up -d --build
+docker compose -f compose/docker-compose.prod.yml --env-file compose/.env pull
+docker compose -f compose/docker-compose.prod.yml --env-file compose/.env up -d
 ```
 
 ## Podman
@@ -67,7 +73,7 @@ Podman 4.4+ is a drop-in replacement — swap `docker compose` for `podman compo
     compose file instead:
 
     ```bash
-    docker compose -f deploy/compose/docker-compose.yml up
+    docker compose -f compose/docker-compose.yml up
     ```
 
 ## Configuration

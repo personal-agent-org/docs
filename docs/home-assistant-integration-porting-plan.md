@@ -2,7 +2,7 @@
 
 > Research against a fresh shallow clone of `home-assistant/core` (1 484 integrations,
 > `homeassistant/components/*`), mapped onto our existing integration tier
-> (`integrations/<domain>/` + `services/api/src/personal_agent/integrations/`).
+> (`integrations/<domain>/` + `src/personal_agent/integrations/` in the backend repo).
 > This is the *porting* counterpart to `docs/home-assistant-adoption.md` (which deepens our
 > entity/flow/dashboard subsystems). This doc answers: **can we port all HA integrations, what
 > does it take, and which framework pieces are still missing.**
@@ -153,7 +153,7 @@ dashboard render them better with first‑class shapes.
   attributes” item — do them together.
 
 ### 4.5 — Device‑agent LAN bridge (the local tier’s enabler)  **(P2, gates Tier B+C)**
-The Rust `clients/device-agent/` already connects back over the device WS. Extend it into a
+The Rust device-agent (repo `personal-agent-org/device-agent`) already connects back over the device WS. Extend it into a
 **LAN integration runner**: a slim host that the user runs at home, which (a) reaches local devices,
 (b) optionally hosts radio stacks (§4.3), (c) relays discovery (§4.2), and (d) runs the
 local‑transport half of a ported integration while the **config flow, entities, governance, and

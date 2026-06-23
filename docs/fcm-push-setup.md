@@ -44,8 +44,8 @@ programmatically from four build values (see §3).
    `token_uri`). Treat it as a secret.
 2. Mount it into **both** the `backend` and `worker` containers (both publish
    user events through the same funnel, so both need the sender) and point the
-   app at it. With the bundled Compose file
-   (`deploy/compose/docker-compose.prod.yml`), add a read-only mount to the
+   app at it. With the bundled Compose file in the `personal-agent-org/deploy`
+   repo (`compose/docker-compose.prod.yml`), add a read-only mount to the
    `backend` and `worker` services and set the env var on the shared
    `x-backend-env` anchor:
 

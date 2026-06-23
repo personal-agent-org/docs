@@ -6,20 +6,21 @@ section explains how the codebase is laid out and how to extend it.
 
 ## Workspace layout
 
-The repository is a single [`uv`](https://docs.astral.sh/uv/) workspace. Three members are
-proper Python packages; everything else is loaded by the running app or built separately.
+The code is split across separate repos under the `personal-agent-org` org. The backend repo
+(`personal-agent-org/backend`) is the FastAPI app, the Temporal worker, the contracts, the
+integrations and the tools in one `personal_agent` package (src/ layout).
 
-| Path | What it is |
+| Repo / path | What it is |
 | --- | --- |
-| `packages/personal-agent-contracts/` | The single source of truth shared by API + worker: IDs, the `RunSpec`/`ToolsetSnapshot`, AG-UI events, control frames, usage, keys, world-memory and workflow-trigger contracts. |
-| `services/api/` | The FastAPI app (`personal_agent`). App factory `personal_agent.main:create_app` (`app = create_app()`); subpackages for config, DB, auth, the agent, toolset assembly, realtime, integrations, workflows and more. |
-| `services/worker/` | The Temporal worker (`personal_agent_worker`) — the durable `ChatAgentWorkflow` plus curator / goal / workflow-schedule / entity-sync / world-maintenance workflows and their activities. |
-| `integrations/<domain>/` | Home-Assistant-style integration folders (manifest + config flow + integration class), discovered at runtime by the `IntegrationRegistry`. **Not** uv-workspace members. |
-| `apps/web/` | The Quasar / Vue 3 single-page app. The desktop and Android app shells are separate repos (`personal-agent-org/desktop`, `personal-agent-org/android`). |
-| `clients/` | The Rust `device-agent` (jailed FS + PTY), the terminal client (`tui`), and the `browser-sandbox` cloud `browser` device. (The Chrome/Firefox extension, the other `browser` device, lives in its own repo `personal-agent-org/browser-extension`.) |
+| backend repo, `src/personal_agent/contracts/` | The single source of truth shared by API + worker: IDs, the `RunSpec`/`ToolsetSnapshot`, AG-UI events, control frames, usage, keys, world-memory and workflow-trigger contracts. |
+| backend repo, `src/personal_agent/` | The FastAPI app (`personal_agent`). App factory `personal_agent.main:create_app` (`app = create_app()`); subpackages for config, DB, auth, the agent, toolset assembly, realtime, integrations, workflows and more. |
+| backend repo, `src/personal_agent/worker/` | The Temporal worker (`personal_agent.worker`) - the durable `ChatAgentWorkflow` plus curator / goal / workflow-schedule / entity-sync / world-maintenance workflows and their activities. |
+| backend repo, `integrations/<domain>/` | Home-Assistant-style integration folders (manifest + config flow + integration class), discovered at runtime by the `IntegrationRegistry`. |
+| `personal-agent-org/frontend` | The Quasar / Vue 3 single-page app (at the repo root). The desktop and Android app shells are separate repos (`personal-agent-org/desktop`, `personal-agent-org/android`). |
+| client repos | The Rust `device-agent` (`personal-agent-org/device-agent`, jailed FS + PTY), the terminal client (`personal-agent-org/tui`), and the cloud `browser` device sandbox (`personal-agent-org/browser-sandbox`). (The Chrome/Firefox extension, the other `browser` device, lives in `personal-agent-org/browser-extension`.) |
 
-Supporting directories: `deploy/` (Compose, Helm charts, Keycloak realm-as-code,
-observability), `docs/` (these pages), and `tools/` (scripts).
+Ops live in the deploy repo (`personal-agent-org/deploy`): `compose/`, `charts/` (Helm),
+`keycloak/` (realm-as-code) and `observability/`. The backend repo also carries `tools/` (scripts).
 
 !!! note "Conventions"
     Python 3.12, async SQLAlchemy 2.0 + asyncpg. Linting is `ruff` (line length 100), types
@@ -34,7 +35,7 @@ per-run Redis Stream, which the server relays to the client over SSE.
 
 | | Inline | Durable |
 | --- | --- | --- |
-| Where it runs | A FastAPI background task (`realtime/producers/inline.py`) | A Temporal workflow (`ChatAgentWorkflow` in `services/worker/`) |
+| Where it runs | A FastAPI background task (`realtime/producers/inline.py`) | A Temporal workflow (`ChatAgentWorkflow` in `src/personal_agent/worker/`) |
 | Streaming | pydantic-ai's `AGUIAdapter` | hand-built identical AG-UI events via a shared converter |
 | Used for | Short, interactive turns | Long-running / durable runs that must survive restarts |
 
@@ -49,26 +50,40 @@ at run start — the workflow never queries live DB state during a run or replay
 
 ## Dev task runner
 
-Use [`just`](https://github.com/casey/just) — running `just` (or `just --list`) shows every
-recipe. The ones you reach for most:
+Each repo uses [`just`](https://github.com/casey/just) - running `just` (or `just --list`) in
+a repo shows its recipes. A dev-from-source stack spans the deploy, backend and frontend repos.
+
+Bring up the dev infra (Postgres / Redis / Temporal / Keycloak) from the deploy repo:
 
 ```bash
-just setup      # uv sync + frontend deps (pnpm install)
-just up         # start dev infra: Postgres / Redis / Temporal / Keycloak
-just migrate    # alembic upgrade head
-
-# then, in separate terminals:
-just api        # run the API (uvicorn --reload) — needs `just up` + `just migrate`
-just worker     # run the Temporal worker
-just web        # run the Quasar dev server
-
-just test       # pytest (some tests need PG + Redis); `just test-unit` for fast tests only
-just check      # pre-PR gate: fmt-check + lint + types + test
+docker compose -f compose/docker-compose.yml up    # in personal-agent-org/deploy
 ```
 
-`just check` is the gate to run before opening a PR. Other useful recipes include `just lint`,
-`just fmt`, `just types`, `just docs` (serve these docs with live reload), and `just migration
-"msg"` to autogenerate a migration. Read the `justfile` for the exact command behind any recipe.
+Then, in the backend repo (`personal-agent-org/backend`):
+
+```bash
+just setup      # uv sync + install git hooks
+just migrate    # alembic upgrade head
+
+# in separate terminals:
+just api        # run the API (uvicorn --reload) - needs the infra up + just migrate
+just worker     # run the Temporal worker
+
+just test       # pytest (some tests need PG + Redis); `just test-unit` for fast tests only
+just check      # pre-PR gate: lint + types + test-unit
+```
+
+And the Quasar dev server from the frontend repo (`personal-agent-org/frontend`):
+
+```bash
+just setup      # pnpm install + git hooks
+just dev        # run the Quasar dev server
+just check      # pre-PR gate: lint + i18n + test + build
+```
+
+`just check` is the gate to run before opening a PR (in each repo). Other useful backend recipes
+include `just lint`, `just fmt`, `just types`, and `just migration "msg"` to autogenerate a
+migration. Read the `justfile` in each repo for the exact command behind any recipe.
 
 !!! note "Tests run from the repo root"
     The e2e tests (`requires_services`) need local Postgres + Redis at DSN

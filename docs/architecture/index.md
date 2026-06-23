@@ -7,27 +7,28 @@ Postgres+pgvector, Redis, Kubernetes/Compose.
 
 ## Services at a glance
 
-| Service | Role |
+| Service | Repo / path |
 | --- | --- |
-| **backend** (`services/api/`) | FastAPI server + pydantic-ai runtime; Temporal client; AG-UI over Redis Streams → SSE, WebSocket control. |
-| **worker** (`services/worker/`) | Temporal worker: durable runs, the per-chat memory **Curator**, scheduled maintenance. |
-| **frontend** (`apps/web/`) | Quasar (Vue 3) SPA + PWA. |
-| **keycloak** (`deploy/keycloak/`) | OIDC auth, realm-as-code. |
+| **backend** | `personal-agent-org/backend`, `src/personal_agent/` (FastAPI server + pydantic-ai runtime; Temporal client; AG-UI over Redis Streams → SSE, WebSocket control). |
+| **worker** | `personal-agent-org/backend`, `src/personal_agent/worker/` (Temporal worker subpackage: durable runs, the per-chat memory **Curator**, scheduled maintenance). |
+| **frontend** | `personal-agent-org/frontend` (Quasar (Vue 3) SPA + PWA at the repo root). |
+| **keycloak** | `personal-agent-org/deploy`, `keycloak/` (OIDC auth, realm-as-code). |
 | **Postgres + pgvector** | Primary store + vector search. |
 | **Redis** | AG-UI token stream, control/presence pub/sub, rate limits. |
 | **Temporal** | Durable engine for runs, the Curator, and schedules. |
-| **device-agent** (`clients/device-agent/`) | Cross-platform Rust agent (jailed FS + PTY). |
-| **tui** (`clients/tui/`) | Rust terminal client (ratatui) over the same HTTP/SSE API. |
-| **browser-sandbox** (`clients/browser-sandbox/`) | Playwright cloud browser `browser` device. The Chrome/Firefox extension (the other `browser` device) is a separate repo, `personal-agent-org/browser-extension`. |
+| **device-agent** | `personal-agent-org/device-agent` (cross-platform Rust agent, jailed FS + PTY). |
+| **tui** | `personal-agent-org/tui` (Rust terminal client over the same HTTP/SSE API). |
+| **browser-sandbox** | `personal-agent-org/browser-sandbox` (Playwright cloud browser `browser` device). The Chrome/Firefox extension (the other `browser` device) is a separate repo, `personal-agent-org/browser-extension`. |
 
 Shared **contracts** (identity, run spec, bus, control, usage, world memory,
-errors, keys) live in `packages/personal-agent-contracts/`.
+errors, keys) live in the backend repo at `src/personal_agent/contracts/`.
 
 ## Two run paths, one envelope
 
 A chat turn runs either **inline** (a FastAPI background task,
 `realtime/producers/inline.py`) or **durable** (a Temporal `ChatAgentWorkflow` in
-`services/worker/`). `api/routers/runs.py` (`_launch_run`) is the shared chokepoint
+the backend worker subpackage, `src/personal_agent/worker/`). `api/routers/runs.py`
+(`_launch_run`) is the shared chokepoint
 that decides INLINE vs DURABLE and builds the `RunSpec`. Both paths emit **identical**
 AG-UI events onto a per-run Redis Stream, which `sse_stream` relays to the client.
 
@@ -72,18 +73,28 @@ provider tags, not the parent's.
 
 ## Repository layout
 
+The code is split across repos under the `personal-agent-org` org:
+
 ```text
-packages/personal-agent-contracts/  shared cross-slice contracts
-services/api/                       FastAPI server + pydantic-ai runtime
-services/worker/                    Temporal worker (durable runs + Curator)
-apps/web/                           Quasar SPA + PWA
-integrations/                       integrations (folder tier)
-clients/device-agent/               Rust device agent (Linux/macOS/Windows)
-clients/tui/                        Rust terminal client (TUI)
-clients/browser-sandbox/            Playwright cloud browser device
-deploy/keycloak/                    realm-as-code
-deploy/                             Dockerfiles, Compose, Helm
-docs/                               MkDocs documentation site
+personal-agent-org/backend
+  src/personal_agent/             FastAPI server + pydantic-ai runtime
+  src/personal_agent/worker/      Temporal worker subpackage (durable runs + Curator)
+  src/personal_agent/contracts/   shared cross-slice contracts
+  integrations/                   integrations (folder tier)
+  tools/                          scripts
+  tests/                          backend tests
+
+personal-agent-org/frontend       Quasar SPA + PWA (at the repo root)
+
+personal-agent-org/device-agent   Rust device agent (Linux/macOS/Windows)
+personal-agent-org/tui            Rust terminal client (TUI)
+personal-agent-org/browser-sandbox  Playwright cloud browser device
+
+personal-agent-org/deploy
+  compose/                        Compose stacks (dev + prod)
+  charts/                         Helm charts
+  keycloak/                       realm-as-code
+  observability/                  dashboards + alerts
 ```
 
 The design's invariants are captured as [Frozen contracts](frozen-contracts.md) —

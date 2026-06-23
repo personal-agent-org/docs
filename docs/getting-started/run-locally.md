@@ -4,6 +4,10 @@ This page covers the developer workflow. For a production deployment on your own
 domain, see [Docker / Podman](docker.md) (or [Kubernetes](kubernetes.md)) and the
 [Configuration reference](configuration.md).
 
+The dev-from-source workflow now spans three repos: infra comes from
+`personal-agent-org/deploy`, the API + worker from `personal-agent-org/backend`,
+and the SPA from `personal-agent-org/frontend`. Clone the ones you need.
+
 ## Prerequisites
 
 - [`uv`](https://docs.astral.sh/uv/), and either Docker or a local
@@ -14,27 +18,55 @@ domain, see [Docker / Podman](docker.md) (or [Kubernetes](kubernetes.md)) and th
 
 === "With `just` (recommended)"
 
+    Dev infra (Postgres/Redis/Temporal/Keycloak) from the deploy repo:
+
     ```bash
-    just setup           # uv sync + frontend deps (pnpm install)
-    just up              # start dev infra (Postgres/Redis/Temporal/Keycloak)
+    git clone https://github.com/personal-agent-org/deploy.git
+    cd deploy
+    docker compose -f compose/docker-compose.yml up
+    ```
+
+    Backend (API + worker) from the backend repo:
+
+    ```bash
+    git clone https://github.com/personal-agent-org/backend.git
+    cd backend
+    just setup           # uv sync + install git hooks
     just migrate         # alembic upgrade head
-    just api             # run the API (uvicorn --reload)
+    just api             # run the API (uvicorn --reload, port 9000)
     just worker          # run the Temporal worker
-    just web             # run the Quasar dev server
+    ```
+
+    Frontend (Quasar/Vue 3 SPA) from the frontend repo:
+
+    ```bash
+    git clone https://github.com/personal-agent-org/frontend.git
+    cd frontend
+    just setup           # pnpm install + install git hooks
+    just dev             # run the Quasar dev server
     ```
 
 === "Raw commands"
 
     ```bash
-    uv sync                      # resolve the workspace
-    cp .env.example .env         # adjust as needed
+    # Dev infra via Docker Compose (deploy repo):
+    git clone https://github.com/personal-agent-org/deploy.git
+    cd deploy
+    cp compose/.env.example compose/.env    # adjust as needed
+    docker compose -f compose/docker-compose.yml up
 
-    # Full stack via Docker Compose:
-    docker compose -f deploy/compose/docker-compose.yml up
+    # Backend against local services (backend repo):
+    git clone https://github.com/personal-agent-org/backend.git
+    cd backend
+    uv sync
+    uv run alembic upgrade head
+    uv run uvicorn personal_agent.main:app --reload --port 9000
 
-    # Or run the API directly against local services:
-    cd services/api && uv run alembic upgrade head
-    uv run uvicorn personal_agent.main:app --reload --port 8000
+    # Frontend (frontend repo):
+    git clone https://github.com/personal-agent-org/frontend.git
+    cd frontend
+    pnpm install
+    pnpm dev
     ```
 
 ## Health endpoints
@@ -47,22 +79,35 @@ domain, see [Docker / Podman](docker.md) (or [Kubernetes](kubernetes.md)) and th
 
 ## Quality gates
 
+In the backend repo:
+
 ```bash
 just lint            # ruff check
 just fmt             # ruff format
 just types           # pyright (basic mode)
 just test            # pytest (some tests need PG + Redis)
 just test-unit       # fast tests only (no live PG/Redis)
-just check           # pre-PR gate: fmt-check + lint + types + test
+just check           # pre-PR gate: lint + types + test-unit
+```
+
+In the frontend repo:
+
+```bash
+just lint            # ESLint
+just test            # frontend unit tests (vitest)
+just check           # pre-PR gate: lint + i18n + test + build
 ```
 
 Or the raw commands:
 
 ```bash
-uv run ruff check .          # lint
-uv run pyright               # type check (basic mode)
-uv run pytest -q             # backend/worker/contracts tests
-cd apps/web && pnpm test     # frontend unit tests (vitest)
+# Backend repo:
+uv run ruff check src integrations tools   # lint
+uv run pyright                             # type check (basic mode)
+uv run pytest -q                           # api/worker/contracts tests
+
+# Frontend repo:
+pnpm test                                  # frontend unit tests (vitest)
 ```
 
 These run per commit via **pre-commit** (`prek`) — ruff, frontend ESLint, file
@@ -79,12 +124,8 @@ uv tool install prek && prek install
 
 ## Versioning & releases
 
-Releases use **CalVer** (`YYYY.M.MICRO`). `just release` dispatches the GitHub
-Actions `release.yml` workflow: it runs the CI gate, tags `vYYYY.M.MICRO` on
-`origin/main`, publishes a Release with auto-generated notes (Conventional
-Commits), and attaches the device-agent binaries.
-
-```bash
-just release-preview   # show the next CalVer + changelog
-just release           # cut it (refuses a dirty tree or unpushed commits)
-```
+Releases use **CalVer** (`YYYY.M.MICRO`). Each repo carries its own GitHub Actions
+`release.yml`, dispatched manually (pick the MICRO for the month): it runs the CI
+gate, builds + pushes the OCI image to ghcr, tags `vYYYY.M.MICRO`, and cuts a
+Release with auto-generated notes (Conventional Commits). Deploy config (compose,
+Helm) in the `personal-agent-org/deploy` repo references the published image tags.

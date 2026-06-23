@@ -1,7 +1,8 @@
 # Kubernetes (Helm)
 
 For a scaled-out, highly-available deployment. The umbrella chart in
-`deploy/charts/personal-agent/` deploys Personal Agent to a self-managed cluster.
+`charts/personal-agent/` (in the `personal-agent-org/deploy` repo) deploys Personal Agent to a
+self-managed cluster.
 
 ## What it deploys
 
@@ -30,6 +31,10 @@ Enable the ones you need with `<name>.enabled=true`.
 ## Install
 
 ```bash
+# Clone the deploy repo (charts only; the api/worker/frontend images are pulled from ghcr):
+git clone https://github.com/personal-agent-org/deploy.git
+cd deploy
+
 # Add the dependency repos, then vendor them into the chart:
 helm repo add cnpg https://cloudnative-pg.github.io/charts
 helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -38,12 +43,12 @@ helm repo add kedacore https://kedacore.github.io/charts
 helm repo add jetstack https://charts.jetstack.io
 helm repo add external-secrets https://charts.external-secrets.io
 helm repo add haproxytech https://haproxytech.github.io/helm-charts
-helm dependency build deploy/charts/personal-agent
+helm dependency build charts/personal-agent
 
 # Install (rolls back on a failed migrate hook):
-helm upgrade --install --atomic personal-agent deploy/charts/personal-agent \
+helm upgrade --install --atomic personal-agent charts/personal-agent \
   -n personal-agent --create-namespace \
-  -f deploy/charts/personal-agent/values-prod.yaml
+  -f charts/personal-agent/values-prod.yaml
 ```
 
 `--atomic` rolls back on a failed migrate hook, enforcing the migrate-gate.
@@ -72,17 +77,18 @@ The chart enforces the order via Helm hook weights + initContainer gates:
 - `externalSecrets.data` — DB DSN, Redis URL, BYOK master key, provider keys.
 - `api.autoscaling.*`, `worker.keda.*`, `gateway.sse.*`, `gateway.tls.*`.
 
-See `values.yaml` (defaults) and `values-prod.yaml` (example); the `PERSONAL_AGENT__*` settings
-themselves are documented in the [Configuration reference](configuration.md).
+See `charts/personal-agent/values.yaml` (defaults) and `charts/personal-agent/values-prod.yaml`
+(example); the `PERSONAL_AGENT__*` settings themselves are documented in the
+[Configuration reference](configuration.md).
 
 ## Offline render
 
 The chart templates without a cluster or network (deps disabled):
 
 ```bash
-helm lint deploy/charts/personal-agent
-helm template personal-agent deploy/charts/personal-agent \
-  -f deploy/charts/personal-agent/values.yaml
+helm lint charts/personal-agent
+helm template personal-agent charts/personal-agent \
+  -f charts/personal-agent/values.yaml
 ```
 
 Full reference: the

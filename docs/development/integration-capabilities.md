@@ -8,7 +8,7 @@ analog: backend integrations run **in-process at full trust**, and contribute to
 flow).
 
 Everything an integration delivers is declared on the integration object
-(`services/api/src/personal_agent/integrations/integration.py`), backed by the
+(`src/personal_agent/integrations/integration.py` in the backend repo), backed by the
 contracts in `capabilities.py` and `entities.py`. This page is one section per
 capability: the real method/descriptor, what it provides, and how the platform
 consumes it.

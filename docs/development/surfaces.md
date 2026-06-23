@@ -20,7 +20,7 @@ rule from that doc is worth repeating up front, because it shapes everything els
 ## The Surface model
 
 A Surface mirrors the HA two-layer split: a lightweight **metadata** layer plus a heavy
-**config** blob. The columns (`services/api/src/personal_agent/db/models/surface.py`) are:
+**config** blob. The columns (backend repo `src/personal_agent/db/models/surface.py`) are:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
@@ -50,7 +50,7 @@ surface_kind({"views": [{"type": "chat"}]})           # "mode"
 surface_kind({"views": [{"type": "sections"}]})        # "dashboard"
 ```
 
-`SurfaceRepo` (`db/repositories/surface_repo.py`) is the access layer. Note one deliberate
+`SurfaceRepo` (backend repo `src/personal_agent/db/repositories/surface_repo.py`) is the access layer. Note one deliberate
 difference from delegatable agents: `list_visible` **includes** builtins — a builtin surface like
 `coding` is a normal selectable option, not a hidden default. `get_by_slug` resolves a slug for a
 principal with the user's own surface winning over a global of the same slug.
@@ -58,8 +58,8 @@ principal with the user's own surface winning over a global of the same slug.
 ## The config blob
 
 `config` is a Lovelace dashboard config, extended with an `arrangement` for the side-by-side
-desktop layout and the new stateful view types. The frontend shape lives in
-`apps/web/src/stores/surfaces.ts`:
+desktop layout and the new stateful view types. The frontend shape lives in the frontend repo at
+`src/stores/surfaces.ts`:
 
 ```jsonc
 {
@@ -87,7 +87,7 @@ A **pure dashboard** is the same shape with no `chat` view (often a single `card
 
 `views[]` is the single source that drives both layouts. The renderer maps each view's `type` to
 a component via the **surface-view registry**
-(`apps/web/src/components/surfaces/surface-view-registry.ts`), mirroring HA's `create-element`
+(frontend repo `src/components/surfaces/surface-view-registry.ts`), mirroring HA's `create-element`
 factory:
 
 | `type` | Renderer | Notes |
@@ -125,7 +125,7 @@ is no per-mode special-casing — coding's `chat | workspace` split and a dashbo
 
 When a surface has a `chat` view, that view's `agent` block carries the per-mode agent behavior —
 the dynamic replacement for the hardcoded coding branches. The backend reads it through
-`agent/surface_resolver.py`:
+`src/personal_agent/agent/surface_resolver.py`:
 
 ```jsonc
 "agent": {
@@ -163,7 +163,7 @@ own layout without mutating the shared Surface or affecting other chats.
 ## Built-in surfaces (seed)
 
 `standard` and `coding` ship as global, `builtin=True` surfaces seeded as **data**
-(`db/seed/surface_seed.py`). They are **code-owned**: their `config`/`name`/`icon` are re-synced
+(backend repo `src/personal_agent/db/seed/surface_seed.py`). They are **code-owned**: their `config`/`name`/`icon` are re-synced
 from the code on every boot (`seed_builtin_surfaces`), while `id`/`slug`/`enabled`/`scope` are
 left alone. An admin who wants a tweaked coding mode should **clone** it into a user/global
 surface rather than edit the builtin — the re-sync would overwrite an edit.
@@ -177,7 +177,7 @@ be `if mode == "coding"` derives from those declarations.
 
 An integration contributes surfaces the same way it contributes delegatable agents: it overrides
 `surfaces()` to return a map of stable keys → `SurfaceDescriptor`
-(`services/api/src/personal_agent/integrations/integration.py`):
+(backend repo `src/personal_agent/integrations/integration.py`):
 
 ```python
 @dataclass(frozen=True)
@@ -189,7 +189,7 @@ class SurfaceDescriptor:
     show_in_nav: bool = False
 ```
 
-On config-entry setup, `_project_surfaces` (`integrations/contrib.py`) projects each descriptor
+On config-entry setup, `_project_surfaces` (backend repo `src/personal_agent/integrations/contrib.py`) projects each descriptor
 into the `surfaces` table:
 
 - the slug becomes `<domain>-<key>` (via `surface_slugify`);
@@ -203,7 +203,7 @@ with a row owned by a *different* domain is logged and skipped.
 
 ### Example: the TradingView surface
 
-`integrations/tradingview/__init__.py` is the reference second example (after coding). It
+`integrations/tradingview/__init__.py` (backend repo) is the reference second example (after coding). It
 contributes a surface that is **chat beside a live chart**, with the chart rendered through the
 generic `iframe` card inside a `cards` region — *not* a bespoke view type:
 
@@ -234,9 +234,9 @@ The integration also contributes a delegatable agent gated to the surface via
 ## The card model
 
 A `cards` region holds Home Assistant Lovelace cards — a faithful port unchanged by surfaces. The
-config shapes are in `apps/web/src/lib/dashboard/types.ts`; the type → component map, picker
+config shapes are in the frontend repo at `src/lib/dashboard/types.ts`; the type → component map, picker
 metadata, config schemas and stub configs are in
-`apps/web/src/components/dashboard/card-registry.ts`.
+`src/components/dashboard/card-registry.ts`.
 
 ### Adding a card type
 
@@ -263,7 +263,7 @@ cards (`area`, `device`), and container/conditional cards (`vertical-stack`, `ho
 ### Conditions (visibility)
 
 Every `DashboardCard`, `BadgeConfig` and `SectionConfig` may carry a `visibility: Condition[]`.
-The engine is `apps/web/src/lib/dashboard/conditions.ts`, a port of HA's condition validator. The
+The engine is the frontend repo `src/lib/dashboard/conditions.ts`, a port of HA's condition validator. The
 top level is an **AND** (all must hold). Supported conditions:
 
 | `condition` | Fields | Holds when |
@@ -302,7 +302,7 @@ Any action may carry `confirmation` (a `boolean` or `{ text? }`) to require a co
 ## Strategies (generated layouts)
 
 A dashboard, view, or section can be **generated** instead of static via a `strategy` block
-(`config.strategy = { type, … }`). `apps/web/src/lib/dashboard/strategies.ts` ports HA's
+(`config.strategy = { type, … }`). The frontend repo `src/lib/dashboard/strategies.ts` ports HA's
 `original-states` and `areas` generators against Personal Agent entities/areas:
 
 - `original-states` — one `sections` view, one section per entity domain.
@@ -326,13 +326,13 @@ changes.
 
 | Concern | Where |
 | --- | --- |
-| Surface model | `services/api/src/personal_agent/db/models/surface.py` |
-| Surface repo | `services/api/src/personal_agent/db/repositories/surface_repo.py` |
-| Surface resolver + overlay helpers | `services/api/src/personal_agent/agent/surface_resolver.py` |
-| Builtin seed | `services/api/src/personal_agent/db/seed/surface_seed.py` |
-| Integration contribution | `integrations/integration.py` (`SurfaceDescriptor`, `surfaces()`), `integrations/contrib.py` (`_project_surfaces`) |
-| Layout / regions | `apps/web/src/components/surfaces/SurfaceLayout.vue`, `surface-view-registry.ts` |
-| Frontend types | `apps/web/src/stores/surfaces.ts`, `apps/web/src/lib/dashboard/types.ts` |
-| Card registry | `apps/web/src/components/dashboard/card-registry.ts` |
-| Conditions / strategies | `apps/web/src/lib/dashboard/conditions.ts`, `strategies.ts` |
+| Surface model | backend repo `src/personal_agent/db/models/surface.py` |
+| Surface repo | backend repo `src/personal_agent/db/repositories/surface_repo.py` |
+| Surface resolver + overlay helpers | backend repo `src/personal_agent/agent/surface_resolver.py` |
+| Builtin seed | backend repo `src/personal_agent/db/seed/surface_seed.py` |
+| Integration contribution | backend repo `src/personal_agent/integrations/integration.py` (`SurfaceDescriptor`, `surfaces()`), `src/personal_agent/integrations/contrib.py` (`_project_surfaces`) |
+| Layout / regions | frontend repo `src/components/surfaces/SurfaceLayout.vue`, `surface-view-registry.ts` |
+| Frontend types | frontend repo `src/stores/surfaces.ts`, `src/lib/dashboard/types.ts` |
+| Card registry | frontend repo `src/components/dashboard/card-registry.ts` |
+| Conditions / strategies | frontend repo `src/lib/dashboard/conditions.ts`, `strategies.ts` |
 | Design doc | [`docs/design/surfaces.md`](../design/surfaces.md) |

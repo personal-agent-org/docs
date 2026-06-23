@@ -11,17 +11,17 @@ it, so it can be picked up later.
 A run started interactively executes **inline** (an asyncio task in the FastAPI process,
 streamed over SSE). There, `ToolsetAssembler.assemble()` reads `chat.run_config["devices"]`,
 fetches the owned + **online** devices, and appends a `build_device_toolset(...)` per device
-(`backend/src/personal_agent/agent/device_toolset.py`). Each tool call goes through
+(`src/personal_agent/agent/device_toolset.py`). Each tool call goes through
 `agent/device_policy.gate_device_call` (autonomous / allow-rule / judge / human approval) and
 dispatches over the in-process `DeviceGateway` (`realtime/device_gateway.py`).
 
 ## What's missing (durable)
 
-A **durable** run executes as a Temporal workflow in `worker/`. Per Frozen Contract #6, the
-durable path does NOT query live DB state mid-run — toolsets are **snapshotted** into
-`RunSpec.toolsets` (`packages/personal-agent-contracts/.../runspec.py` `ToolsetSnapshot`) at start and
+A **durable** run executes as a Temporal workflow in `src/personal_agent/worker/`. Per Frozen Contract #6, the
+durable path does NOT query live DB state mid-run - toolsets are **snapshotted** into
+`RunSpec.toolsets` (`src/personal_agent/contracts/runspec.py` `ToolsetSnapshot`) at start and
 the worker rebuilds them from the snapshot via `DynamicToolset`s
-(`worker/src/personal_agent_worker/integration_toolsets.py`, registered in `agents.py`).
+(`src/personal_agent/worker/integration_toolsets.py`, registered in `agents.py`).
 
 **Device tools are not in that snapshot**, so a durable run with a device selected silently has
 no device tools. This only happens when a user sends a chat run **"in the background"** with a
@@ -33,21 +33,21 @@ untrusted content), so there is no functional regression, just an unsupported ed
 1. **Snapshot** — `runspec.py`: add `DeviceSnapshot(BaseModel, frozen)` with
    `device_id: str` + `announced_tools: dict` (frozen JSON schemas, Contract #6) and
    `ToolsetSnapshot.devices: tuple[DeviceSnapshot, ...] = ()`. Fill it in
-   `backend/src/personal_agent/api/routers/runs.py::_integration_snapshot` (mirror the integration snapshot):
+   `src/personal_agent/api/routers/runs.py::_integration_snapshot` (mirror the integration snapshot):
    for each owned **online** device in `cfg["devices"]`, freeze its `announced_tools`.
 
-2. **Deps** — `backend/src/personal_agent/agent/deps.py`: add `device_ids: list[str] = []` to
+2. **Deps** - `src/personal_agent/agent/deps.py`: add `device_ids: list[str] = []` to
    `PersonalAgentDeps` (set on the durable path alongside `integration_entry_ids`).
 
-3. **Worker toolset** — `worker/src/personal_agent_worker/integration_toolsets.py`: add
+3. **Worker toolset** - `src/personal_agent/worker/integration_toolsets.py`: add
    `device_dynamic_toolset()` (mirror `integration_dynamic_toolset`) whose in-activity `_build`
    rebuilds `build_device_toolset(...)` from the **snapshot** (NOT a live DB query — use the
    frozen `announced_tools`; construct a lightweight device-like object carrying id + name +
    policy_mode + announced_tools, fetched once in-activity by id is acceptable since the
    activity may do I/O, but prefer the snapshot for the tool schemas). Register it in
-   `worker/src/personal_agent_worker/agents.py` alongside the other dynamic toolsets.
+   `src/personal_agent/worker/agents.py` alongside the other dynamic toolsets.
 
-4. **Worker gateway + gate** — the worker holds **no** device WS connections (those live on the
+4. **Worker gateway + gate** - the worker holds **no** device WS connections (those live on the
    API pods), so the worker needs its own `DeviceGateway(redis, pubsub_redis, pod_id)` instance
    (wire it in the worker's resource bootstrap). `dispatch` will always take the **cross-pod**
    path (`_dispatch_remote`): publish on `personal_agent:device:<id>:rpc`, the API pod holding the WS

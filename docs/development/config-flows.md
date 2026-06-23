@@ -22,9 +22,10 @@ handling, single- vs multi-step flows, reconfigure, and i18n.
 | `integrations/flow_store.py` | Redis-backed flow state (multi-replica safe) |
 | `integrations/translations.py` | Server-side i18n resolution of label/error keys |
 
-The above paths are under `services/api/src/personal_agent/integrations/`. The
-integration folders themselves (`config_flow.py`, `manifest.yaml`,
-`translations/<lang>.json`) live at the repo root under `integrations/<domain>/`.
+The above paths are under `src/personal_agent/integrations/` in the backend repo
+(`personal-agent-org/backend`). The integration folders themselves (`config_flow.py`,
+`manifest.yaml`, `translations/<lang>.json`) live in that same repo under
+`integrations/<domain>/`.
 
 !!! note "Manifest opt-in"
     A flow only runs if the integration's `manifest.yaml` sets `config_flow: true`.

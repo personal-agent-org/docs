@@ -1,7 +1,7 @@
 # TUI ↔ Web feature parity
 
-Comparison of the Rust terminal client (`clients/tui/`) against the Quasar/Vue web app
-(`apps/web/`), plus a prioritised roadmap to close the gaps. Snapshot: 2026-06-15.
+Comparison of the Rust terminal client (`personal-agent-org/tui`) against the Quasar/Vue web app
+(`personal-agent-org/frontend`), plus a prioritised roadmap to close the gaps. Snapshot: 2026-06-15.
 
 > **Update 2026-06-15 (commit b1c1bc2):** P1 partially shipped — TUI now has a security-mode
 > picker (F7 / `/security`) and the `/main`, `/rename`, `/summarize`, `/proofread` commands.

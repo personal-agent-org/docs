@@ -93,7 +93,7 @@ found devices to the backend, and that feeds **discovery-source config flows** (
 manifest regains the discovery vectors we intentionally omitted (zeroconf/bluetooth/…), scoped to
 "announced by a device-agent on the user's network."
 
-**Reuses:** `clients/device-agent/` + the device WS gateway, the config-flow manager (add a
+**Reuses:** the `personal-agent-org/device-agent` repo + the device WS gateway, the config-flow manager (add a
 discovery-initiated entry path), the manifest schema.
 **New:** discovery vectors in the manifest, a device-agent discovery reporter, a discovery →
 config-flow intake (dedupe by a stable unique id).

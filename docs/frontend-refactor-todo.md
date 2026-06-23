@@ -1,6 +1,6 @@
 # Frontend refactoring — remaining work
 
-Status of the `apps/web` (Vue 3 / Quasar / TS) clean-up that followed the bad-practices /
+Status of the frontend SPA (Vue 3 / Quasar / TS) clean-up that followed the bad-practices /
 dead-code / duplication audit. This doc captures **what is left**, the recommended approach,
 and — importantly — the findings that were **verified as non-issues** so they are not
 re-investigated later.
@@ -11,9 +11,9 @@ God-component decomposition is done as **behaviour-preserving extraction** into 
 child components, each verified by the existing gate:
 
 ```
-pnpm --dir apps/web lint        # eslint (type-aware)
-pnpm --dir apps/web exec vue-tsc --noEmit -p tsconfig.json   # incl. template bindings
-pnpm --dir apps/web exec vitest run
+pnpm lint        # eslint (type-aware)
+pnpm exec vue-tsc --noEmit -p tsconfig.json   # incl. template bindings
+pnpm exec vitest run
 ```
 
 `vue-tsc` type-checks template bindings, so a missing composable return surfaces as a compile

@@ -640,11 +640,11 @@ i18n `worldMemory.*` (de+en).
 
 ## 15. Kritische Dateien & Pattern
 
-**Contracts** `…/personal_agent_contracts/world_memory.py` (`ConfigDict(frozen=True)`, `StrEnum`; offen `str` für Kinds/Prädikate)
+**Contracts** `…/personal_agent/contracts/world_memory.py` (`ConfigDict(frozen=True)`, `StrEnum`; offen `str` für Kinds/Prädikate)
 **DB** `db/models/world_memory.py` · Migration Stil `f7a8b9c0d1e2_memory_entries.py` (RLS `:54-59`, HNSW `:50-53`) · `db/repositories/world_*_repo.py` (Muster `memory_repo.py`)
 **Curator/Tools/Context** `curator/{service,validator,committer,linker}.py` · `curator/prompts/curator.md` · `agent/world_memory_toolset.py` (Reg. `assembler/assembler.py:137`) · `agent/world_context.py` · `instructions.py:28-101` + `service.py:436-516` · `agent/resolver.py:72-155`
 **Feeder/Kausalität** `entities/sync_runner.py` · `integrations/entities.py:97/139` (+`RelationTypeDescriptor`) · `comms/triage_service.py` · `run.py:42-57` · `audit.py`
-**Worker** `services/worker/.../workflows.py:~97` (Trigger; Child-Pattern `automation_workflow.py:33-43`) · `entrypoint.py:55-83` · `activities.py:79-153` · `activities/curator.py`
+**Worker** `src/personal_agent/worker/workflows.py:~97` (Trigger; Child-Pattern `automation_workflow.py:33-43`) · `entrypoint.py:55-83` · `activities.py:79-153` · `activities/curator.py`
 **Frontend** `pages/WorldMemoryPage.vue` · `pages/EntityDetailPage.vue` · `components/memory/{CausalTrace,NeighborhoodGraph,AsOfBar}.vue` (Governance via Main-Chat/Proactive, keine Inbox-Page) · `stores/world.ts` · `wsClient.ts`(+`onMemoryCommitted`) · `MainLayout.vue` · `router/routes.ts` · `i18n/{en,de}` · Rewire `Entities/Contact/Agenda/Logbook` · `package.json`(+`@vue-flow/core`)
 
 ---
@@ -659,7 +659,7 @@ Pro Phase `uv run pytest -q` (lokales PG+Redis). Zusätzlich:
 5. **P3:** Folgemessage referenziert gespeicherte Zeit; kein user-model-refresh; Korrektur löst Chat-Hinweis aus, neues Learning still.
 6. **P3/P4:** Adapter-Smoke-Tests (Contact/Commitment/Sync/Triage/Proactive/Automation) grün gegen die Fassade → dann Drop-Migration; owner-GUC-RLS *fail-closed*.
 7. **P5 (Frontend):** Entity-Detail mit Provenienz+Supersede-Kette; **Main-Chat** Accept/Reject + Merge; As-Of-Zeitreise; lokaler+globaler Graph; Realtime.
-8. **Konformität:** `services/worker/tests/test_conformance.py` — Curator inline ≡ durable; Adapter Domain-API alt ≡ graph-backed.
+8. **Konformität:** `tests/worker/test_conformance.py` - Curator inline ≡ durable; Adapter Domain-API alt ≡ graph-backed.
 
 ---
 
@@ -753,7 +753,7 @@ Adapter, Drop ganz am Ende.
 und einzeln deploybar; das Risiko konzentriert sich nicht auf einen einzigen Cutover-Moment.
 
 **Tests:** Adapter-Konformität (Domain-API alt ≡ graph-backed) je Subsystem; Conformance
-(`services/worker/tests/test_conformance.py`) Curator inline ≡ durable; owner-GUC-RLS *fail-closed* (unset → kein Zugriff).
+(`tests/worker/test_conformance.py`) Curator inline ≡ durable; owner-GUC-RLS *fail-closed* (unset → kein Zugriff).
 
 ---
 
