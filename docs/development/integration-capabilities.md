@@ -484,6 +484,33 @@ resolution entry (inline, durable, workflows, comms).
 | 1 | `regulated` | compliant external (DPA/EU/no-train) |
 | 2 | `internal` | own / on-prem — cleared for the most-sensitive data |
 
+## 11. Model providers
+
+```python
+def model_providers(self) -> dict[str, ProviderSpec]:
+    return {"openai": ProviderSpec("openai", "OpenAI", "openai.OpenAIChatModel",
+                                   ("gpt-4o", "gpt-4o-mini"))}
+```
+
+A static declaration (no `ctx`) that contributes one or more LLM providers to the
+**catalog** the admin Providers page configures. There is no hardcoded catalog: the
+`ProviderRegistry` builds it from the merged `model_providers()` of every discovered
+integration, then overlays the admin-managed keys / base-urls from the
+`platform_provider` table. The bundled `integrations/<id>/` folders ship the generic
+vendor providers (openai, anthropic, google, groq, mistral, bedrock, cohere,
+huggingface, openrouter, deepseek, xai, cerebras, ollama, ollama_cloud,
+openai_compatible); a deployment adds its own (a self-hosted endpoint, a bundled voice
+server) by dropping in another provider integration or defining a custom provider in
+the admin UI.
+
+| `ProviderSpec` field | Provides |
+| --- | --- |
+| `id`, `label` | the provider id (catalog key) + its display name |
+| `model_class_path` | the pydantic-ai model class (e.g. `openai.OpenAIChatModel`, `anthropic.AnthropicModel`) |
+| `known_models` | curated names for the picker (live models are discovered from the provider API) |
+| `openai_compatible`, `base_url`, `requires_base_url` | OpenAI-compatible endpoint wiring |
+| `keyless` | a local backend reachable at a `base_url` with no credential |
+
 ## Manifest reference
 
 The non-capability `manifest.yaml` keys that shape discovery and the UI:

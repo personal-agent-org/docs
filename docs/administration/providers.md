@@ -17,8 +17,11 @@ fetched from the provider API. Toggle which models users may pick.*
 ## Adding a provider
 
 Click `Add provider` and pick one from the menu. The picker lists every
-provider from the static catalog that isn't configured yet, plus a
-**Custom provider (self-hosted)** option for a DB-defined endpoint.
+provider the platform knows about that isn't configured yet, plus a
+**Custom provider (self-hosted)** option for a DB-defined endpoint. The known
+providers are not a hardcoded list: each ships as a bundled integration
+(`integrations/<id>/`, declaring a `model_providers()` capability), so a
+deployment can add or drop providers by adding or removing an integration.
 
 The add dialog asks for:
 
