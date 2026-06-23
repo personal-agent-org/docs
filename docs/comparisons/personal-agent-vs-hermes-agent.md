@@ -318,7 +318,7 @@ deny-by-default Gateway-Allowlists.
 | Web-SPA | ✓ (Quasar/Vue 3, PWA) | ✓ (React/Vite) |
 | Terminal-UI (TUI) | ✓ (Rust/ratatui) | ✓ (Ink/React + tui_gateway) |
 | Klassische CLI | ◑ | ✓ (prompt_toolkit) |
-| Desktop-App | ◑ (Electron, experimentell) | ✓ (Electron + React, `apps/desktop`) |
+| Desktop-App | ◑ (Electron, experimentell) | ✓ (Tauri, eigenes Repo `personal-agent-org/desktop`) |
 | Android-App | ◑ (experimentell, Companion) | ◑ (via Termux) |
 | Browser-Extension | ✓ (Chrome MV3, Device) | ◑ (Browser-Automation, nicht als Client) |
 | Device-Agent (Rust, jailed) | ✓ | ✗ |

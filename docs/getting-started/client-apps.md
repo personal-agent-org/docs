@@ -6,18 +6,19 @@ are for **building your own** against your instance.
 
 ## Desktop app (Tauri)
 
-The desktop shell wraps your live SPA and is configured at build time (`personal-agent-desktop/`):
+The desktop app is a native Tauri v2 shell (Linux) that loads your live SPA. It lives in its
+own repository,
+[`personal-agent-org/desktop`](https://github.com/personal-agent-org/desktop). You enter your
+**Server URL** on first launch and can change it later from the tray. It surfaces background
+pushes as native OS notifications and keeps the SPA's in-window Keycloak login.
+
+Build it with the repo's Docker image (produces an AppImage + `.deb`):
 
 ```bash
-docker build personal-agent-desktop \
-  --build-arg PA_APP_URL=https://app.example.com \
-  --build-arg TAURI_IDENTIFIER=com.example.personalagent.desktop \
-  -t personal-agent-desktop
+docker build -t personal-agent-desktop .
 ```
 
-`PA_APP_URL` (defaults to `http://localhost:9000`) is your SPA's public origin; the navigation
-allowlist and the Tauri `remote.urls` capability derive from it. See
-`personal-agent-desktop/README.md` for the full build-arg table.
+See the repo's `README.md` for the build details and the optional `TAURI_IDENTIFIER` build-arg.
 
 ## Browser extension
 
