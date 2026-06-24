@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/logo.svg" alt="Personal Agent" width="128" />
+</p>
+
 # Personal Agent docs
 
 The MkDocs Material documentation site for [Personal Agent](https://personal-agent.org).
