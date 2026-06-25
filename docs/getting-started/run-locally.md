@@ -13,6 +13,9 @@ and the SPA from `personal-agent-org/frontend`. Clone the ones you need.
 - [`uv`](https://docs.astral.sh/uv/), and either Docker or a local
   Postgres + pgvector and Redis.
 - [`just`](https://github.com/casey/just) — the dev task runner.
+- For the frontend: [Node.js](https://nodejs.org/) 22+ and
+  [`pnpm`](https://pnpm.io/) — e.g. `corepack enable pnpm` (bundled with Node),
+  or `brew install pnpm` / `npm install -g pnpm`.
 
 ## Bring up the stack
 
