@@ -18,12 +18,18 @@ Linux, macOS and Windows.
    connects **outbound**, so it works behind NAT without opening any ports.
 3. The device appears in the list as **online**, along with the tools it offers.
 
-Prefer to do it by hand? **Download the binary** for your operating system instead of the
-one-liner, then run `enroll` (it signs you in via the device flow) followed by `run`. The saved
-`pcs_…` credential is device-bound and accepted only by the capability WebSocket and explicit
-Computer Service endpoints. It cannot access chats, runs, settings, or the general user API. No
-user access or refresh token is persisted. Re-enrollment rotates the credential; removing the
-device revokes it.
+Prefer to do it by hand? **Download the `pacs` binary** for your operating system instead of the
+one-liner, then run `pacs enroll` (it signs you in via the device flow) followed by `pacs run`.
+The saved `pcs_…` credential is device-bound and accepted only by the capability WebSocket and
+explicit Computer Service endpoints. It cannot access chats, runs, settings, or the general user
+API. No user access or refresh token is persisted. Re-enrollment rotates the credential; removing
+the device revokes it.
+
+`pacs` writes per-user configuration to
+`~/.config/personal-agent/computer-service/config.toml`. On Unix it also reads
+`/etc/personal-agent/computer-service/config.toml` when the per-user file is absent; the per-user
+file always has priority. Desktop/TUI configuration remains per-user only under
+`~/.config/personal-agent/desktop/`.
 
 !!! note "Device safety is per chat"
     A device no longer carries its own rules — what Computer Service may do on it is governed by the

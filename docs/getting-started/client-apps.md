@@ -65,6 +65,9 @@ pa login --server https://pa.example.com
 pa
 ```
 
+The desktop and TUI keep their per-user files under `~/.config/personal-agent/desktop/`; they do
+not load system-wide configuration from `/etc`.
+
 The backend advertises either its local device grant or the external provider's discovered device
 grant. Login acts *as the user* without a client secret. Unlike Computer Service,
 `pa` is a chat client and never announces tools, sensors, or host capabilities to the backend.
@@ -72,6 +75,10 @@ The desktop offers Computer Service setup under Settings; the TUI offers
 `/computer-service [device name]`. Both launch a separate one-time service enrollment after the
 client has restored its normal UI/terminal state, and neither shares its chat token with the
 running service.
+
+The installed Computer Service executable is `pacs`. Its per-user configuration is
+`~/.config/personal-agent/computer-service/config.toml`. On Unix, `pacs` falls back to
+`/etc/personal-agent/computer-service/config.toml` only when no per-user configuration exists.
 
 ## Use this assistant from other tools (MCP)
 
