@@ -1,35 +1,93 @@
-name: Docs
+name: Website
 
 on:
   push:
     branches: [main]
+    tags: ["v*"]
     paths:
       - docs/**
-      - mkdocs.yml
+      - src/**
+      - Containerfile
+      - deploy/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - quasar.config.ts
       - .github/workflows/docs.yml
-  # Allow building/previewing the site on PRs that touch the docs.
   pull_request:
     paths:
       - docs/**
-      - mkdocs.yml
+      - src/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - quasar.config.ts
       - .github/workflows/docs.yml
   workflow_dispatch:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
-  group: docs-${{ github.ref }}
+  group: website-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: build (mkdocs --strict)
+  check:
+    name: lint, types, and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
         with:
-          enable-cache: true
-      - name: Build site
-        run: uv run --group docs mkdocs build --strict
+          version: 10.30.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  container:
+    name: publish container
+    needs: check
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate CalVer tag
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]{4}\.(0?[1-9]|1[0-2])\.(0?[1-9]|[12][0-9]|3[01])(\.[0-9]+)?$ ]]; then
+            echo "Release tags must use CalVer: vYYYY.M.D or vYYYY.M.D.N"
+            exit 1
+          fi
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/personal-agent-org/website
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+            type=ref,event=tag
+            type=match,pattern=^v(.*)$,group=1
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Containerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

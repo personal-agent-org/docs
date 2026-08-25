@@ -1,23 +1,26 @@
-# Personal Agent documentation site (MkDocs Material). `just` lists recipes.
+# Personal Agent public website. `just` lists recipes.
 set shell := ["bash", "-c"]
 
 default:
     @just --list
 
 setup:
-    uv sync --group docs
+    pnpm install
     command -v prek >/dev/null && prek install && prek install --hook-type commit-msg || echo "prek not installed (uv tool install prek)"
 
-# Live preview at http://127.0.0.1:8000
+# Live preview at http://127.0.0.1:9000
 serve:
-    uv run --group docs mkdocs serve
+    pnpm dev
 
-# Build the static site (strict) -> site/
 build:
-    uv run --group docs mkdocs build --strict
+    pnpm build
+
+typecheck:
+    pnpm typecheck
 
 hooks:
     prek run --all-files
 
 # Pre-PR gate
-check: build
+check:
+    pnpm check
