@@ -7,23 +7,26 @@ picker.
 
 ## Connect a computer
 
-A connected computer runs a small, secure **device agent** that gives the assistant a
+A connected computer runs the small, secure **Computer Service** that gives the assistant a
 **jailed filesystem and terminal** — the foundation of [coding mode](coding.md). It runs on
 Linux, macOS and Windows.
 
 1. **Settings → Devices → Connect** and give the device a name.
-2. Run the **one-liner** it shows you on that machine. It downloads the agent, signs in
-   through your normal browser login (no token to copy and paste), and starts it. The agent
+2. Run the **one-liner** it shows you on that machine. It downloads Computer Service, verifies
+   ownership through your normal browser login, exchanges that login for a dedicated service
+   token, and starts it. The service
    connects **outbound**, so it works behind NAT without opening any ports.
 3. The device appears in the list as **online**, along with the tools it offers.
 
 Prefer to do it by hand? **Download the binary** for your operating system instead of the
-one-liner, then run `enroll` (it signs you in via the device flow) followed by `run`. There
-is no per-device secret to manage: the agent logs in as you over OIDC, so to revoke access you
-**remove** the device (which deletes it) and re-connect.
+one-liner, then run `enroll` (it signs you in via the device flow) followed by `run`. The saved
+`pcs_…` credential is device-bound and accepted only by the capability WebSocket and explicit
+Computer Service endpoints. It cannot access chats, runs, settings, or the general user API. No
+user access or refresh token is persisted. Re-enrollment rotates the credential; removing the
+device revokes it.
 
 !!! note "Device safety is per chat"
-    A device no longer carries its own rules — what the agent may do on it is governed by the
+    A device no longer carries its own rules — what Computer Service may do on it is governed by the
     chat's [security mode](chat-controls.md#security-mode) (Autonomous / Approve each /
     Judge). You can grant **permanent allowances** for specific commands so they run without
     asking, while everything else still respects the chat's mode.

@@ -189,6 +189,6 @@ nav:
       - TUI ↔ web parity: tui-web-parity.md
       - Implementation plan: implementation-plan.md
       - Sub-agents (durable): subagents-durable-followup.md
-      - Device agents (durable): device-agents-durable-followup.md
+      - Computer Service (durable): computer-service-durable-followup.md
       - Android app plan: personal-agent-android-app-plan.md
       - Android expansion plan: personal-agent-android-expansion-plan.md

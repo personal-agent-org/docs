@@ -13,7 +13,7 @@
     gets the device tools, dispatched cross-pod over Redis. See the section below for the live
     wiring.
 
-Device agents (the per-user Linux machines that announce coding tools) are fully wired for
+Computer Service instances (the per-user Linux machines that announce coding tools) are fully wired for
 **inline** chat runs - registry, WS connectivity, the device toolset, the approval/policy
 gate, and the global tool guard all work and are deployed. This document originally recorded
 the one remaining gap (durable runs) and how to close it; that gap is now closed.

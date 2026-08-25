@@ -300,7 +300,7 @@ stops once all three are filled. The resolved `WebProviders` then back the
 Compute precedence is the same shape: `SandboxService` picks the first applicable
 integration offering a `compute_provider` (`agent/sandbox/service.py`), else the
 admin-default built-in (`settings.sandbox.provider`, default `docker`). A
-`ComputeProvider` starts a compute unit running the device-agent with the four `PA_*`
+`ComputeProvider` starts a compute unit running the Computer Service with the four `PA_*`
 env vars; `ComputeSpec` describes what to start and `ComputeHandle` what was started
 (its `provider` id + native `handle`). Tavily is the worked search example; Hetzner /
 AWS are the compute examples.

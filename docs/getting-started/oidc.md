@@ -15,7 +15,7 @@ imported, see the realm-import steps for [Docker](docker.md#keycloak-realm) and
 ## 1. How authentication works
 
 - The browser/app logs in against your IdP with **authorization-code + PKCE** (public clients, no
-  secret). Headless clients (the device agent, MCP) use the **device authorization grant**.
+  secret). Headless clients (`pa`, Computer Service enrollment, MCP) use the **device authorization grant**.
 - The client receives an **access token** audienced to the API and sends it as a
   `Authorization: Bearer …` header (for WebSockets, via the `Sec-WebSocket-Protocol` subprotocol —
   never a query string).
@@ -79,15 +79,16 @@ issuer (via the `OIDC_ISSUER` Compose alias) and leave the rest at their default
 | `PERSONAL_AGENT__OIDC__JWKS_CACHE_SECONDS` | `300` | JWKS cache TTL. |
 | `PERSONAL_AGENT__OIDC__ORG_HEADER` | `X-Personal-Agent-Org` | Header the SPA sends to select the active org. |
 
-The Compose `.env` exposes the common ones as plain knobs — `OIDC_ISSUER` (feeds both the backend
-issuer and the SPA's `PA_OIDC_AUTHORITY`), `KEYCLOAK_ORIGIN`, `REALM`, `PA_OIDC_CLIENT_ID`. See the
+The Compose `.env` exposes the common backend knobs — `OIDC_ISSUER`, `KEYCLOAK_ORIGIN` and `REALM`.
+The SPA discovers issuer and client id from the backend. See the
 [Configuration reference](configuration.md#environment-variables).
 
 !!! note "Client bootstrap endpoint"
-    Thin clients don't need to be told the issuer or client ids: the backend serves the non-secret
-    set unauthenticated at `GET /api/v1/public/client-config` (`oidc_issuer`, `oidc_audience`,
-    `spa_client_id`, `browser_client_id`, `android_client_id`), so the operator configures OIDC once
-    on the server.
+    Thin clients need only the server URL. The backend serves the non-secret authentication
+    contract unauthenticated at `GET /api/v1/public/client-config`: auth mode, client ids and the
+    device authorization/token endpoints. In external-OIDC mode those endpoints come from OIDC
+    Discovery; in local mode they point at the backend's RFC 8628 implementation. Clients reject
+    incomplete discovery rather than deriving provider-specific URLs.
 
 ---
 
@@ -109,7 +110,7 @@ The realm `personal-agent` defines one resource server plus a public client per 
 | --- | --- | --- | --- |
 | `personal-agent-api` | bearer-only (confidential) | — (validates tokens) | the FastAPI backend — **this is the audience** |
 | `personal-agent-spa` | public, PKCE S256 | auth-code | the web SPA |
-| `personal-agent-device` | public | **device grant** | the Rust device agent (headless) |
+| `personal-agent-device` | public | **device grant** | `pa` login and one-time Computer Service ownership verification |
 | `personal-agent-browser` | public, PKCE S256 | auth-code | the browser extension |
 | `personal-agent-app` | public, PKCE S256 | auth-code | the Android shell (custom redirect scheme) |
 | `personal-agent-mcp` | public, PKCE S256 | auth-code **and** device grant | external MCP clients (Claude, Cursor, …) |
@@ -194,7 +195,7 @@ Provider notes:
   `organization` and `groups` directly, and supports the device flow.
 - **Auth0 / Okta / Entra ID** use API audiences + RBAC; add a rule/action/claim-mapping that writes
   the nested `realm_access.roles` (and, for multi-tenant, `organization`). Confirm device-flow
-  support if you use the device agent or MCP.
+  support if you use the Computer Service or MCP.
 - **Google** can sign users in (PKCE + device flow) but emits no roles/groups/org claims — fine for
   a single-user instance where you don't need the admin UI or sharing.
 

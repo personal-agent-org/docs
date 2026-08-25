@@ -24,7 +24,7 @@ while writes to the workspace are serialized so they can't race each other.
 
 The first time you send a message in a coding chat, the workspace asks **where to work**:
 
-- **My device** — a [connected computer](devices.md) running the device agent; or
+- **My device** — a [connected computer](devices.md) running the Computer Service; or
 - **Cloud sandbox** — a disposable, zero-setup environment in the cloud.
 
 …and **which project**: an **existing** folder, a **new** one, or a clone **from Git** (a

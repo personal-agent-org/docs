@@ -26,7 +26,7 @@ from `compose/.env.example`):
 | `APP_ORIGIN` | `https://app.example.com` | The app's public origin (SPA + API as seen by a browser / device). Sets `PERSONAL_AGENT__PUBLIC_BASE_URL`. |
 | `KEYCLOAK_ORIGIN` | `https://id.example.com` | Keycloak base URL. |
 | `REALM` | `personal-agent` | Keycloak realm name. |
-| `OIDC_ISSUER` | `https://id.example.com/realms/personal-agent` | The OIDC issuer = `${KEYCLOAK_ORIGIN}/realms/${REALM}`. Compose does **not** expand variables inside `.env`, so write the full value. Sets `PERSONAL_AGENT__OIDC__ISSUER` (backend) and `PA_OIDC_AUTHORITY` (SPA). |
+| `OIDC_ISSUER` | `https://id.example.com/realms/personal-agent` | External OIDC issuer configured on the backend. The backend publishes its discovered client contract to every frontend. |
 | `CORS_ORIGINS` | `["https://app.example.com"]` | JSON array of allowed browser origins. Usually just the app origin. Sets `PERSONAL_AGENT__SECURITY__CORS_ORIGINS`. |
 
 ### Secrets
@@ -42,7 +42,7 @@ Generate strong, unique values (e.g. `openssl rand -base64 32`):
 ### Same-origin defaults
 
 If the SPA, API, SSE and WebSocket are served from the **same origin** (the usual single-host
-reverse-proxy setup), you only need the OIDC issuer and the secrets — the browser derives the
+reverse-proxy setup), you only need the backend identity configuration and secrets — the browser uses
 API/SSE/WS bases from `window.location` at runtime. Set the `PA_*` overrides only if the API is on a
 **different** origin than the SPA:
 
@@ -52,7 +52,6 @@ API/SSE/WS bases from `window.location` at runtime. Set the `PA_*` overrides onl
 | `PA_SSE_BASE` | `<origin>/api/v1` | SSE on a different origin. |
 | `PA_WS_BASE` | `ws(s)://<origin>/api/v1` | WS on a different origin. |
 | `PA_APP_ORIGIN` | `<origin>` | Override the app origin used to build OIDC redirect URIs. |
-| `PA_OIDC_CLIENT_ID` | `personal-agent-spa` | The SPA's Keycloak public client id. |
 
 The backend config defaults are env-driven and need no changes — only the `.env` edge values above.
 
@@ -64,18 +63,18 @@ The frontend is **one static image** for every deployment. Runtime config is ren
 start by `compose/frontend-entrypoint.sh` (in the `personal-agent-org/deploy` repo), which writes `/config.js`
 (`window.__APRIL_CONFIG__`) from the environment and then runs nginx — no rebuild per environment.
 
-The only value the browser cannot derive on its own is the OIDC authority, so `PA_OIDC_AUTHORITY`
-(wired to `OIDC_ISSUER` in the Compose file) is **required**. When the `PA_API_BASE` / `PA_SSE_BASE`
-/ `PA_WS_BASE` / `PA_APP_ORIGIN` overrides are empty, the entrypoint emits JavaScript that derives
-same-origin values from `window.location`; the OIDC redirect URIs (`/auth/callback`, logout `/`) are
-derived the same way. So a single-host reverse-proxy deployment only needs the issuer.
+The SPA obtains authentication mode, external issuer and public client id from
+`GET /api/v1/public/client-config`. It has no identity-provider URL override or fallback. When the
+`PA_API_BASE` / `PA_SSE_BASE` / `PA_WS_BASE` / `PA_APP_ORIGIN` transport overrides are empty, the
+entrypoint uses same-origin values from `window.location`; the redirect paths remain part of the
+SPA itself.
 
 ---
 
 ## Public base URL & cloud sandboxes
 
 `PERSONAL_AGENT__PUBLIC_BASE_URL` (set from `APP_ORIGIN`) is the origin that on-demand **cloud
-coding/browser sandboxes** and **device agents** dial back to (and the SPA / browser-extension OIDC
+coding/browser sandboxes** and **Computer Service instances** dial back to (and the SPA / browser-extension OIDC
 bootstrap read it). It must be the externally reachable origin, not an internal service name; if
 unset, the backend falls back to the first `CORS_ORIGINS` entry.
 

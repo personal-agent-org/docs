@@ -16,8 +16,8 @@ Postgres+pgvector, Redis, Kubernetes/Compose.
 | **Postgres + pgvector** | Primary store + vector search. |
 | **Redis** | AG-UI token stream, control/presence pub/sub, rate limits. |
 | **Temporal** | Durable engine for runs, the Curator, and schedules. |
-| **device-agent** | `personal-agent-org/device-agent` (cross-platform Rust agent, jailed FS + PTY). |
-| **tui** | `personal-agent-org/tui` (Rust terminal client over the same HTTP/SSE API). |
+| **Computer Service** | `personal-agent-org/computer-service` (cross-platform Rust capability provider: tools, sensors, jailed FS + PTY; no chat access). |
+| **pa** | `personal-agent-org/pa` (desktop app and Rust terminal UI; pure chat clients over HTTP/SSE). |
 | **browser-sandbox** | `personal-agent-org/browser-sandbox` (Playwright cloud browser `browser` device). The Chrome/Firefox extension (the other `browser` device) is a separate repo, `personal-agent-org/browser-extension`. |
 
 Shared **contracts** (identity, run spec, bus record, AG-UI events, control
@@ -101,8 +101,8 @@ personal-agent-org/backend
 
 personal-agent-org/frontend       Quasar SPA + PWA (at the repo root)
 
-personal-agent-org/device-agent   Rust device agent (Linux/macOS/Windows)
-personal-agent-org/tui            Rust terminal client (TUI)
+personal-agent-org/computer-service   Rust capability provider (Linux/macOS/Windows)
+personal-agent-org/pa                 Desktop + terminal chat clients
 personal-agent-org/browser-sandbox  Playwright cloud browser device
 
 personal-agent-org/deploy

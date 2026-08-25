@@ -48,7 +48,7 @@ you can give them your own schedule, independent of the author's.
 
 - **Integrations** - extra [integration](integrations.md) tools the script may use, on top
   of the ambient web and built-in tools. Leave it empty for ambient tools only.
-- **Devices** - connected device agents (or your phone) whose tools it may use; they must
+- **Devices** - connected Computer Service instances (or your phone) whose tools it may use; they must
   be online when it runs.
 
 ### Triggers - what makes it run

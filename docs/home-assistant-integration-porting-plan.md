@@ -20,7 +20,7 @@
 - **"Port all" is the wrong target.** ~½ of HA assumes **local radio/serial hardware on the
   same host as the runtime** (Zigbee, Z‑Wave, Bluetooth, Matter/Thread, KNX, USB, serial). We
   run multi‑tenant in k8s/cloud — there is no LAN, no radio, no per‑tenant USB stick. Those need
-  a **local bridge** (the Rust device-agent) before they make any sense.
+  a **local bridge** (the Rust Computer Service) before they make any sense.
 - The **high‑value, directly‑portable slice is the cloud‑API integrations** (`cloud_polling` /
   `cloud_push`, ~500): REST/OAuth services with no local hardware (weather, calendars, transit,
   energy, media, package tracking, smart‑home *clouds*). These map cleanly onto our existing
@@ -117,7 +117,7 @@ Ordered by how much they unblock. Each is **additive** on the existing tier.
     statistics** (`entity_state_history` + `entity_state_statistics` roll-up), **§4.7 dependency extras**
     (`manifest.requirements_extra`), **§4.8 options/reauth/reconfigure** (`flow_manager` `flow_kind`),
     and **§4.9 integration-level actions** (`integrations/actions.py`). Still open: **§4.2 discovery**,
-    **§4.3 radio/serial**, **§4.5 device-agent LAN bridge** (the device-agent has no LAN/discovery
+    **§4.3 radio/serial**, **§4.5 Computer Service LAN bridge** (the Computer Service has no LAN/discovery
     runner yet), and the Phase-0 codegen harness (`tools/ha_port/` does not exist).
 
 ### 4.1 - OAuth2 / application‑credentials config flow  **(P0 - SHIPPED)**
@@ -166,7 +166,7 @@ target_temp, presets), `media_player` (transport state, source list, volume), `c
   (backward‑compatible).
 
 ### 4.5 — Device‑agent LAN bridge (the local tier’s enabler)  **(P2, gates Tier B+C)**
-The Rust device-agent (repo `personal-agent-org/device-agent`) already connects back over the device WS. Extend it into a
+The Rust Computer Service (repo `personal-agent-org/computer-service`) already connects back over the device WS. Extend it into a
 **LAN integration runner**: a slim host that the user runs at home, which (a) reaches local devices,
 (b) optionally hosts radio stacks (§4.3), (c) relays discovery (§4.2), and (d) runs the
 local‑transport half of a ported integration while the **config flow, entities, governance, and
