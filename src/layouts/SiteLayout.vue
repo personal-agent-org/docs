@@ -3,7 +3,7 @@
     <q-header class="site-header">
       <q-toolbar class="site-toolbar page-width">
         <router-link class="brand" to="/" aria-label="Personal Agent home">
-          <span class="brand-mark" aria-hidden="true">pa</span>
+          <img class="brand-logo" :src="logoUrl" alt="" width="34" height="34" />
           <span>Personal Agent</span>
         </router-link>
 
@@ -60,9 +60,10 @@
       <div class="page-width footer-grid">
         <div>
           <div class="brand footer-brand">
-            <span class="brand-mark">pa</span><span>Personal Agent</span>
+            <img class="brand-logo" :src="logoUrl" alt="" width="34" height="34" />
+            <span>Personal Agent</span>
           </div>
-          <p>Your agents. Your tools. Your data.</p>
+          <p>Your world, handled.</p>
         </div>
         <div>
           <strong>Explore</strong>
@@ -81,6 +82,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import logoUrl from '../../docs/assets/logo-header.svg?url';
 
 const drawerOpen = ref(false);
 </script>

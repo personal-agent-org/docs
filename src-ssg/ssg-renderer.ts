@@ -48,7 +48,6 @@ export const getSsgPages = defineSsgGetPages(async ({ ctx, parseVueRouterRoutes 
     route: `/marketplace/${item.slug}`,
     label: `marketplace: ${item.name}`,
   }));
-
   return [...ssgPages, ...documentation, ...marketplace];
 });
 

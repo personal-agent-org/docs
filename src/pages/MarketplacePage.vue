@@ -2,10 +2,10 @@
   <q-page class="page-width marketplace-page">
     <header class="page-hero compact">
       <span class="eyebrow">Marketplace</span>
-      <h1>Make Personal Agent yours.</h1>
+      <h1>Marketplace</h1>
       <p>
-        Discover agents, skills, integrations, and workflows. Every item runs with your permissions,
-        connections, and governance.
+        Browse agents, skills, integrations, and workflows. Adopted items run in your context with
+        your data classification, integrations, model, and governance.
       </p>
     </header>
 
