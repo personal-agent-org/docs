@@ -90,7 +90,7 @@ hide:
 
     ---
 
-    A cross-platform Rust device agent (Linux/macOS/Windows) hosting jailed workspaces
+    The cross-platform Rust Computer Service (Linux/macOS/Windows) hosting jailed workspaces
     (e.g. for coding), a real browser device (Chrome extension or on-demand cloud),
     your phone, and fire-and-review cloud coding tasks (sandbox → diff → PR).
 
@@ -119,8 +119,8 @@ hide:
 
     ---
 
-    A web SPA, Android and desktop shells, a Chrome extension, and a native Rust
-    terminal client (TUI) - all over the same HTTP/SSE API.
+    A web SPA, Android, and the native `pa` desktop + terminal chat clients. Desktop and TUI
+    share one repo and expose no host capabilities to the backend.
 
     [:octicons-arrow-right-24: Apps & clients](features/devices.md#native-apps)
 

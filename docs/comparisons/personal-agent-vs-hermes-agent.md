@@ -166,7 +166,7 @@ das an *jedem* Modell-Resolution-Entry (inline, durable, Workflows, Comms).
 |---|:---:|:---:|
 | First-Party-Tool-Bibliothek | ✓ | ✓ (50+ Core-Tools) |
 | Terminal / PTY-Ausführung | ✓ (Coding-Modus, jailed) | ✓ (`terminal_tool.py`) |
-| Mehrere Execution-Backends | ◑ (Device-Agent, Cloud-Sandbox) | ✓ (local/docker/SSH/Singularity/Modal/Daytona) |
+| Mehrere Execution-Backends | ◑ (Computer Service, Cloud-Sandbox) | ✓ (local/docker/SSH/Singularity/Modal/Daytona) |
 | Cloud-Sandbox on-demand | ✓ (Playwright) | ✓ (Modal/Daytona, near-zero idle) |
 | Browser-Automatisierung | ✓ (Extension + Playwright) | ✓ (Browserbase/agent-browser/Camofox) |
 | Code-Execution (Python/Shell/Node) | ✓ | ✓ (`code_execution_tool.py`) |
@@ -178,7 +178,7 @@ das an *jedem* Modell-Resolution-Entry (inline, durable, Workflows, Comms).
 
 Hermes hat die **breitere out-of-the-box Tool- und Backend-Palette** (sechs
 Terminal-Backends inkl. serverless Modal/Daytona, drei Browser-Engines, MoA).
-Personal Agent setzt auf ein **stärker abgesichertes** Modell: Device-Agent mit
+Personal Agent setzt auf ein **stärker abgesichertes** Modell: Computer Service mit
 jailed FS + PTY, Cloud-Sandbox, und Tool-Gating nach Provider-Tags +
 Untrusted-Content-Policy.
 
@@ -326,16 +326,16 @@ deny-by-default Gateway-Allowlists.
 | Web-SPA | ✓ (Quasar/Vue 3, PWA) | ✓ (React/Vite) |
 | Terminal-UI (TUI) | ✓ (Rust/ratatui) | ✓ (Ink/React + tui_gateway) |
 | Klassische CLI | ◑ | ✓ (prompt_toolkit) |
-| Desktop-App | ◑ (Tauri/WebKitGTK, eigenes Repo, experimentell) | ✓ (Tauri, eigenes Repo `personal-agent-org/desktop`) |
+| Desktop-App | ◑ (Tauri/WebKitGTK, mit TUI im `pa`-Repo, experimentell) | ✓ (Tauri, eigenes Repo) |
 | Android-App | ◑ (experimentell, Companion) | ◑ (via Termux) |
 | Browser-Extension | ✓ (Chrome MV3, Device) | ◑ (Browser-Automation, nicht als Client) |
-| Device-Agent (Rust, jailed) | ✓ | ✗ |
+| Computer Service (Rust, jailed) | ✓ | ✗ |
 | Eingebettetes Terminal im Web | ◑ (Coding-Modus) | ✓ (xterm.js + PTY-Bridge) |
 | Sprachen / i18n | i18n, EN-Quelle + DE (Weblate) | **16 Sprachen** |
 
 Hermes deckt **mehr Client-Formfaktoren von Haus aus produktiv ab** (CLI, TUI,
 Web, Desktop, Termux) und lokalisiert in 16 Sprachen. Personal Agent hat dafür
-den **Rust-Device-Agent** (jailed FS + PTY auf dem eigenen Rechner) und eine
+den **Rust-Computer Service** (jailed FS + PTY auf dem eigenen Rechner) und eine
 **Phone-Companion-App** mit Sensoren/Health/Location als echte Integration —
 Fähigkeiten, die Hermes so nicht bietet.
 

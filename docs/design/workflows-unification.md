@@ -28,7 +28,7 @@ Workflow {
   script,                                  # the sandboxed Monty Python body
   enabled, source, usage_meta,
   integrations: [config_entry_id],         # optional: integration tools the script may use
-  devices: [device_id | "phone:<id>"],     # optional: connected device-agent tools
+  devices: [device_id | "phone:<id>"],     # optional: connected Computer Service tools
   triggers: [ {kind: schedule|interval|webhook|manual|event|poll, config} ],
   condition?: HA-style (entity_state | entity_attribute | time | trigger)
 }
@@ -43,7 +43,7 @@ Workflow {
   event / poll, plus an optional HA-style **condition** (entity_state / entity_attribute /
   time / trigger). A triggered Workflow is the old "Automation."
 - **Integrations + devices** — a Workflow may scope which integration config-entries and
-  connected device-agents (plus the companion phone as `phone:<id>`) it may use, on top of
+  connected Computer Services (plus the companion phone as `phone:<id>`) it may use, on top of
   the ambient web + first-party tools.
 
 ## How a Workflow runs

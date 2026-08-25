@@ -2,16 +2,16 @@
 
 Optional native and companion clients that connect to your instance. The web app needs none of
 this: it runs in any browser. Ready-made downloads live under **Settings → App** (desktop, Android,
-browser extension, terminal client, plus the MCP server URL and access tokens). The desktop, Android
-and TUI artifacts are proxied by the backend from each client repo's GitHub release (the routes are
+browser extension, terminal client, plus the MCP server URL and access tokens). The desktop/TUI, Android
+and other client artifacts are proxied by the backend from each client repo's GitHub release (the routes are
 under `/api/v1/devices/...`), so the same instance always serves a matching build. The steps below
 are for **building your own** against your instance.
 
 ## Desktop app (Tauri)
 
 The desktop app is a native Tauri v2 / WebKitGTK shell (Linux, x86_64) that loads your live SPA.
-It lives in its own repository,
-[`personal-agent-org/desktop`](https://github.com/personal-agent-org/desktop). You enter your
+It shares one repository and one `pa` binary with the terminal UI:
+[`personal-agent-org/pa`](https://github.com/personal-agent-org/pa). You enter your
 **Server URL** on first launch and can change it later from the tray. It surfaces background
 pushes as native OS notifications and keeps the SPA's in-window Keycloak login. Builds ship as an
 AppImage (the recommended download) and a `.deb`.
@@ -32,8 +32,9 @@ and acts in your logged-in browser session. After sign-in a "Browser" device app
 own repository,
 [`personal-agent-org/browser-extension`](https://github.com/personal-agent-org/browser-extension)
 (Chrome Web Store for the auto-updating Chrome build, plus the Firefox build and source on GitHub),
-and asks for your **Server URL** and **Keycloak issuer** at runtime, so the same build works against
-any instance. Sign-in uses OAuth 2 PKCE; the redirect URI is keyed to the extension ID
+and asks only for your **Server URL**. It discovers whether the instance uses external OIDC or the
+backend's local authentication, plus all relevant endpoints and client ids. External-OIDC sign-in
+uses OAuth 2 PKCE; the redirect URI is keyed to the extension ID
 (`https://<ext-id>.chromiumapp.org/`) and must be registered on the `personal-agent-browser` client.
 See [OIDC provider configuration](oidc.md) for the client and redirect-URI details, and the extension
 repo for packaging.
@@ -55,18 +56,22 @@ flavor (`minimal`) uses foreground-WebSocket push (no Google services); the `ful
 ## Terminal client (TUI)
 
 A Rust terminal chat client that speaks the **same `/api/v1` HTTP and SSE endpoints as the web app**
-(no special-purpose API). It lives in its own repository,
-[`personal-agent-org/tui`](https://github.com/personal-agent-org/tui), and ships as a Linux x86_64
-binary (needs a recent glibc). Build it with `cargo build --release` (binary at
-`target/release/personal-agent-tui`), then log in via the Keycloak **device flow**:
+(no special-purpose API). It lives alongside the desktop app in
+[`personal-agent-org/pa`](https://github.com/personal-agent-org/pa), and ships as the `pa` binary.
+Build it with `cargo build --release`, then log in via the discovered **device flow**:
 
 ```bash
-personal-agent-tui login --server https://pa.example.com --issuer <keycloak-realm-url>
-personal-agent-tui
+pa login --server https://pa.example.com
+pa
 ```
 
-Login uses the device flow (logging in *as the user*, no client secret), the same as the device
-agent, so no extra Keycloak client is needed.
+The backend advertises either its local device grant or the external provider's discovered device
+grant. Login acts *as the user* without a client secret. Unlike Computer Service,
+`pa` is a chat client and never announces tools, sensors, or host capabilities to the backend.
+The desktop offers Computer Service setup under Settings; the TUI offers
+`/computer-service [device name]`. Both launch a separate one-time service enrollment after the
+client has restored its normal UI/terminal state, and neither shares its chat token with the
+running service.
 
 ## Use this assistant from other tools (MCP)
 

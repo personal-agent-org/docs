@@ -71,11 +71,11 @@ plans — kept alongside the code so the *why* travels with the *what*.
 
     Durable-run follow-up work for the sub-agent system.
 
--   :material-laptop:{ .lg .middle } __[Device agents (durable)](../device-agents-durable-followup.md)__
+-   :material-laptop:{ .lg .middle } __[Computer Service (durable)](../computer-service-durable-followup.md)__
 
     ---
 
-    Durable-run follow-up work for device agents.
+    Durable-run follow-up work for Computer Service instances.
 
 -   :material-android:{ .lg .middle } __[Android app plan](../personal-agent-android-app-plan.md)__
 

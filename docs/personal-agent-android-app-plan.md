@@ -34,7 +34,7 @@
 
 ### 1.1 Was bleibt Web, was wird nativ
 
-**Bleibt Web (Quasar-SPA, unverändert bedient):** komplette Chat-UI, Streaming-Rendering (SSE), Markstream, Settings, Entities/Workflows-UI, Drafts/Comms, Device-Agents-UI, Org-Wahl. Die SPA ist bereits responsive — das ist die Voraussetzung, die HA ebenfalls nutzt (Frontend ist mobile-optimiert und wird 1:1 in die WebView geladen).
+**Bleibt Web (Quasar-SPA, unverändert bedient):** komplette Chat-UI, Streaming-Rendering (SSE), Markstream, Settings, Entities/Workflows-UI, Drafts/Comms, Computer Services-UI, Org-Wahl. Die SPA ist bereits responsive — das ist die Voraussetzung, die HA ebenfalls nutzt (Frontend ist mobile-optimiert und wird 1:1 in die WebView geladen).
 
 **Wird nativ:**
 - WebView-Hosting + TLS/Cookie/Header-Handling (vgl. `TLSWebViewClient.kt`, `HAWebViewClient.kt`)

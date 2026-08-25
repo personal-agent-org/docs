@@ -16,8 +16,8 @@ integrations and the tools in one `personal_agent` package (src/ layout).
 | backend repo, `src/personal_agent/` | The FastAPI app (`personal_agent`). App factory `personal_agent.main:create_app` (`app = create_app()`); subpackages for config, DB, auth, the agent, toolset assembly, realtime, integrations, workflows and more. |
 | backend repo, `src/personal_agent/worker/` | The Temporal worker (`personal_agent.worker`) - the durable `ChatAgentWorkflow` plus the curator / goal / workflow-schedule / entity-sync / world-maintenance / proactive-review / push-token-maintenance workflows and their activities. |
 | backend repo, `integrations/<domain>/` | Home-Assistant-style integration folders (manifest + config flow + integration class), discovered at runtime by the `IntegrationRegistry`. |
-| `personal-agent-org/frontend` | The Quasar / Vue 3 single-page app (at the repo root). The desktop and Android app shells are separate repos (`personal-agent-org/desktop`, `personal-agent-org/android`). |
-| client repos | The Rust `device-agent` (`personal-agent-org/device-agent`, jailed FS + PTY), the terminal client (`personal-agent-org/tui`), and the cloud `browser` device sandbox (`personal-agent-org/browser-sandbox`). (The Chrome/Firefox extension, the other `browser` device, lives in `personal-agent-org/browser-extension`.) |
+| `personal-agent-org/frontend` | The Quasar / Vue 3 single-page app (at the repo root). Android has a separate shell repo. |
+| clients and capability providers | `personal-agent-org/pa` contains the desktop and terminal chat clients. `personal-agent-org/computer-service` exposes tools and sensors with no chat access. Browser devices live in `browser-sandbox` and `browser-extension`. |
 
 Ops live in the deploy repo (`personal-agent-org/deploy`): `compose/`, `charts/` (Helm),
 `keycloak/` (realm-as-code) and `observability/`. The backend repo also carries `tools/` (scripts).

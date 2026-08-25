@@ -1,6 +1,6 @@
 # TUI ↔ Web feature parity
 
-Comparison of the Rust terminal client (`personal-agent-org/tui`) against the Quasar/Vue web app
+Comparison of the Rust terminal client (`personal-agent-org/pa`) against the Quasar/Vue web app
 (`personal-agent-org/frontend`), plus a prioritised roadmap to close the gaps. Snapshot: 2026-06-15.
 
 > **Update 2026-06-15 (commit b1c1bc2):** P1 partially shipped - TUI now has a security-mode
@@ -9,7 +9,7 @@ Comparison of the Rust terminal client (`personal-agent-org/tui`) against the Qu
 > model-context-window plumbing the TUI doesn't track yet).
 
 > **Update 2026-06-23:** most of P1-P2 has since shipped (verified against
-> `personal-agent-org/tui`). The TUI now has: the **context/budget telemetry strip** (model
+> `personal-agent-org/pa`). The TUI now has: the **context/budget telemetry strip** (model
 > + context fill % + cumulative tokens + cost + run timer, from `GET /chats/{id}/context`);
 > the **integrations picker** (F8 / `/integrations`, per-chat `disabled_tools` deny-list);
 > the **memory-access picker** (F9 / `/memory`, `run_config.memory_access`); **`/steer`**

@@ -28,7 +28,7 @@ HA and Personal Agent solve overlapping problems from opposite ends:
 
 Our architecture is **deliberately HA-shaped** - the integration contract, the
 entity/device/area model, the Workflow trigger engine, `EntityStateWriter` push, the Redis-Streams
-bus and the Rust device-agent are the same building blocks HA has. We do **not** need to rebuild.
+bus and the Rust Computer Service are the same building blocks HA has. We do **not** need to rebuild.
 But our entity model today is *"sync into the DB so the agent can read it."* That cannot switch a
 light in under a second. **That is the one genuinely structural gap.** Everything else is additive
 on the existing integration contract.
@@ -87,17 +87,17 @@ lever that makes breadth pay off.
 declared type conforms; generic UI cards + voice intents + automation building-blocks keyed on the
 class rather than the domain.
 
-### Pillar 3 - Discovery + local connectivity (the device-agent as LAN bridge)
+### Pillar 3 - Discovery + local connectivity (the Computer Service as LAN bridge)
 
 HA finds devices on the LAN (zeroconf/mDNS/Bluetooth/SSDP). We are cloud/self-hosted, so the
-**Rust device-agent is our bridge into the LAN.** Plan: the device-agent runs discovery, reports
+**Rust Computer Service is our bridge into the LAN.** Plan: the Computer Service runs discovery, reports
 found devices to the backend, and that feeds **discovery-source config flows** (HA analog). The
 manifest regains the discovery vectors we intentionally omitted (zeroconf/bluetooth/…), scoped to
-"announced by a device-agent on the user's network."
+"announced by a Computer Service on the user's network."
 
-**Reuses:** the `personal-agent-org/device-agent` repo + the device WS gateway, the config-flow manager (add a
+**Reuses:** the `personal-agent-org/computer-service` repo + the device WS gateway, the config-flow manager (add a
 discovery-initiated entry path), the manifest schema.
-**New:** discovery vectors in the manifest, a device-agent discovery reporter, a discovery →
+**New:** discovery vectors in the manifest, a Computer Service discovery reporter, a discovery →
 config-flow intake (dedupe by a stable unique id).
 
 ### Pillar 4 - Robustness / self-healing (table stakes at scale)
@@ -176,7 +176,7 @@ Phased so each phase is independently valuable and nothing becomes a parallel is
   present.
 - **Phase 2 - Robustness (scale).** Reauth + repairs + setup-retry + availability propagation
   (Pillar 4). Required before the integration count grows.
-- **Phase 3 - Local reach (LAN).** Device-agent discovery + discovery config flows (Pillar 3).
+- **Phase 3 - Local reach (LAN).** Computer Service discovery + discovery config flows (Pillar 3).
 - **Phase 4 - Breadth engine (sustain).** Scaffold + CI lint + author guide (Pillar 5), then
   reimplement the long tail natively, retiring bridge dependence where depth matters.
 
