@@ -1,2 +1,6 @@
-site/
-.venv/
+node_modules/
+.quasar/
+dist/
+.pnpm-store/
+tmp/
+*.png

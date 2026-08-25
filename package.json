@@ -1,0 +1,41 @@
+{
+  "name": "personal-agent-website",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Public website, documentation, and marketplace for Personal Agent",
+  "type": "module",
+  "scripts": {
+    "dev": "quasar dev",
+    "build": "quasar build -m ssg",
+    "build:spa": "quasar build",
+    "format": "oxfmt src src-ssg quasar.config.ts oxfmt.config.ts oxlint.config.ts postcss.config.js env.d.ts package.json",
+    "lint": "oxfmt --check src src-ssg quasar.config.ts oxfmt.config.ts oxlint.config.ts postcss.config.js env.d.ts package.json && oxlint",
+    "typecheck": "vue-tsc --noEmit",
+    "check": "pnpm lint && pnpm typecheck && pnpm build",
+    "postinstall": "quasar prepare --silent"
+  },
+  "dependencies": {
+    "@quasar/extras": "^2.0.4",
+    "markdown-it": "^14.1.0",
+    "quasar": "^2.27.0",
+    "vue": "^3.5.22",
+    "vue-router": "^5.0.6"
+  },
+  "devDependencies": {
+    "@quasar/app-vite": "^3.8.1",
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^22.19.11",
+    "autoprefixer": "^10.4.27",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "postcss": "^8.5.8",
+    "sass-embedded": "^1.93.2",
+    "typescript": "^6.0.0",
+    "vue-tsc": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "packageManager": "pnpm@10.30.3"
+}

@@ -1,17 +1,24 @@
-name: Docs
+name: Website
 
 on:
   push:
     branches: [main]
     paths:
       - docs/**
-      - mkdocs.yml
+      - src/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - quasar.config.ts
       - .github/workflows/docs.yml
-  # Allow building/previewing the site on PRs that touch the docs.
   pull_request:
     paths:
       - docs/**
-      - mkdocs.yml
+      - src/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - quasar.config.ts
       - .github/workflows/docs.yml
   workflow_dispatch:
 
@@ -19,17 +26,21 @@ permissions:
   contents: read
 
 concurrency:
-  group: docs-${{ github.ref }}
+  group: website-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: build (mkdocs --strict)
+  check:
+    name: lint, types, and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
         with:
-          enable-cache: true
-      - name: Build site
-        run: uv run --group docs mkdocs build --strict
+          version: 10.30.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
