@@ -91,7 +91,7 @@ export const messages = {
       },
       trust: {
         eyebrow: 'Privacy · explicit trust · local first',
-        title: 'Your data does not have to trust the cloud.',
+        title: 'You should not entrust your data to the cloud.',
         copy: 'Run the core platform and compatible models on infrastructure you choose. If you enable an external provider, every request must clear an explicit trust gate before protected context can leave your boundary.',
         link: 'Read security & privacy',
         modelLabel: 'Personal Agent trust model',
@@ -439,7 +439,7 @@ export const messages = {
       },
       trust: {
         eyebrow: 'Datenschutz · explizites Vertrauen · Local First',
-        title: 'Deine Daten müssen nicht der Cloud vertrauen.',
+        title: 'Du solltest deine Daten nicht der Cloud anvertrauen.',
         copy: 'Betreibe die Kernplattform und kompatible Modelle auf der Infrastruktur deiner Wahl. Aktivierst du einen externen Anbieter, muss jede Anfrage eine explizite Vertrauensprüfung bestehen, bevor geschützter Kontext deine Grenze verlassen darf.',
         link: 'Sicherheit & Datenschutz lesen',
         modelLabel: 'Vertrauensmodell von Personal Agent',
