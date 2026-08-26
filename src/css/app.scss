@@ -124,6 +124,43 @@ p {
   display: none;
 }
 
+.q-drawer.mobile-drawer,
+.q-drawer.mobile-drawer .q-drawer__content {
+  color: var(--ink);
+  background: #07111f;
+}
+.mobile-drawer .q-list {
+  min-height: 100%;
+  padding: 20px 12px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(120, 169, 255, 0.14), transparent 34%), #07111f;
+}
+.mobile-drawer .q-item {
+  min-height: 48px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  color: #c4d0df;
+}
+.mobile-drawer .q-item:hover,
+.mobile-drawer .q-item:focus-visible,
+.mobile-drawer .q-item.q-router-link--active {
+  color: var(--ink);
+  background: rgba(120, 169, 255, 0.12);
+}
+.mobile-drawer .q-item__section--avatar {
+  min-width: 38px;
+  color: var(--primary);
+}
+.mobile-drawer .q-item__section--side {
+  color: var(--secondary);
+}
+.mobile-drawer .q-item__label--header {
+  color: #7f91a9;
+}
+.mobile-drawer .q-separator {
+  background: var(--line);
+}
+
 .hero {
   min-height: 760px;
   display: grid;
