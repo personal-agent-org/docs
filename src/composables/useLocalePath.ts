@@ -1,6 +1,6 @@
 import { useI18n } from 'vue-i18n';
 
-const localizedRoots = ['/organizations', '/cloud-connect', '/cloud', '/marketplace'];
+const localizedRoots = ['/organizations', '/plus', '/cloud', '/marketplace'];
 
 export function useLocalePath() {
   const { locale } = useI18n();

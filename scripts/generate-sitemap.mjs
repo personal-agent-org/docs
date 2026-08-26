@@ -13,7 +13,7 @@ const marketplace = [...marketplaceSource.matchAll(/slug:\s*'([^']+)'/g)].map(
   ([, slug]) => `/marketplace/${slug}`,
 );
 
-const localized = ['/', '/organizations', '/cloud-connect', '/cloud', '/marketplace'];
+const localized = ['/', '/organizations', '/plus', '/cloud', '/marketplace'];
 const urls = [
   ...localized,
   ...localized.map((path) => `/de${path === '/' ? '' : path}`),

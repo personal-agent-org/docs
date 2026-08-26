@@ -13,18 +13,8 @@
           <q-btn flat no-caps :label="t('nav.about')" :to="`${localePath('/')}#about`" />
           <q-btn flat no-caps :label="t('nav.marketplace')" :to="localePath('/marketplace')" />
           <q-btn flat no-caps :label="t('nav.docs')" to="/docs/getting-started/" />
-          <q-btn-dropdown flat no-caps :label="t('nav.cloud')" content-class="site-dropdown">
-            <q-list dark>
-              <q-item clickable v-close-popup :to="localePath('/cloud-connect')">
-                <q-item-section avatar><q-icon name="cable" /></q-item-section>
-                <q-item-section>{{ t('nav.cloudConnect') }}</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup :to="localePath('/cloud')">
-                <q-item-section avatar><q-icon name="cloud" /></q-item-section>
-                <q-item-section>{{ t('nav.hosted') }}</q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
+          <q-btn flat no-caps :label="t('nav.plus')" :to="localePath('/plus')" />
+          <q-btn flat no-caps :label="t('nav.hosted')" :to="localePath('/cloud')" />
           <q-btn
             flat
             no-caps
@@ -103,9 +93,9 @@
         <q-item clickable v-close-popup to="/docs/getting-started/"
           ><q-item-section>{{ t('nav.documentation') }}</q-item-section></q-item
         >
-        <q-item clickable v-close-popup :to="localePath('/cloud-connect')">
-          <q-item-section avatar><q-icon name="cable" /></q-item-section>
-          <q-item-section>{{ t('nav.cloudConnect') }}</q-item-section>
+        <q-item clickable v-close-popup :to="localePath('/plus')">
+          <q-item-section avatar><q-icon name="add_circle" /></q-item-section>
+          <q-item-section>{{ t('nav.plus') }}</q-item-section>
         </q-item>
         <q-item clickable v-close-popup :to="localePath('/cloud')">
           <q-item-section avatar><q-icon name="cloud" /></q-item-section>
@@ -156,7 +146,7 @@
         <div>
           <strong>{{ t('footer.explore') }}</strong>
           <router-link :to="localePath('/organizations')">{{ t('nav.organizations') }}</router-link>
-          <router-link :to="localePath('/cloud-connect')">{{ t('nav.cloudConnect') }}</router-link>
+          <router-link :to="localePath('/plus')">{{ t('nav.plus') }}</router-link>
           <router-link :to="localePath('/cloud')">{{ t('nav.hosted') }}</router-link>
           <router-link :to="localePath('/marketplace')">{{ t('nav.marketplace') }}</router-link>
           <router-link to="/docs/getting-started/">{{ t('nav.documentation') }}</router-link>
@@ -198,7 +188,7 @@ onMounted(() => {
   const onLocalizedPage =
     route.path === '/' ||
     route.path === '/de' ||
-    ['/organizations', '/cloud-connect', '/cloud', '/marketplace'].some((root) =>
+    ['/organizations', '/plus', '/cloud', '/marketplace'].some((root) =>
       route.path.replace(/^\/de(?=\/|$)/, '').startsWith(root),
     );
   if (onLocalizedPage && preferred !== locale.value) changeLocale(preferred);

@@ -22,7 +22,7 @@
             flat
             no-caps
             :label="t('hosted.compare')"
-            :to="localePath('/cloud-connect')"
+            :to="localePath('/plus')"
             icon-right="arrow_forward"
           />
         </div>
@@ -63,8 +63,8 @@
           <q-icon name="home_work" />
           <h3>{{ t('hosted.selfTitle') }}</h3>
           <p>{{ t('hosted.selfCopy') }}</p>
-          <router-link :to="localePath('/cloud-connect')"
-            >Cloud Connect <q-icon name="arrow_forward"
+          <router-link :to="localePath('/plus')"
+            >Personal Agent+ <q-icon name="arrow_forward"
           /></router-link>
         </article>
         <article class="selected">
@@ -107,6 +107,11 @@ const features = computed(() => [
     icon: 'move_up',
     title: t('hosted.features.portabilityTitle'),
     copy: t('hosted.features.portabilityCopy'),
+  },
+  {
+    icon: 'add_circle',
+    title: t('hosted.features.plusIncludedTitle'),
+    copy: t('hosted.features.plusIncludedCopy'),
   },
 ]);
 </script>

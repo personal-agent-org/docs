@@ -14,9 +14,8 @@ export const messages = {
       open: 'Open navigation',
       main: 'Main navigation',
       language: 'Language',
-      cloud: 'Cloud',
-      cloudConnect: 'Cloud Connect',
-      hosted: 'Hosted Personal Agent',
+      plus: 'PA+',
+      hosted: 'Cloud',
     },
     sponsor: {
       label: 'Sponsored by',
@@ -276,37 +275,66 @@ export const messages = {
       placeholder: 'Placeholder contact',
       response: 'For initial project and procurement conversations.',
     },
-    cloudConnect: {
-      meta: 'Cloud Connect',
+    plus: {
+      meta: 'Personal Agent+ | Managed extras for self-hosting',
       seoDescription:
-        'Connect securely to your self-hosted Personal Agent from supported apps without exposing your home network or opening router ports.',
-      eyebrow: 'For self-hosted Personal Agent',
+        'Add secure remote access, encrypted backups, managed webhooks, voice services and real-time relays to your self-hosted Personal Agent.',
+      eyebrow: 'Managed extras for self-hosting',
       status: 'In preparation',
-      title: 'At home on your server. Available wherever you are.',
-      lead: 'Cloud Connect is the simple connection service for privately operated Personal Agent instances. Reach your assistant from your apps without exposing your home network or manually maintaining remote-access infrastructure.',
-      primary: 'Follow the launch',
+      title: 'More convenience. Still yours.',
+      lead: 'Personal Agent+ adds managed services to your self-hosted Personal Agent. Your instance stays on your system while PA+ takes care of secure access, recovery and selected cloud infrastructure.',
+      price: '$9.99 / month',
+      priceNote: 'Taxes included. Cancel anytime.',
+      primary: 'Follow the PA+ launch',
       selfHost: 'Self-host Personal Agent',
-      promiseLabel: 'Keep the instance. Lose the networking chores.',
-      promiseTitle: 'A managed bridge to your self-hosted Personal Agent.',
+      promiseLabel: 'Useful extras, not a requirement',
+      promiseTitle: 'The cloud services that make self-hosting easier.',
       promiseCopy:
-        'Your Personal Agent and its data remain on the system you operate. Cloud Connect handles the connection layer between your instance and supported clients.',
+        'Personal Agent remains fully usable without a subscription. PA+ provides ready-to-use services where operating shared infrastructure yourself would otherwise take time and maintenance.',
       features: {
-        accessTitle: 'Secure remote connection',
+        accessTitle: 'Secure remote access',
         accessCopy:
-          'Connect supported apps without opening inbound router ports or publishing the instance directly on the internet.',
-        discoveryTitle: 'Simple app setup',
+          'Reach your instance through an encrypted outbound connection without opening router ports or exposing your home network.',
+        backupTitle: 'Encrypted backup and restore',
+        backupCopy:
+          'Back up configuration, agents, skills and integrations with client-side encryption, then restore or migrate them to another system.',
+        eventsTitle: 'Managed webhooks and events',
+        eventsCopy:
+          'Receive signed external events without publishing your backend. Endpoints remain revocable, scoped and protected against replay.',
+        voiceTitle: 'Voice services',
+        voiceCopy:
+          'Use managed speech-to-text and text-to-speech when local processing is unavailable or you explicitly prefer a cloud provider.',
+        realtimeTitle: 'Real-time relay',
+        realtimeCopy:
+          'Use managed WebRTC and TURN fallback for voice, screens and remote computer sessions when a direct connection is not possible.',
+        discoveryTitle: 'Stable identity and domains',
         discoveryCopy:
-          'Link clients through a stable Personal Agent identity instead of copying changing addresses and certificates between devices.',
-        pushTitle: 'Reliable notifications',
-        pushCopy:
-          'Receive event and workflow notifications while payloads and access remain scoped to the connected instance.',
-        controlTitle: 'Client-side control',
-        controlCopy:
-          'Connection credentials stay with your clients. Cloud Connect is not a second chat store and does not become the owner of your instance data.',
+          'Let clients discover your instance through a stable identity, managed HTTPS and, optionally, your own domain.',
       },
-      distinction: 'Looking for a service that also operates the Personal Agent instance?',
+      foundationLabel: 'Open and local at the core',
+      foundationTitle: 'PA+ adds convenience without taking the product away.',
+      foundationCopy:
+        'The apps, local authentication, computer tools, integrations and self-hosting remain available without PA+. You can also operate equivalent infrastructure yourself.',
+      freePushTitle: 'Push stays free',
+      freePushCopy:
+        'Push notifications are available without a subscription. PA+ subscribers help fund the shared push infrastructure for everyone.',
+      privateTitle: 'No access to chats',
+      privateCopy:
+        'PA+ uses a dedicated, narrowly scoped service token. It cannot read conversations and never becomes a second chat store.',
+      openTitle: 'No forced cloud',
+      openCopy:
+        'Run your own remote access, backups, voice providers, webhooks and relays. PA+ is the managed option, not a lock-in mechanism.',
+      supportLabel: 'Support the project',
+      supportTitle: 'More convenience for you. A sustainable future for Personal Agent.',
+      supportCopy:
+        'Your subscription covers the infrastructure behind PA+ and helps fund security updates, clients, agents, skills, integrations and the open-source platform.',
+      supportSustainability:
+        'Personal Agent remains open source and self-hostable. To stay sustainable and independently developed, the project will ultimately rely on support from PA+ subscribers.',
+      cancel: 'Cancel anytime',
+      supportIncluded: 'Supports the open-source project',
+      distinction: 'Want us to operate the Personal Agent instance as well?',
       hostedLink: 'Explore Personal Agent Cloud',
-      note: 'The final feature set, pricing and availability will be announced before launch.',
+      note: 'PA+ is in preparation. Availability and technical limits will be published before subscriptions open.',
     },
     hosted: {
       meta: 'Personal Agent Cloud',
@@ -315,9 +343,9 @@ export const messages = {
       eyebrow: 'Managed Personal Agent',
       status: 'In preparation',
       title: 'Your Personal Agent, without operating the platform yourself.',
-      lead: 'Personal Agent Cloud is the planned managed offering for people who want a dedicated Personal Agent experience without maintaining servers, updates and backups.',
+      lead: 'Personal Agent Cloud is the fully managed offering for people who want a dedicated Personal Agent experience without maintaining servers, updates or backups. Every PA+ service is included.',
       primary: 'Register interest',
-      compare: 'See Cloud Connect',
+      compare: 'See Personal Agent+',
       valueLabel: 'A managed home for your agent',
       valueTitle: 'Start with the product, not the infrastructure.',
       valueCopy:
@@ -335,13 +363,17 @@ export const messages = {
         portabilityTitle: 'A path to self-hosting',
         portabilityCopy:
           'The hosted offer is being designed to avoid locking the product experience to one operating model.',
+        plusIncludedTitle: 'Everything in PA+',
+        plusIncludedCopy:
+          'Secure remote access, encrypted backups, managed events, voice services and real-time relays are included with Personal Agent Cloud.',
       },
       audienceTitle: 'Two ways to run Personal Agent.',
-      selfTitle: 'Self-host + Cloud Connect',
+      selfTitle: 'Self-host + Personal Agent+',
       selfCopy:
-        'You operate the Personal Agent instance; Cloud Connect simplifies remote client access.',
+        'You operate the Personal Agent instance; PA+ adds managed remote access and optional convenience services.',
       hostedTitle: 'Personal Agent Cloud',
-      hostedCopy: 'We operate the Personal Agent platform and its supporting services for you.',
+      hostedCopy:
+        'We operate the Personal Agent platform for you, including every service offered with Personal Agent+.',
       note: 'Hosting regions, service levels, migration options and pricing will be published before orders open.',
     },
     marketplace: {
@@ -410,9 +442,8 @@ export const messages = {
       open: 'Navigation öffnen',
       main: 'Hauptnavigation',
       language: 'Sprache',
-      cloud: 'Cloud',
-      cloudConnect: 'Cloud Connect',
-      hosted: 'Personal Agent Hosting',
+      plus: 'PA+',
+      hosted: 'Cloud',
     },
     sponsor: {
       label: 'Gesponsert von',
@@ -672,37 +703,66 @@ export const messages = {
       placeholder: 'Platzhalter-Kontakt',
       response: 'Für erste Projekt- und Beschaffungsgespräche.',
     },
-    cloudConnect: {
-      meta: 'Cloud Connect',
+    plus: {
+      meta: 'Personal Agent+ | Verwaltete Extras für Self-Hosting',
       seoDescription:
-        'Verbinde unterstützte Apps sicher mit deinem selbst gehosteten Personal Agent – ohne Heimnetz-Freigabe oder offene Router-Ports.',
-      eyebrow: 'Für selbst gehosteten Personal Agent',
+        'Ergänze deinen selbst gehosteten Personal Agent um sicheren Fernzugriff, verschlüsselte Backups, verwaltete Webhooks, Voice-Dienste und Echtzeit-Relays.',
+      eyebrow: 'Verwaltete Extras für Self-Hosting',
       status: 'In Vorbereitung',
-      title: 'Zu Hause auf deinem Server. Erreichbar, wo immer du bist.',
-      lead: 'Cloud Connect ist der einfache Verbindungsdienst für privat betriebene Personal-Agent-Instanzen. Erreiche deinen Assistenten aus deinen Apps, ohne dein Heimnetz zu veröffentlichen oder selbst Infrastruktur für den Fernzugriff zu pflegen.',
-      primary: 'Über den Start informieren',
+      title: 'Mehr Komfort. Weiterhin deins.',
+      lead: 'Personal Agent+ ergänzt deinen selbst gehosteten Personal Agent um verwaltete Dienste. Deine Instanz bleibt auf deinem System, während PA+ sicheren Zugriff, Wiederherstellung und ausgewählte Cloud-Infrastruktur übernimmt.',
+      price: '9,99 € / Monat',
+      priceNote: 'Inklusive Steuern. Jederzeit kündbar.',
+      primary: 'Über den PA+-Start informieren',
       selfHost: 'Personal Agent selbst hosten',
-      promiseLabel: 'Die eigene Instanz behalten. Den Netzwerkaufwand abgeben.',
-      promiseTitle: 'Eine verwaltete Brücke zu deinem selbst gehosteten Personal Agent.',
+      promiseLabel: 'Sinnvolle Extras, keine Voraussetzung',
+      promiseTitle: 'Die Cloud-Dienste, die Self-Hosting einfacher machen.',
       promiseCopy:
-        'Personal Agent und seine Daten bleiben auf dem von dir betriebenen System. Cloud Connect übernimmt die Verbindungsschicht zwischen deiner Instanz und unterstützten Clients.',
+        'Personal Agent bleibt ohne Abonnement vollständig nutzbar. PA+ stellt fertige Dienste bereit, wenn der eigene Betrieb gemeinsamer Infrastruktur sonst Zeit und Wartung kosten würde.',
       features: {
-        accessTitle: 'Sichere Verbindung unterwegs',
+        accessTitle: 'Sicherer Fernzugriff',
         accessCopy:
-          'Verbinde unterstützte Apps, ohne eingehende Router-Ports zu öffnen oder die Instanz direkt im Internet zu veröffentlichen.',
-        discoveryTitle: 'Einfache App-Einrichtung',
+          'Erreiche deine Instanz über eine verschlüsselte ausgehende Verbindung, ohne Router-Ports zu öffnen oder dein Heimnetz zu veröffentlichen.',
+        backupTitle: 'Verschlüsselte Backups',
+        backupCopy:
+          'Sichere Konfiguration, Agenten, Skills und Integrationen clientseitig verschlüsselt und stelle sie auf einem anderen System wieder her.',
+        eventsTitle: 'Verwaltete Webhooks und Events',
+        eventsCopy:
+          'Empfange signierte externe Ereignisse, ohne dein Backend zu veröffentlichen. Endpunkte bleiben widerrufbar, begrenzt und vor Wiederholungen geschützt.',
+        voiceTitle: 'Voice-Dienste',
+        voiceCopy:
+          'Nutze verwaltetes Speech-to-Text und Text-to-Speech, wenn lokale Verarbeitung nicht verfügbar ist oder du bewusst einen Cloud-Anbieter wählst.',
+        realtimeTitle: 'Echtzeit-Relay',
+        realtimeCopy:
+          'Nutze verwaltetes WebRTC und TURN als Rückfall für Sprache, Bildschirme und entfernte Computer-Sitzungen, wenn keine direkte Verbindung möglich ist.',
+        discoveryTitle: 'Stabile Identität und Domains',
         discoveryCopy:
-          'Verbinde Clients über eine stabile Personal-Agent-Identität, statt wechselnde Adressen und Zertifikate zwischen Geräten zu kopieren.',
-        pushTitle: 'Zuverlässige Benachrichtigungen',
-        pushCopy:
-          'Erhalte Hinweise zu Ereignissen und Workflows, während Inhalte und Zugriffe auf die verbundene Instanz begrenzt bleiben.',
-        controlTitle: 'Kontrolle beim Client',
-        controlCopy:
-          'Verbindungszugänge bleiben bei deinen Clients. Cloud Connect ist kein zweiter Chat-Speicher und übernimmt nicht die Eigentümerschaft an deinen Instanzdaten.',
+          'Lass Clients deine Instanz über eine stabile Identität, verwaltetes HTTPS und optional deine eigene Domain finden.',
       },
-      distinction: 'Du suchst einen Dienst, der auch die Personal-Agent-Instanz betreibt?',
+      foundationLabel: 'Im Kern offen und lokal',
+      foundationTitle: 'PA+ ergänzt Komfort, ohne dir das Produkt zu nehmen.',
+      foundationCopy:
+        'Apps, lokale Authentifizierung, Computer-Werkzeuge, Integrationen und Self-Hosting bleiben ohne PA+ verfügbar. Gleichwertige Infrastruktur kannst du auch selbst betreiben.',
+      freePushTitle: 'Push bleibt kostenlos',
+      freePushCopy:
+        'Push-Benachrichtigungen stehen ohne Abonnement zur Verfügung. PA+-Abonnenten helfen dabei, die gemeinsame Push-Infrastruktur für alle zu finanzieren.',
+      privateTitle: 'Kein Zugriff auf Chats',
+      privateCopy:
+        'PA+ verwendet ein eigenes, eng begrenztes Dienst-Token. Es kann keine Unterhaltungen lesen und wird niemals zu einem zweiten Chat-Speicher.',
+      openTitle: 'Kein Cloud-Zwang',
+      openCopy:
+        'Betreibe Fernzugriff, Backups, Voice-Anbieter, Webhooks und Relays selbst. PA+ ist die verwaltete Option und kein Lock-in-Mechanismus.',
+      supportLabel: 'Unterstütze das Projekt',
+      supportTitle: 'Mehr Komfort für dich. Eine nachhaltige Zukunft für Personal Agent.',
+      supportCopy:
+        'Dein Abonnement finanziert die PA+-Infrastruktur sowie Sicherheitsupdates, Clients, Agenten, Skills, Integrationen und die offene Plattform.',
+      supportSustainability:
+        'Personal Agent bleibt Open Source und selbst hostbar. Damit das Projekt nachhaltig und unabhängig entwickelt werden kann, ist es langfristig auf die Unterstützung durch PA+-Abonnenten angewiesen.',
+      cancel: 'Jederzeit kündbar',
+      supportIncluded: 'Unterstützt das Open-Source-Projekt',
+      distinction: 'Du möchtest auch die Personal-Agent-Instanz von uns betreiben lassen?',
       hostedLink: 'Personal Agent Cloud entdecken',
-      note: 'Der endgültige Funktionsumfang, Preise und Verfügbarkeit werden vor dem Start veröffentlicht.',
+      note: 'PA+ ist in Vorbereitung. Verfügbarkeit und technische Grenzen werden vor dem Bestellstart veröffentlicht.',
     },
     hosted: {
       meta: 'Personal Agent Cloud',
@@ -711,11 +771,11 @@ export const messages = {
       eyebrow: 'Verwalteter Personal Agent',
       status: 'In Vorbereitung',
       title: 'Dein Personal Agent, ohne die Plattform selbst zu betreiben.',
-      lead: 'Personal Agent Cloud ist das geplante verwaltete Angebot für Menschen, die eine eigene Personal-Agent-Umgebung möchten, ohne Server, Updates und Backups selbst zu pflegen.',
+      lead: 'Personal Agent Cloud ist das vollständig verwaltete Angebot für Menschen, die eine eigene Personal-Agent-Umgebung möchten, ohne Server, Updates oder Backups selbst zu pflegen. Alle PA+-Dienste sind enthalten.',
       primary: 'Interesse anmelden',
-      compare: 'Cloud Connect ansehen',
+      compare: 'Personal Agent+ ansehen',
       valueLabel: 'Ein verwaltetes Zuhause für deinen Agenten',
-      valueTitle: 'Mit dem Produkt starten – nicht mit der Infrastruktur.',
+      valueTitle: 'Mit dem Produkt starten. Nicht mit der Infrastruktur.',
       valueCopy:
         'Wir betreiben den Lebenszyklus der Plattform. Du behältst die Kontrolle über dein Konto, verbundene Dienste und die Fähigkeiten, die du Agenten und Workflows gewährst.',
       features: {
@@ -724,21 +784,24 @@ export const messages = {
           'Bereitstellung, Updates, Überwachung und Wiederherstellung der Plattform gehören zum Dienst.',
         privateTitle: 'Klare Grenzen',
         privateCopy:
-          'Der Dienst wird um klare Mandanten-, Identitäts- und Zugangsgrenzen entworfen – nicht als gemeinsame öffentliche Chatoberfläche.',
+          'Der Dienst wird um klare Mandanten-, Identitäts- und Zugangsgrenzen entworfen, nicht als gemeinsame öffentliche Chatoberfläche.',
         appsTitle: 'Für Personal-Agent-Apps bereit',
         appsCopy:
           'Verbinde unterstützte Desktop-, Terminal- und Mobil-Clients über dieselbe Discovery-basierte Einrichtung wie im übrigen Produkt.',
         portabilityTitle: 'Ein Weg zum Selbsthosting',
         portabilityCopy:
           'Das Hosting-Angebot wird so entworfen, dass das Produkterlebnis nicht an ein einziges Betriebsmodell gebunden ist.',
+        plusIncludedTitle: 'Alles aus PA+',
+        plusIncludedCopy:
+          'Sicherer Fernzugriff, verschlüsselte Backups, verwaltete Events, Voice-Dienste und Echtzeit-Relays sind in Personal Agent Cloud enthalten.',
       },
       audienceTitle: 'Zwei Wege, Personal Agent zu betreiben.',
-      selfTitle: 'Selbst hosten + Cloud Connect',
+      selfTitle: 'Selbst hosten + Personal Agent+',
       selfCopy:
-        'Du betreibst die Personal-Agent-Instanz; Cloud Connect vereinfacht den Client-Zugriff von unterwegs.',
+        'Du betreibst die Personal-Agent-Instanz; PA+ ergänzt verwalteten Fernzugriff und optionale Komfortdienste.',
       hostedTitle: 'Personal Agent Cloud',
       hostedCopy:
-        'Wir betreiben die Personal-Agent-Plattform und ihre unterstützenden Dienste für dich.',
+        'Wir betreiben die Personal-Agent-Plattform für dich, einschließlich aller Dienste aus Personal Agent+.',
       note: 'Hosting-Regionen, Service-Level, Migrationsmöglichkeiten und Preise werden vor Bestellstart veröffentlicht.',
     },
     marketplace: {

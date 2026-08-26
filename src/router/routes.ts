@@ -8,9 +8,9 @@ const englishMarketing: RouteRecordRaw[] = [
     component: () => import('@/pages/OrganizationsPage.vue'),
   },
   {
-    path: 'cloud-connect',
-    name: 'cloud-connect',
-    component: () => import('@/pages/CloudConnectPage.vue'),
+    path: 'plus',
+    name: 'plus',
+    component: () => import('@/pages/PlusPage.vue'),
   },
   { path: 'cloud', name: 'hosted-cloud', component: () => import('@/pages/HostedCloudPage.vue') },
   {
@@ -33,9 +33,9 @@ const germanMarketing: RouteRecordRaw[] = [
     component: () => import('@/pages/OrganizationsPage.vue'),
   },
   {
-    path: 'cloud-connect',
-    name: 'cloud-connect-de',
-    component: () => import('@/pages/CloudConnectPage.vue'),
+    path: 'plus',
+    name: 'plus-de',
+    component: () => import('@/pages/PlusPage.vue'),
   },
   {
     path: 'cloud',
