@@ -5,7 +5,7 @@ export type SiteLocale = 'en' | 'de';
 export const messages = {
   en: {
     nav: {
-      product: 'Product',
+      about: 'About',
       marketplace: 'Marketplace',
       docs: 'Docs',
       documentation: 'Documentation',
@@ -31,8 +31,8 @@ export const messages = {
     home: {
       meta: 'Your world, handled.',
       seoDescription:
-        'Use private AI agents from the web, desktop, terminal, Android and dedicated voice hardware on an open-source, self-hostable platform.',
-      kicker: 'Open source · self-hostable',
+        'Use private AI agents across web, desktop, terminal, Android and voice hardware on a local-first, self-hostable platform with explicit trust controls.',
+      kicker: 'Open source · local first · self-hostable',
       title: 'Your world,',
       titleAccent: 'handled.',
       lead: 'A self-hostable LLM chat and agent platform on a durable runtime. Per-user agents use tools, browse your data, drive connected computers and browsers, run integrations, react to events, and act proactively on your behalf.',
@@ -88,6 +88,46 @@ export const messages = {
         voiceCopy:
           'Get Alexa-style hands-free access through Home Assistant Voice PE: wake word, natural request and a governed response through the speaker.',
         voiceMeta: 'Home Assistant Voice PE · local hardware',
+      },
+      trust: {
+        eyebrow: 'Privacy · explicit trust · local first',
+        title: 'Your data does not have to trust the cloud.',
+        copy: 'Run the core platform and compatible models on infrastructure you choose. If you enable an external provider, every request must clear an explicit trust gate before protected context can leave your boundary.',
+        link: 'Read security & privacy',
+        modelLabel: 'Personal Agent trust model',
+        boundary: 'Your trust boundary',
+        localFirst: 'Local-first core',
+        systemOfRecord: 'System of record',
+        coreData: 'Chats · memory · workflows · encrypted secrets',
+        dataClass: 'Data class',
+        orgFloor: 'Organization floor',
+        integrationTier: 'Integration',
+        requirement: 'effective requirement',
+        singleGate: 'One gate on every run path',
+        gateRule: 'provider tier ≥ required tier',
+        failClosed: 'Fail closed',
+        clearedOnly: 'cleared routes only',
+        internal: 'Internal',
+        internalHint: 'own / on-prem',
+        regulated: 'Regulated',
+        regulatedHint: 'cleared external',
+        standard: 'Unregulated',
+        standardHint: 'enabled external',
+        blocked: 'No cleared provider? No request leaves the boundary.',
+        assurances: {
+          localTitle: 'Your instance is the system of record',
+          localCopy:
+            'Chats, memory and workflows live with the deployment you choose. The full core can run on your infrastructure.',
+          modelsTitle: 'Models earn access',
+          modelsCopy:
+            'Local, regulated and other enabled providers only receive data their configured tier permits.',
+          defaultTitle: 'Failure means stop',
+          defaultCopy:
+            'Auto-routing, fallbacks, sub-agents and background runs all use the same fail-closed rule.',
+          scopedTitle: 'Capabilities stay separated',
+          scopedCopy:
+            'Device credentials are scoped, Computer Service cannot read chats, and untrusted content loses privileged tools.',
+        },
       },
       section1Title: 'One system for the work around you.',
       section1Copy:
@@ -313,7 +353,7 @@ export const messages = {
   },
   de: {
     nav: {
-      product: 'Produkt',
+      about: 'Über',
       marketplace: 'Marktplatz',
       docs: 'Doku',
       documentation: 'Dokumentation',
@@ -339,8 +379,8 @@ export const messages = {
     home: {
       meta: 'Deine Welt. Erledigt.',
       seoDescription:
-        'Nutze private KI-Agenten im Web, auf Desktop, Terminal, Android und eigener Voice-Hardware – offen und selbst hostbar.',
-      kicker: 'Open Source · selbst hostbar',
+        'Nutze private KI-Agenten im Web, auf Desktop, Terminal, Android und Voice-Hardware – local first, selbst hostbar und mit explizitem Vertrauensmodell.',
+      kicker: 'Open Source · Local First · selbst hostbar',
       title: 'Deine Welt.',
       titleAccent: 'Erledigt.',
       lead: 'Eine selbst hostbare LLM-Chat- und Agentenplattform auf einer dauerhaften Laufzeitumgebung. Persönliche Agenten nutzen Werkzeuge und deine Daten, steuern verbundene Computer und Browser, führen Integrationen aus, reagieren auf Ereignisse und handeln proaktiv für dich.',
@@ -396,6 +436,46 @@ export const messages = {
         voiceCopy:
           'Nutze Personal Agent freihändig wie Alexa über Home Assistant Voice PE: Aktivierungswort, natürliche Anfrage und geregelte Antwort über den Lautsprecher.',
         voiceMeta: 'Home Assistant Voice PE · lokale Hardware',
+      },
+      trust: {
+        eyebrow: 'Datenschutz · explizites Vertrauen · Local First',
+        title: 'Deine Daten müssen nicht der Cloud vertrauen.',
+        copy: 'Betreibe die Kernplattform und kompatible Modelle auf der Infrastruktur deiner Wahl. Aktivierst du einen externen Anbieter, muss jede Anfrage eine explizite Vertrauensprüfung bestehen, bevor geschützter Kontext deine Grenze verlassen darf.',
+        link: 'Sicherheit & Datenschutz lesen',
+        modelLabel: 'Vertrauensmodell von Personal Agent',
+        boundary: 'Deine Vertrauensgrenze',
+        localFirst: 'Local-first-Kern',
+        systemOfRecord: 'Führendes System',
+        coreData: 'Chats · Gedächtnis · Workflows · verschlüsselte Secrets',
+        dataClass: 'Datenklasse',
+        orgFloor: 'Organisationsvorgabe',
+        integrationTier: 'Integration',
+        requirement: 'effektive Anforderung',
+        singleGate: 'Eine Prüfung auf jedem Ausführungspfad',
+        gateRule: 'Anbieterstufe ≥ erforderliche Stufe',
+        failClosed: 'Standardmäßig gesperrt',
+        clearedOnly: 'nur freigegebene Wege',
+        internal: 'Intern',
+        internalHint: 'eigene Infrastruktur',
+        regulated: 'Reguliert',
+        regulatedHint: 'geprüft extern',
+        standard: 'Unreguliert',
+        standardHint: 'aktiviert extern',
+        blocked: 'Kein freigegebener Anbieter? Keine Anfrage verlässt die Grenze.',
+        assurances: {
+          localTitle: 'Deine Instanz ist das führende System',
+          localCopy:
+            'Chats, Gedächtnis und Workflows liegen im gewählten Betrieb. Der vollständige Kern kann auf deiner Infrastruktur laufen.',
+          modelsTitle: 'Modelle müssen sich Zugriff verdienen',
+          modelsCopy:
+            'Lokale, regulierte und andere aktivierte Anbieter erhalten nur Daten, die ihre konfigurierte Stufe erlaubt.',
+          defaultTitle: 'Im Zweifel wird gestoppt',
+          defaultCopy:
+            'Auto-Routing, Fallbacks, Unteragenten und Hintergrundläufe verwenden dieselbe Fail-closed-Regel.',
+          scopedTitle: 'Fähigkeiten bleiben getrennt',
+          scopedCopy:
+            'Gerätezugänge sind begrenzt, Computer Service kann keine Chats lesen und nicht vertrauenswürdige Inhalte verlieren privilegierte Werkzeuge.',
+        },
       },
       section1Title: 'Ein System für die Arbeit um dich herum.',
       section1Copy:

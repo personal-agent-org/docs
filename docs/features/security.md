@@ -4,6 +4,23 @@ Personal Agent is built so you stay in control of what the assistant does and wh
 data goes. This page is the user-facing view; the engineering guarantees behind it are in
 [Frozen contracts](../architecture/frozen-contracts.md).
 
+## Local-first deployment and an explicit trust boundary
+
+Personal Agent treats the instance you choose as the system of record for chats, memory, workflows
+and credentials. You can run the full core stack on infrastructure you operate and connect local or
+on-prem model, speech and integration endpoints. Browser, desktop, terminal, mobile and voice
+clients connect back to that instance instead of turning a vendor cloud into a second chat store.
+
+External models and integrations remain available when you deliberately enable them. They are
+explicit egress paths, not a prerequisite: provider trust tiers and the effective data requirement
+decide what may leave the deployment boundary. An **Internal** chat is limited to the internal /
+on-prem tier; when no eligible provider exists, the request stops rather than silently falling back
+to an external model.
+
+Here, *local first* describes deployment ownership and the primary data boundary, not an offline-only
+client architecture. Clients need a connection to the selected instance, and choosing a hosted
+deployment means choosing its operator as part of that boundary.
+
 ## You gate what tools do
 
 Every chat runs in a **security mode** you choose per chat (with a default under

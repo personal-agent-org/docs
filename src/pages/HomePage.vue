@@ -100,7 +100,7 @@
       </div>
     </section>
 
-    <section class="clients-section section page-width">
+    <section id="about" class="clients-section section page-width">
       <div class="clients-heading">
         <div>
           <span class="section-index">{{ t('home.clients.eyebrow') }}</span>
@@ -132,6 +132,80 @@
             <q-icon name="arrow_outward" />
           </div>
         </router-link>
+      </div>
+    </section>
+
+    <section id="trust" class="trust-section">
+      <div class="page-width trust-layout">
+        <div class="trust-copy">
+          <span class="section-index">{{ t('home.trust.eyebrow') }}</span>
+          <h2>{{ t('home.trust.title') }}</h2>
+          <p>{{ t('home.trust.copy') }}</p>
+          <router-link class="text-link" to="/docs/features/security/">
+            {{ t('home.trust.link') }} <q-icon name="arrow_forward" />
+          </router-link>
+
+          <div class="trust-assurances">
+            <div v-for="assurance in trustAssurances" :key="assurance.title">
+              <q-icon :name="assurance.icon" />
+              <span>
+                <strong>{{ assurance.title }}</strong>
+                <small>{{ assurance.copy }}</small>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="trust-model" :aria-label="t('home.trust.modelLabel')">
+          <div class="trust-boundary-label">
+            <span><i></i>{{ t('home.trust.boundary') }}</span>
+            <strong>{{ t('home.trust.localFirst') }}</strong>
+          </div>
+          <div class="trust-core">
+            <q-icon name="dns" />
+            <div>
+              <small>{{ t('home.trust.systemOfRecord') }}</small>
+              <strong>Personal Agent</strong>
+              <span>{{ t('home.trust.coreData') }}</span>
+            </div>
+          </div>
+          <div class="trust-inputs">
+            <span>{{ t('home.trust.dataClass') }}</span>
+            <i>+</i>
+            <span>{{ t('home.trust.orgFloor') }}</span>
+            <i>+</i>
+            <span>{{ t('home.trust.integrationTier') }}</span>
+          </div>
+          <div class="trust-connector">
+            <i></i><span>{{ t('home.trust.requirement') }}</span>
+          </div>
+          <div class="trust-gate">
+            <q-icon name="policy" />
+            <div>
+              <small>{{ t('home.trust.singleGate') }}</small>
+              <strong>{{ t('home.trust.gateRule') }}</strong>
+            </div>
+            <span>{{ t('home.trust.failClosed') }}</span>
+          </div>
+          <div class="trust-connector trust-connector-out">
+            <i></i><span>{{ t('home.trust.clearedOnly') }}</span>
+          </div>
+          <div class="provider-tiers">
+            <div>
+              <span>02</span><strong>{{ t('home.trust.internal') }}</strong
+              ><small>{{ t('home.trust.internalHint') }}</small>
+            </div>
+            <div>
+              <span>01</span><strong>{{ t('home.trust.regulated') }}</strong
+              ><small>{{ t('home.trust.regulatedHint') }}</small>
+            </div>
+            <div>
+              <span>00</span><strong>{{ t('home.trust.standard') }}</strong
+              ><small>{{ t('home.trust.standardHint') }}</small>
+            </div>
+          </div>
+          <div class="trust-blocked"><q-icon name="block" /> {{ t('home.trust.blocked') }}</div>
+        </div>
       </div>
     </section>
 
@@ -378,6 +452,29 @@ const clients = computed(() => [
     meta: t('home.clients.voiceMeta'),
     to: '/docs/getting-started/client-apps/#voice-assistant-hardware',
     featured: true,
+  },
+]);
+
+const trustAssurances = computed(() => [
+  {
+    icon: 'home_work',
+    title: t('home.trust.assurances.localTitle'),
+    copy: t('home.trust.assurances.localCopy'),
+  },
+  {
+    icon: 'verified_user',
+    title: t('home.trust.assurances.modelsTitle'),
+    copy: t('home.trust.assurances.modelsCopy'),
+  },
+  {
+    icon: 'lock_reset',
+    title: t('home.trust.assurances.defaultTitle'),
+    copy: t('home.trust.assurances.defaultCopy'),
+  },
+  {
+    icon: 'device_hub',
+    title: t('home.trust.assurances.scopedTitle'),
+    copy: t('home.trust.assurances.scopedCopy'),
   },
 ]);
 

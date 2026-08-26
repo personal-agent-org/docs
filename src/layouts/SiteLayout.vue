@@ -10,11 +10,11 @@
         <q-space />
 
         <nav class="desktop-nav" :aria-label="t('nav.main')">
-          <q-btn flat no-caps :label="t('nav.product')" :to="`${localePath('/')}#explore`" />
+          <q-btn flat no-caps :label="t('nav.about')" :to="`${localePath('/')}#about`" />
           <q-btn flat no-caps :label="t('nav.marketplace')" :to="localePath('/marketplace')" />
           <q-btn flat no-caps :label="t('nav.docs')" to="/docs/getting-started/" />
-          <q-btn-dropdown flat no-caps :label="t('nav.cloud')">
-            <q-list>
+          <q-btn-dropdown flat no-caps :label="t('nav.cloud')" content-class="site-dropdown">
+            <q-list dark>
               <q-item clickable v-close-popup :to="localePath('/cloud-connect')">
                 <q-item-section avatar><q-icon name="cable" /></q-item-section>
                 <q-item-section>{{ t('nav.cloudConnect') }}</q-item-section>
@@ -39,10 +39,11 @@
             dense
             no-caps
             class="locale-menu"
+            content-class="site-dropdown locale-dropdown"
             :label="locale.toUpperCase()"
             :aria-label="t('nav.language')"
           >
-            <q-list dense>
+            <q-list dark dense>
               <q-item clickable v-close-popup @click="changeLocale('en')">
                 <q-item-section>English</q-item-section>
               </q-item>
@@ -87,8 +88,8 @@
 
     <q-drawer v-model="drawerOpen" side="right" overlay behavior="mobile" class="mobile-drawer">
       <q-list padding>
-        <q-item clickable v-close-popup :to="`${localePath('/')}#explore`"
-          ><q-item-section>{{ t('nav.product') }}</q-item-section></q-item
+        <q-item clickable v-close-popup :to="`${localePath('/')}#about`"
+          ><q-item-section>{{ t('nav.about') }}</q-item-section></q-item
         >
         <q-item clickable v-close-popup :to="localePath('/marketplace')"
           ><q-item-section>{{ t('nav.marketplace') }}</q-item-section></q-item
