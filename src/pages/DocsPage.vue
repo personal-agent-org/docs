@@ -8,12 +8,12 @@
         rounded
         dark
         clearable
-        placeholder="Filter documentation"
-        aria-label="Filter documentation"
+        :placeholder="t('docs.filter')"
+        :aria-label="t('docs.filter')"
       >
         <template #prepend><q-icon name="search" /></template>
       </q-input>
-      <nav aria-label="Documentation">
+      <nav :aria-label="t('docs.title')">
         <div v-for="group in visibleGroups" :key="group.name" class="docs-group">
           <div class="docs-group-title">{{ group.name }}</div>
           <router-link v-for="page in group.pages" :key="page.slug" :to="`/docs/${page.slug}`">{{
@@ -24,18 +24,12 @@
     </aside>
 
     <main class="docs-content">
-      <div class="docs-kicker"><q-icon name="menu_book" /> Documentation</div>
+      <div class="docs-kicker"><q-icon name="menu_book" /> {{ t('docs.title') }}</div>
       <article v-if="document" class="markdown-body" v-html="renderedMarkdown"></article>
       <div v-else class="empty-state">
-        <h1>Page not found</h1>
-        <p>This documentation page does not exist.</p>
-        <q-btn
-          flat
-          no-caps
-          color="primary"
-          label="Documentation home"
-          to="/docs/getting-started/"
-        />
+        <h1>{{ t('docs.notFound') }}</h1>
+        <p>{{ t('docs.notFoundCopy') }}</p>
+        <q-btn flat no-caps color="primary" :label="t('docs.home')" to="/docs/getting-started/" />
       </div>
     </main>
   </q-page>
@@ -44,8 +38,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import MarkdownIt from 'markdown-it';
-import { useMeta } from 'quasar';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useSeo } from '@/composables/useSeo';
 
 interface DocPage {
   slug: string;
@@ -95,32 +90,34 @@ const pages = Object.entries(sources)
   })
   .sort((a, b) => a.title.localeCompare(b.title));
 
-const groupLabels: Record<string, string> = {
-  'getting-started': 'Getting started',
-  features: 'User guide',
-  administration: 'Administration',
-  architecture: 'Architecture',
-  development: 'Development',
-  design: 'Design notes',
-  comparisons: 'Comparisons',
+const groupKeys: Record<string, string> = {
+  'getting-started': 'docs.groups.gettingStarted',
+  features: 'docs.groups.userGuide',
+  administration: 'docs.groups.administration',
+  architecture: 'docs.groups.architecture',
+  development: 'docs.groups.development',
+  design: 'docs.groups.design',
+  comparisons: 'docs.groups.comparisons',
 };
+
+const { t } = useI18n();
 
 const groupedPages = computed<DocGroup[]>(() => {
   const grouped = new Map<string, DocPage[]>();
   for (const page of pages) {
     const segment = page.slug.split('/')[0] || 'overview';
-    const label = groupLabels[segment] ?? 'More';
+    const label = t(groupKeys[segment] ?? 'docs.groups.more');
     grouped.set(label, [...(grouped.get(label) ?? []), page]);
   }
   const order = [
-    'Getting started',
-    'User guide',
-    'Administration',
-    'Architecture',
-    'Development',
-    'Design notes',
-    'Comparisons',
-    'More',
+    t('docs.groups.gettingStarted'),
+    t('docs.groups.userGuide'),
+    t('docs.groups.administration'),
+    t('docs.groups.architecture'),
+    t('docs.groups.development'),
+    t('docs.groups.design'),
+    t('docs.groups.comparisons'),
+    t('docs.groups.more'),
   ];
   return [...grouped.entries()]
     .map(([name, groupPages]) => ({ name, pages: groupPages }))
@@ -182,5 +179,26 @@ const renderedMarkdown = computed(() =>
     ? markdown.render(stripFrontmatter(document.value.source), { slug: document.value.slug })
     : '',
 );
-useMeta(() => ({ title: document.value?.title ?? 'Documentation' }));
+
+function documentDescription(source: string): string {
+  const description = stripFrontmatter(source)
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]+`/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^#+\s+.*$/gm, ' ')
+    .replace(/[|#>*_~-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return description.length > 160
+    ? `${description.slice(0, 157).replace(/\s+\S*$/, '')}…`
+    : description;
+}
+
+useSeo({
+  title: () => document.value?.title ?? t('docs.title'),
+  description: () =>
+    document.value ? documentDescription(document.value.source) : t('docs.notFoundCopy'),
+});
 </script>

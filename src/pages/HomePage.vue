@@ -2,26 +2,24 @@
   <q-page class="home-page">
     <section class="hero page-width">
       <div class="hero-copy">
-        <div class="hero-kicker"><span></span> Open source · self-hostable</div>
-        <h1>Your world,<br /><em>handled.</em></h1>
-        <p class="hero-lead">
-          A self-hostable LLM chat &amp; agent platform on a durable runtime. Per-user agents use
-          tools, browse your data, drive connected computers and browsers, run integrations, react
-          to events, and act proactively on your behalf.
-        </p>
+        <div class="hero-kicker"><span></span> {{ t('home.kicker') }}</div>
+        <h1>
+          {{ t('home.title') }}<br /><em>{{ t('home.titleAccent') }}</em>
+        </h1>
+        <p class="hero-lead">{{ t('home.lead') }}</p>
         <div class="hero-actions">
           <q-btn
             unelevated
             no-caps
             color="primary"
-            label="Get started"
+            :label="t('home.getStarted')"
             to="/docs/getting-started/"
             icon-right="arrow_forward"
           />
           <q-btn
             flat
             no-caps
-            label="View on GitHub"
+            :label="t('home.viewGithub')"
             href="https://github.com/personal-agent-org"
             target="_blank"
             icon-right="north_east"
@@ -29,7 +27,7 @@
         </div>
       </div>
 
-      <div class="product-frame" aria-label="Personal Agent product preview">
+      <div class="product-frame" :aria-label="t('home.preview')">
         <div class="product-topbar">
           <SiteIcon name="menu" />
           <div class="product-brand">
@@ -39,24 +37,36 @@
         </div>
         <div class="product-body">
           <aside class="product-drawer">
-            <div class="drawer-item active"><SiteIcon name="home" /><span>Main chat</span></div>
-            <div class="drawer-item"><SiteIcon name="inbox" /><span>Inbox</span></div>
-            <div class="drawer-item"><SiteIcon name="calendar" /><span>Agenda</span></div>
-            <div class="drawer-item"><SiteIcon name="folder" /><span>Files</span></div>
-            <div class="drawer-item"><SiteIcon name="chat" /><span>Sessions</span></div>
-            <div class="drawer-new"><SiteIcon name="plus" /><span>New session</span></div>
-            <div class="drawer-label">Recent activity</div>
-            <div class="drawer-empty">No sessions yet</div>
+            <div class="drawer-item active">
+              <SiteIcon name="home" /><span>{{ t('home.mainChat') }}</span>
+            </div>
+            <div class="drawer-item">
+              <SiteIcon name="inbox" /><span>{{ t('home.inbox') }}</span>
+            </div>
+            <div class="drawer-item">
+              <SiteIcon name="calendar" /><span>{{ t('home.agenda') }}</span>
+            </div>
+            <div class="drawer-item">
+              <SiteIcon name="folder" /><span>{{ t('home.files') }}</span>
+            </div>
+            <div class="drawer-item">
+              <SiteIcon name="chat" /><span>{{ t('home.sessions') }}</span>
+            </div>
+            <div class="drawer-new">
+              <SiteIcon name="plus" /><span>{{ t('home.newSession') }}</span>
+            </div>
+            <div class="drawer-label">{{ t('home.recentActivity') }}</div>
+            <div class="drawer-empty">{{ t('home.noSessions') }}</div>
             <div class="drawer-profile"><i>PA</i><span>user@example.com</span></div>
           </aside>
           <div class="product-chat">
             <div class="chat-center">
-              <div class="chat-greeting">Good to see you</div>
+              <div class="chat-greeting">{{ t('home.greeting') }}</div>
               <div class="real-composer">
-                <div class="composer-placeholder">Send a message…</div>
+                <div class="composer-placeholder">{{ t('home.message') }}</div>
                 <div class="composer-controls">
-                  <span>Auto <b>⌄</b></span
-                  ><span>Integrations <b>⌄</b></span
+                  <span>{{ t('home.auto') }} <b>⌄</b></span
+                  ><span>{{ t('home.integrations') }} <b>⌄</b></span
                   ><i></i>
                   <button aria-hidden="true"><SiteIcon name="plus" /></button>
                   <button class="send-button" aria-hidden="true"><SiteIcon name="send" /></button>
@@ -65,12 +75,14 @@
               <div class="mode-cards">
                 <div class="mode-card selected">
                   <SiteIcon name="chat" /><span
-                    ><strong>Standard</strong><small>Normal chat</small></span
+                    ><strong>{{ t('home.standard') }}</strong
+                    ><small>{{ t('home.normalChat') }}</small></span
                   >
                 </div>
                 <div class="mode-card">
                   <SiteIcon name="code" /><span
-                    ><strong>Coding</strong><small>Recommended for development</small></span
+                    ><strong>{{ t('home.coding') }}</strong
+                    ><small>{{ t('home.codingHint') }}</small></span
                   >
                 </div>
               </div>
@@ -92,12 +104,9 @@
       <div class="section-heading section-heading-split">
         <div>
           <span class="section-index">01</span>
-          <h2>One system for the work around you.</h2>
+          <h2>{{ t('home.section1Title') }}</h2>
         </div>
-        <p>
-          Conversation is only the surface. Personal Agent connects memory, tools, durable execution
-          and policy underneath it.
-        </p>
+        <p>{{ t('home.section1Copy') }}</p>
       </div>
       <div class="feature-grid bento-grid">
         <router-link
@@ -117,8 +126,9 @@
             <i></i><i></i><i></i><i></i><span></span><span></span><span></span>
           </div>
           <div v-if="index === 1" class="run-visual" aria-hidden="true">
-            <span class="complete">Trigger</span><i></i><span class="current">Run</span><i></i
-            ><span>Result</span>
+            <span class="complete">{{ t('home.trigger') }}</span
+            ><i></i><span class="current">{{ t('home.run') }}</span
+            ><i></i><span>{{ t('home.result') }}</span>
           </div>
         </router-link>
       </div>
@@ -128,32 +138,37 @@
       <div class="page-width architecture-grid">
         <div class="architecture-copy">
           <span class="section-index">02</span>
-          <h2>Powerful by design.<br />Controlled by default.</h2>
-          <p>
-            Every request passes through the same governed path, whether it runs inline or continues
-            durably in the background.
-          </p>
+          <h2 class="pre-line">{{ t('home.architectureTitle') }}</h2>
+          <p>{{ t('home.architectureCopy') }}</p>
           <router-link class="text-link" to="/docs/architecture/"
-            >Explore the architecture <q-icon name="arrow_forward"
+            >{{ t('home.architectureLink') }} <q-icon name="arrow_forward"
           /></router-link>
         </div>
-        <div class="architecture-flow" aria-label="Request processing flow">
+        <div class="architecture-flow" :aria-label="t('home.flowLabel')">
           <div class="flow-node">
-            <small>01 · Context</small><strong>Chat + world state</strong
-            ><span>memory · entities · integrations</span>
+            <small>01 · {{ t('home.context') }}</small
+            ><strong>{{ t('home.chatWorld') }}</strong
+            ><span>{{ t('home.contextDetail') }}</span>
           </div>
-          <div class="flow-connector"><i></i><span>classified</span></div>
+          <div class="flow-connector">
+            <i></i><span>{{ t('home.classified') }}</span>
+          </div>
           <div class="flow-node flow-primary">
-            <small>02 · Governance</small><strong>Fail-closed policy gate</strong
-            ><span>identity · permissions · data class</span>
+            <small>02 · {{ t('home.governance') }}</small
+            ><strong>{{ t('home.policyGate') }}</strong
+            ><span>{{ t('home.policyDetail') }}</span>
           </div>
-          <div class="flow-connector"><i></i><span>approved</span></div>
+          <div class="flow-connector">
+            <i></i><span>{{ t('home.approved') }}</span>
+          </div>
           <div class="flow-split">
             <div class="flow-node">
-              <small>03A · Inline</small><strong>Immediate answer</strong>
+              <small>03A · {{ t('home.inline') }}</small
+              ><strong>{{ t('home.immediate') }}</strong>
             </div>
             <div class="flow-node">
-              <small>03B · Durable</small><strong>Run to completion</strong>
+              <small>03B · {{ t('home.durable') }}</small
+              ><strong>{{ t('home.completion') }}</strong>
             </div>
           </div>
         </div>
@@ -164,18 +179,15 @@
       <div class="section-heading section-heading-split">
         <div>
           <span class="section-index">03</span>
-          <h2>Extend it around your world.</h2>
+          <h2>{{ t('home.marketplaceTitle') }}</h2>
         </div>
-        <p>
-          The marketplace brings reusable capabilities into Personal Agent without weakening its
-          permission and governance model.
-        </p>
+        <p>{{ t('home.marketplaceCopy') }}</p>
       </div>
       <div class="market-intro-grid">
         <router-link
           v-for="kind in marketplaceKinds"
           :key="kind.title"
-          to="/marketplace"
+          :to="localePath('/marketplace')"
           class="market-kind"
         >
           <span class="kind-number">{{ kind.number }}</span
@@ -183,7 +195,8 @@
           <h3>{{ kind.title }}</h3>
           <p>{{ kind.copy }}</p>
           <span class="kind-link"
-            >Browse {{ kind.title.toLowerCase() }} <q-icon name="arrow_forward"
+            >{{ t('home.browse', { kind: kind.title.toLocaleLowerCase(locale) }) }}
+            <q-icon name="arrow_forward"
           /></span>
         </router-link>
       </div>
@@ -195,14 +208,14 @@
         <img :src="markUrl" alt="Personal Agent"
       /></picture>
       <div>
-        <span class="section-index">Start here</span>
-        <h2>Your world, handled.</h2>
+        <span class="section-index">{{ t('home.startHere') }}</span>
+        <h2>{{ t('footer.slogan') }}</h2>
       </div>
       <q-btn
         unelevated
         no-caps
         color="primary"
-        label="Read the documentation"
+        :label="t('home.readDocs')"
         to="/docs/getting-started/"
         icon-right="arrow_forward"
       />
@@ -211,77 +224,102 @@
 </template>
 
 <script setup lang="ts">
-import { useMeta } from 'quasar';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SiteIcon from '@/components/SiteIcon.vue';
+import { useLocalePath } from '@/composables/useLocalePath';
+import { useSeo } from '@/composables/useSeo';
 import markUrl from '../../docs/assets/mark.svg?url';
 import markDarkUrl from '../../docs/assets/mark-dark.svg?url';
 
-useMeta({ title: 'Personal Agent — Your world, handled.' });
+const { t, locale } = useI18n();
+const localePath = useLocalePath();
+useSeo({
+  title: () => t('home.meta'),
+  description: () => t('home.seoDescription'),
+  localized: true,
+  structuredData: [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Personal Agent',
+      url: 'https://personal-agent.org/',
+      logo: new URL(markUrl, 'https://personal-agent.org').href,
+      sameAs: ['https://github.com/personal-agent-org'],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Personal Agent',
+      url: 'https://personal-agent.org/',
+    },
+  ],
+});
 
-const principles = [
-  { icon: 'lock', label: 'Private by design' },
-  { icon: 'code', label: 'Open source' },
-  { icon: 'clock', label: 'Durable execution' },
-  { icon: 'policy', label: 'Fail-closed governance' },
-] as const;
+const principles = computed(() => [
+  { icon: 'lock', label: t('home.principles.private') },
+  { icon: 'code', label: t('home.principles.open') },
+  { icon: 'clock', label: t('home.principles.durable') },
+  { icon: 'policy', label: t('home.principles.governance') },
+]);
 
-const primaryFeatures = [
+const primaryFeatures = computed(() => [
   {
     icon: 'hub',
-    title: 'World-state memory',
-    copy: 'A bitemporal, causal graph connects live entities and long-term memory with provenance.',
+    title: t('home.features.memoryTitle'),
+    copy: t('home.features.memoryCopy'),
     to: '/docs/features/memory/',
   },
   {
     icon: 'route',
-    title: 'Durable work',
-    copy: 'Agents and workflows keep running, survive interruption, and return results to the conversation.',
+    title: t('home.features.durableTitle'),
+    copy: t('home.features.durableCopy'),
     to: '/docs/features/workflows/',
   },
   {
     icon: 'forum',
-    title: 'Chat & agents',
-    copy: 'Models, modes, security, sub-agents, voice, rewind and run revert in each conversation.',
+    title: t('home.features.chatTitle'),
+    copy: t('home.features.chatCopy'),
     to: '/docs/features/chat/',
   },
   {
     icon: 'extension',
-    title: 'Deep integrations',
-    copy: 'Tools, agents, entities, surfaces, cards and message providers share one capability model.',
+    title: t('home.features.integrationsTitle'),
+    copy: t('home.features.integrationsCopy'),
     to: '/docs/features/integrations/',
   },
   {
     icon: 'devices',
-    title: 'Connected devices',
-    copy: 'Computer and browser services provide scoped host capabilities without granting chat access.',
+    title: t('home.features.devicesTitle'),
+    copy: t('home.features.devicesCopy'),
     to: '/docs/features/devices/',
   },
   {
     icon: 'shield',
-    title: 'Security & governance',
-    copy: 'Data classification, scoped credentials, budgets and explicit policy at every model boundary.',
+    title: t('home.features.securityTitle'),
+    copy: t('home.features.securityCopy'),
     to: '/docs/features/security/',
   },
-] as const;
+]);
 
-const marketplaceKinds = [
+const marketplaceKinds = computed(() => [
   {
     number: '01',
     icon: 'smart_toy',
-    title: 'Agents',
-    copy: 'Purpose-built agents with defined capabilities and governed delegation.',
+    title: t('home.kinds.agents'),
+    copy: t('home.kinds.agentsCopy'),
   },
   {
     number: '02',
     icon: 'construction',
-    title: 'Skills',
-    copy: 'Progressively disclosed expertise that agents load only when it is relevant.',
+    title: t('home.kinds.skills'),
+    copy: t('home.kinds.skillsCopy'),
   },
   {
     number: '03',
     icon: 'extension',
-    title: 'Integrations',
-    copy: 'Connections to services and data that contribute tools and capabilities.',
+    title: t('home.kinds.integrations'),
+    copy: t('home.kinds.integrationsCopy'),
   },
-] as const;
+]);
 </script>

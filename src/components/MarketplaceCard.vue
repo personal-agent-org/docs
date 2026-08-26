@@ -6,7 +6,7 @@
         <div class="row items-center q-gutter-sm">
           <span class="eyebrow">{{ item.kind }}</span>
           <q-icon v-if="item.verified" name="verified" size="16px" color="secondary">
-            <q-tooltip>Verified publisher</q-tooltip>
+            <q-tooltip>{{ t('marketplace.verified') }}</q-tooltip>
           </q-icon>
         </div>
         <h3>{{ item.name }}</h3>
@@ -19,13 +19,13 @@
         <span v-for="tag in item.tags" :key="tag" class="tag">{{ tag }}</span>
       </div>
       <div class="row items-center justify-between q-mt-lg">
-        <span class="publisher">by {{ item.publisher }}</span>
+        <span class="publisher">{{ t('marketplace.by', { publisher: item.publisher }) }}</span>
         <q-btn
           flat
           no-caps
           color="primary"
-          label="View details"
-          :to="`/marketplace/${item.slug}`"
+          :label="t('marketplace.details')"
+          :to="localePath(`/marketplace/${item.slug}`)"
           icon-right="arrow_forward"
         />
       </div>
@@ -34,7 +34,11 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+import { useLocalePath } from '@/composables/useLocalePath';
 import type { MarketplaceItem } from '@/types/marketplace';
 
 defineProps<{ item: MarketplaceItem }>();
+const { t } = useI18n();
+const localePath = useLocalePath();
 </script>

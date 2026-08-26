@@ -6,10 +6,11 @@
   "type": "module",
   "scripts": {
     "dev": "quasar dev",
+    "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "quasar build -m ssg",
     "build:spa": "quasar build",
-    "format": "oxfmt src src-ssg quasar.config.ts oxfmt.config.ts oxlint.config.ts postcss.config.js env.d.ts package.json",
-    "lint": "oxfmt --check src src-ssg quasar.config.ts oxfmt.config.ts oxlint.config.ts postcss.config.js env.d.ts package.json && oxlint",
+    "format": "oxfmt src src-ssg scripts quasar.config.ts oxfmt.config.ts oxlint.config.ts postcss.config.js env.d.ts package.json",
+    "lint": "oxfmt --check src src-ssg scripts quasar.config.ts oxfmt.config.ts oxlint.config.ts postcss.config.js env.d.ts package.json && oxlint",
     "typecheck": "vue-tsc --noEmit",
     "check": "pnpm lint && pnpm typecheck && pnpm build",
     "postinstall": "quasar prepare --silent"
@@ -19,6 +20,7 @@
     "markdown-it": "^14.1.0",
     "quasar": "^2.27.0",
     "vue": "^3.5.22",
+    "vue-i18n": "^11.4.10",
     "vue-router": "^5.0.6"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import { defineConfig } from '#q-app';
 
 export default defineConfig(() => ({
+  boot: ['i18n'],
   css: ['app.scss'],
   extras: ['material-icons'],
   build: {
@@ -21,6 +22,9 @@ export default defineConfig(() => ({
   framework: {
     iconSet: 'material-icons',
     config: {
+      lang: {
+        noHtmlAttrs: true,
+      },
       brand: {
         primary: '#78a9ff',
         secondary: '#74f0c4',

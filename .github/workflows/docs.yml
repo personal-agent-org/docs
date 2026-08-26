@@ -6,9 +6,13 @@ on:
     tags: ["v*"]
     paths:
       - docs/**
+      - public/**
+      - scripts/**
       - src/**
+      - src-ssg/**
       - Containerfile
       - deploy/**
+      - index.html
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -17,7 +21,11 @@ on:
   pull_request:
     paths:
       - docs/**
+      - public/**
+      - scripts/**
       - src/**
+      - src-ssg/**
+      - index.html
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml

@@ -48,7 +48,18 @@ export const getSsgPages = defineSsgGetPages(async ({ ctx, parseVueRouterRoutes 
     route: `/marketplace/${item.slug}`,
     label: `marketplace: ${item.name}`,
   }));
-  return [...ssgPages, ...documentation, ...marketplace];
+  const germanMarketplace = listMarketplaceItems().map((item) => ({
+    route: `/de/marketplace/${item.slug}`,
+    label: `marketplace (de): ${item.name}`,
+  }));
+  return [...ssgPages, ...documentation, ...marketplace, ...germanMarketplace].map((page) => ({
+    ...page,
+    transformHtml: (html: string) =>
+      html.replace(
+        /<html[^>]*>/i,
+        `<html lang="${page.route === '/de' || page.route.startsWith('/de/') ? 'de' : 'en'}" dir="ltr">`,
+      ),
+  }));
 });
 
 const jsRE = /\.js$/;
