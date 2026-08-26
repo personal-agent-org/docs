@@ -80,6 +80,18 @@ The installed Computer Service executable is `pacs`. Its per-user configuration 
 `~/.config/personal-agent/computer-service/config.toml`. On Unix, `pacs` falls back to
 `/etc/personal-agent/computer-service/config.toml` only when no per-user configuration exists.
 
+## Voice assistant hardware
+
+Personal Agent can use an ESPHome voice satellite such as **Home Assistant Voice Preview Edition**
+as a hands-free client. The device detects its wake word locally and streams microphone audio over
+the encrypted ESPHome native API. Personal Agent then runs the complete speech-to-text → governed
+agent turn → text-to-speech pipeline and streams the spoken response back to the device.
+
+Each voice satellite has its own hidden conversation so follow-up requests retain context without
+mixing the device's history into a visible chat. Personal Agent also supports device announcements,
+timers and selecting the active wake word. The hardware connects directly to your instance; it does
+not require an Alexa or other third-party assistant account.
+
 ## Use this assistant from other tools (MCP)
 
 Your instance also exposes itself **as** an MCP server so another agent (Claude Code, Cursor, any

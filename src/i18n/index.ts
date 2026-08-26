@@ -31,7 +31,7 @@ export const messages = {
     home: {
       meta: 'Your world, handled.',
       seoDescription:
-        'Run private AI agents, durable workflows, integrations and connected devices on an open-source, self-hostable platform.',
+        'Use private AI agents from the web, desktop, terminal, Android and dedicated voice hardware on an open-source, self-hostable platform.',
       kicker: 'Open source · self-hostable',
       title: 'Your world,',
       titleAccent: 'handled.',
@@ -63,6 +63,31 @@ export const messages = {
         open: 'Open source',
         durable: 'Durable execution',
         governance: 'Fail-closed governance',
+      },
+      clients: {
+        eyebrow: 'Five ways in · one Personal Agent',
+        title: 'Your assistant, wherever work happens.',
+        copy: 'Start in a browser, continue on your desktop, phone or terminal, or simply speak. Every client connects to the Personal Agent instance you choose.',
+        webTitle: 'Web',
+        webCopy:
+          'The complete workspace in any modern browser, with nothing to install on your device.',
+        webMeta: 'Browser · full workspace',
+        desktopTitle: 'Desktop',
+        desktopCopy:
+          'A native Linux client with tray integration and notifications for conversations that stay close at hand.',
+        desktopMeta: 'Linux · native notifications',
+        tuiTitle: 'Terminal',
+        tuiCopy:
+          'Streaming chat, sessions, agents and controls in a fast, keyboard-first terminal interface.',
+        tuiMeta: 'Rust TUI · keyboard first',
+        appTitle: 'Mobile app',
+        appCopy:
+          'Connect Android to your self-hosted instance with native push, deep links and sharing.',
+        appMeta: 'Android · native companion',
+        voiceTitle: 'Voice assistant',
+        voiceCopy:
+          'Get Alexa-style hands-free access through Home Assistant Voice PE: wake word, natural request and a governed response through the speaker.',
+        voiceMeta: 'Home Assistant Voice PE · local hardware',
       },
       section1Title: 'One system for the work around you.',
       section1Copy:
@@ -314,7 +339,7 @@ export const messages = {
     home: {
       meta: 'Deine Welt. Erledigt.',
       seoDescription:
-        'Betreibe private KI-Agenten, dauerhafte Workflows, Integrationen und verbundene Geräte auf einer offenen, selbst hostbaren Plattform.',
+        'Nutze private KI-Agenten im Web, auf Desktop, Terminal, Android und eigener Voice-Hardware – offen und selbst hostbar.',
       kicker: 'Open Source · selbst hostbar',
       title: 'Deine Welt.',
       titleAccent: 'Erledigt.',
@@ -346,6 +371,31 @@ export const messages = {
         open: 'Open Source',
         durable: 'Dauerhafte Ausführung',
         governance: 'Ausfallsichere Regeln',
+      },
+      clients: {
+        eyebrow: 'Fünf Zugänge · ein Personal Agent',
+        title: 'Dein Assistent, wo immer du ihn brauchst.',
+        copy: 'Starte im Browser, arbeite auf Desktop, Smartphone oder Terminal weiter – oder sprich einfach. Jeder Client verbindet sich mit der Personal-Agent-Instanz deiner Wahl.',
+        webTitle: 'Web',
+        webCopy:
+          'Der vollständige Arbeitsbereich in jedem modernen Browser – ohne Installation auf deinem Gerät.',
+        webMeta: 'Browser · kompletter Arbeitsbereich',
+        desktopTitle: 'Desktop',
+        desktopCopy:
+          'Ein nativer Linux-Client mit Tray-Integration und Benachrichtigungen für schnell erreichbare Unterhaltungen.',
+        desktopMeta: 'Linux · native Benachrichtigungen',
+        tuiTitle: 'Terminal',
+        tuiCopy:
+          'Streaming-Chat, Sitzungen, Agenten und Steuerung in einer schnellen, tastaturzentrierten Oberfläche.',
+        tuiMeta: 'Rust TUI · tastaturzentriert',
+        appTitle: 'Mobile-App',
+        appCopy:
+          'Verbinde Android mit deiner selbst gehosteten Instanz – inklusive Push, Deep Links und Teilen.',
+        appMeta: 'Android · nativer Begleiter',
+        voiceTitle: 'Sprachassistent',
+        voiceCopy:
+          'Nutze Personal Agent freihändig wie Alexa über Home Assistant Voice PE: Aktivierungswort, natürliche Anfrage und geregelte Antwort über den Lautsprecher.',
+        voiceMeta: 'Home Assistant Voice PE · lokale Hardware',
       },
       section1Title: 'Ein System für die Arbeit um dich herum.',
       section1Copy:

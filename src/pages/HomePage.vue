@@ -100,6 +100,41 @@
       </div>
     </section>
 
+    <section class="clients-section section page-width">
+      <div class="clients-heading">
+        <div>
+          <span class="section-index">{{ t('home.clients.eyebrow') }}</span>
+          <h2>{{ t('home.clients.title') }}</h2>
+        </div>
+        <p>{{ t('home.clients.copy') }}</p>
+      </div>
+      <div class="client-grid">
+        <router-link
+          v-for="client in clients"
+          :key="client.title"
+          :to="client.to"
+          class="client-card"
+          :class="{ 'client-card-featured': client.featured }"
+        >
+          <div class="client-card-top">
+            <span>{{ client.number }}</span>
+            <q-icon :name="client.icon" />
+          </div>
+          <div>
+            <h3>{{ client.title }}</h3>
+            <p>{{ client.copy }}</p>
+          </div>
+          <div v-if="client.featured" class="voice-wave" aria-hidden="true">
+            <i v-for="index in 13" :key="index"></i>
+          </div>
+          <div class="client-card-meta">
+            <span>{{ client.meta }}</span>
+            <q-icon name="arrow_outward" />
+          </div>
+        </router-link>
+      </div>
+    </section>
+
     <section id="explore" class="section page-width">
       <div class="section-heading section-heading-split">
         <div>
@@ -299,6 +334,50 @@ const primaryFeatures = computed(() => [
     title: t('home.features.securityTitle'),
     copy: t('home.features.securityCopy'),
     to: '/docs/features/security/',
+  },
+]);
+
+const clients = computed(() => [
+  {
+    number: '01',
+    icon: 'language',
+    title: t('home.clients.webTitle'),
+    copy: t('home.clients.webCopy'),
+    meta: t('home.clients.webMeta'),
+    to: '/docs/getting-started/',
+  },
+  {
+    number: '02',
+    icon: 'desktop_windows',
+    title: t('home.clients.desktopTitle'),
+    copy: t('home.clients.desktopCopy'),
+    meta: t('home.clients.desktopMeta'),
+    to: '/docs/getting-started/client-apps/#desktop-app-tauri',
+  },
+  {
+    number: '03',
+    icon: 'terminal',
+    title: t('home.clients.tuiTitle'),
+    copy: t('home.clients.tuiCopy'),
+    meta: t('home.clients.tuiMeta'),
+    to: '/docs/getting-started/client-apps/#terminal-client-tui',
+  },
+  {
+    number: '04',
+    icon: 'smartphone',
+    title: t('home.clients.appTitle'),
+    copy: t('home.clients.appCopy'),
+    meta: t('home.clients.appMeta'),
+    to: '/docs/getting-started/client-apps/#android-app',
+  },
+  {
+    number: '05',
+    icon: 'graphic_eq',
+    title: t('home.clients.voiceTitle'),
+    copy: t('home.clients.voiceCopy'),
+    meta: t('home.clients.voiceMeta'),
+    to: '/docs/getting-started/client-apps/#voice-assistant-hardware',
+    featured: true,
   },
 ]);
 
