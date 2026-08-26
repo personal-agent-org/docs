@@ -34,15 +34,34 @@
             ><q-icon v-if="item.verified" name="verified" color="secondary" />
           </div>
           <p>{{ t('marketplace.preview') }}</p>
+          <div v-if="item.security_status === 'clean'" class="row items-center q-gutter-sm q-mb-md">
+            <q-icon name="verified_user" color="positive" />
+            <span>{{ t('marketplace.security.clean') }}</span>
+          </div>
+          <div v-else class="row items-center q-gutter-sm q-mb-md text-warning">
+            <q-icon name="policy" />
+            <span>{{ t('marketplace.security.pending') }}</span>
+          </div>
+          <template v-if="item.kind === 'integration'">
+            <div v-if="item.quality_tier" class="quality-detail">
+              <span>{{ qualityIcon(item.quality_tier) }}</span>
+              <div>
+                <strong>{{ t(`marketplace.quality.${item.quality_tier}`) }}</strong>
+                <p>{{ t('marketplace.quality.reviewed') }}</p>
+              </div>
+            </div>
+            <p v-else>{{ t('marketplace.quality.unrated') }}</p>
+          </template>
           <q-separator dark />
           <p class="install-note">{{ t('marketplace.installNote') }}</p>
           <q-btn
-            disable
             unelevated
             no-caps
             color="primary"
             text-color="dark"
             :label="t('marketplace.install')"
+            :href="marketplaceInstallUrl(item.slug)"
+            :disable="item.security_status !== 'clean'"
             class="full-width"
           />
         </aside>
@@ -56,23 +75,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useLocalePath } from '@/composables/useLocalePath';
 import { useSeo } from '@/composables/useSeo';
-import { getMarketplaceItem } from '@/services/marketplace';
-import type { MarketplaceItem } from '@/types/marketplace';
+import {
+  fetchMarketplaceItem,
+  getMarketplaceItem,
+  marketplaceInstallUrl,
+} from '@/services/marketplace';
+import type { MarketplaceItem, QualityTier } from '@/types/marketplace';
 
 const route = useRoute();
 const { t } = useI18n();
 const localePath = useLocalePath();
-const item = computed<MarketplaceItem | undefined>(() =>
-  getMarketplaceItem(String(route.params.slug)),
+const remoteItem = ref<MarketplaceItem>();
+const item = computed<MarketplaceItem | undefined>(
+  () => remoteItem.value ?? getMarketplaceItem(String(route.params.slug)),
 );
+onMounted(async () => {
+  try {
+    remoteItem.value = await fetchMarketplaceItem(String(route.params.slug));
+  } catch {
+    // Keep the pre-rendered detail available during a platform API outage.
+  }
+});
 useSeo({
   title: () => item.value?.name ?? t('marketplace.notFound'),
   description: () => item.value?.summary ?? t('marketplace.notFound'),
   localized: true,
 });
+
+function qualityIcon(tier: QualityTier): string {
+  return { bronze: '🥉', silver: '🥈', gold: '🥇', platinum: '🏆' }[tier];
+}
 </script>

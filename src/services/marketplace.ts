@@ -1,4 +1,5 @@
 import type { MarketplaceItem } from '@/types/marketplace';
+import { discoverPlatform } from '@/services/platformDiscovery';
 
 const catalog: MarketplaceItem[] = [
   {
@@ -91,4 +92,31 @@ export function listMarketplaceItems(): MarketplaceItem[] {
 
 export function getMarketplaceItem(slug: string): MarketplaceItem | undefined {
   return catalog.find((item) => item.slug === slug);
+}
+
+interface MarketplaceResponse {
+  items: MarketplaceItem[];
+}
+
+export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
+  const platform = await discoverPlatform();
+  const response = await fetch(platform.marketplace_url, {
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) throw new Error(`Marketplace API returned ${response.status}`);
+  return ((await response.json()) as MarketplaceResponse).items;
+}
+
+export async function fetchMarketplaceItem(slug: string): Promise<MarketplaceItem | undefined> {
+  const platform = await discoverPlatform();
+  const response = await fetch(`${platform.marketplace_url}/${encodeURIComponent(slug)}`, {
+    headers: { Accept: 'application/json' },
+  });
+  if (response.status === 404) return undefined;
+  if (!response.ok) throw new Error(`Marketplace API returned ${response.status}`);
+  return (await response.json()) as MarketplaceItem;
+}
+
+export function marketplaceInstallUrl(slug: string): string {
+  return `https://my.personal-agent.org/marketplace/install/${encodeURIComponent(slug)}`;
 }

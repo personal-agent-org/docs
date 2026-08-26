@@ -1,0 +1,6 @@
+{
+  "platform_api": "https://api.personal-agent.org",
+  "customer_oidc_issuer": "https://auth.personal-agent.org/realms/customers",
+  "customer_web_client_id": "personal-agent-web",
+  "marketplace_url": "https://api.personal-agent.org/v1/marketplace/items"
+}

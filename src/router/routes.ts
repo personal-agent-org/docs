@@ -56,6 +56,11 @@ const germanMarketing: RouteRecordRaw[] = [
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/auth/callback',
+    name: 'customer-auth-callback',
+    component: () => import('@/pages/AuthCallbackPage.vue'),
+  },
+  {
     path: '/',
     component: () => import('@/layouts/SiteLayout.vue'),
     children: [

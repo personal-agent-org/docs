@@ -8,6 +8,9 @@
           <q-icon v-if="item.verified" name="verified" size="16px" color="secondary">
             <q-tooltip>{{ t('marketplace.verified') }}</q-tooltip>
           </q-icon>
+          <span v-if="item.kind === 'integration' && item.quality_tier" class="quality-tier">
+            {{ qualityIcon(item.quality_tier) }} {{ t(`marketplace.quality.${item.quality_tier}`) }}
+          </span>
         </div>
         <h3>{{ item.name }}</h3>
         <p>{{ item.summary }}</p>
@@ -37,8 +40,13 @@
 import { useI18n } from 'vue-i18n';
 import { useLocalePath } from '@/composables/useLocalePath';
 import type { MarketplaceItem } from '@/types/marketplace';
+import type { QualityTier } from '@/types/marketplace';
 
 defineProps<{ item: MarketplaceItem }>();
 const { t } = useI18n();
 const localePath = useLocalePath();
+
+function qualityIcon(tier: QualityTier): string {
+  return { bronze: '🥉', silver: '🥈', gold: '🥇', platinum: '🏆' }[tier];
+}
 </script>

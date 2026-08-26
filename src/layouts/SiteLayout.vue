@@ -49,6 +49,30 @@
             </q-list>
           </q-btn-dropdown>
           <q-btn
+            v-if="!customerUser"
+            flat
+            no-caps
+            icon="login"
+            :label="t('nav.login')"
+            @click="customerLogin()"
+          />
+          <q-btn-dropdown
+            v-else
+            flat
+            dense
+            no-caps
+            icon="account_circle"
+            content-class="site-dropdown"
+            :label="customerUser.profile.name || customerUser.profile.email || t('nav.logout')"
+          >
+            <q-list dark dense>
+              <q-item clickable v-close-popup @click="customerLogout()">
+                <q-item-section avatar><q-icon name="logout" /></q-item-section>
+                <q-item-section>{{ t('nav.logout') }}</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+          <q-btn
             unelevated
             no-caps
             color="primary"
@@ -111,6 +135,14 @@
         <q-item clickable href="https://github.com/personal-agent-org" target="_blank">
           <q-item-section>{{ t('nav.github') }}</q-item-section>
         </q-item>
+        <q-item v-if="!customerUser" clickable v-close-popup @click="customerLogin()">
+          <q-item-section avatar><q-icon name="login" /></q-item-section>
+          <q-item-section>{{ t('nav.login') }}</q-item-section>
+        </q-item>
+        <q-item v-else clickable v-close-popup @click="customerLogout()">
+          <q-item-section avatar><q-icon name="logout" /></q-item-section>
+          <q-item-section>{{ t('nav.logout') }}</q-item-section>
+        </q-item>
         <q-separator dark spaced />
         <q-item-label header>{{ t('nav.language') }}</q-item-label>
         <q-item clickable v-close-popup @click="changeLocale('en')">
@@ -169,6 +201,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { detectPreferredLocale, setSiteLocale, type SiteLocale } from '@/i18n';
 import { useLocalePath } from '@/composables/useLocalePath';
+import { useCustomerAuth } from '@/services/customerAuth';
 import logoUrl from '../../docs/assets/logo-header.svg?url';
 
 const drawerOpen = ref(false);
@@ -176,6 +209,12 @@ const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const localePath = useLocalePath();
+const {
+  user: customerUser,
+  initialize: initializeCustomerAuth,
+  login: customerLogin,
+  logout: customerLogout,
+} = useCustomerAuth();
 
 function changeLocale(nextLocale: SiteLocale) {
   setSiteLocale(nextLocale);
@@ -184,6 +223,7 @@ function changeLocale(nextLocale: SiteLocale) {
 }
 
 onMounted(() => {
+  void initializeCustomerAuth();
   const preferred = detectPreferredLocale();
   const onLocalizedPage =
     route.path === '/' ||

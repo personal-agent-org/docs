@@ -51,11 +51,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import MarketplaceCard from '@/components/MarketplaceCard.vue';
 import { useSeo } from '@/composables/useSeo';
-import { listMarketplaceItems } from '@/services/marketplace';
+import { fetchMarketplaceItems, listMarketplaceItems } from '@/services/marketplace';
 import type { MarketplaceItem, MarketplaceKind } from '@/types/marketplace';
 
 const { t } = useI18n();
@@ -76,6 +76,15 @@ const filters = computed<{ label: string; value: KindFilter }[]>(() => [
 const items = ref<MarketplaceItem[]>(listMarketplaceItems());
 const query = ref('');
 const kind = ref<KindFilter>('all');
+
+onMounted(async () => {
+  try {
+    const remoteItems = await fetchMarketplaceItems();
+    if (remoteItems.length) items.value = remoteItems;
+  } catch {
+    // The pre-rendered catalog remains useful if the platform API is temporarily unavailable.
+  }
+});
 
 const filteredItems = computed(() => {
   const needle = query.value.trim().toLocaleLowerCase();

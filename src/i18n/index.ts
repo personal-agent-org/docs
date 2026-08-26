@@ -16,10 +16,15 @@ export const messages = {
       language: 'Language',
       plus: 'PA+',
       hosted: 'Cloud',
+      login: 'Log in',
+      logout: 'Log out',
     },
     sponsor: {
       label: 'Sponsored by',
       claim: 'the sovereign alternative to OpenRouter',
+    },
+    auth: {
+      completing: 'Completing secure login…',
     },
     footer: {
       slogan: 'Your world, handled.',
@@ -403,7 +408,19 @@ export const messages = {
       preview: 'Catalog preview',
       installNote:
         'Installation will connect to your Personal Agent instance and always show the exact permissions before adoption.',
-      install: 'Install from your instance',
+      install: 'Install',
+      security: {
+        clean: 'Artifact scanned and approved',
+        pending: 'Installation unavailable until the security review is complete',
+      },
+      quality: {
+        bronze: 'Bronze quality',
+        silver: 'Silver quality',
+        gold: 'Gold quality',
+        platinum: 'Platinum quality',
+        reviewed: 'Reviewed against all requirements up to this level.',
+        unrated: 'This integration has not been rated yet.',
+      },
       notFound: 'Marketplace item not found',
       back: 'Back to marketplace',
     },
@@ -444,10 +461,15 @@ export const messages = {
       language: 'Sprache',
       plus: 'PA+',
       hosted: 'Cloud',
+      login: 'Anmelden',
+      logout: 'Abmelden',
     },
     sponsor: {
       label: 'Gesponsert von',
       claim: 'die souveräne Alternative zu OpenRouter',
+    },
+    auth: {
+      completing: 'Sichere Anmeldung wird abgeschlossen…',
     },
     footer: {
       slogan: 'Deine Welt. Erledigt.',
@@ -831,7 +853,19 @@ export const messages = {
       preview: 'Katalogvorschau',
       installNote:
         'Die Installation verbindet sich mit deiner Personal-Agent-Instanz und zeigt vor der Übernahme immer die genauen Berechtigungen.',
-      install: 'Aus deiner Instanz installieren',
+      install: 'Installieren',
+      security: {
+        clean: 'Artefakt geprüft und freigegeben',
+        pending: 'Installation erst nach abgeschlossener Sicherheitsprüfung verfügbar',
+      },
+      quality: {
+        bronze: 'Qualitätsstufe Bronze',
+        silver: 'Qualitätsstufe Silber',
+        gold: 'Qualitätsstufe Gold',
+        platinum: 'Qualitätsstufe Platin',
+        reviewed: 'Gegen alle Anforderungen bis zu dieser Stufe geprüft.',
+        unrated: 'Diese Integration wurde noch nicht eingestuft.',
+      },
       notFound: 'Marktplatz-Eintrag nicht gefunden',
       back: 'Zurück zum Marktplatz',
     },
