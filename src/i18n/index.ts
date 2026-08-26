@@ -66,12 +66,12 @@ export const messages = {
       },
       clients: {
         eyebrow: 'Five ways in · one Personal Agent',
-        title: 'Your assistant, wherever work happens.',
-        copy: 'Start in a browser, continue on your desktop, phone or terminal, or simply speak. Every client connects to the Personal Agent instance you choose.',
+        title: 'Your assistant, wherever you are.',
+        copy: 'Move naturally between browser, desktop, phone and terminal, or simply speak. Every client connects to the Personal Agent instance you choose.',
         webTitle: 'Web',
         webCopy:
-          'The complete workspace in any modern browser, with nothing to install on your device.',
-        webMeta: 'Browser · full workspace',
+          'The complete experience in any modern browser, with nothing to install on your device.',
+        webMeta: 'Browser · complete experience',
         desktopTitle: 'Desktop',
         desktopCopy:
           'A native Linux client with tray integration and notifications for conversations that stay close at hand.',
@@ -129,14 +129,14 @@ export const messages = {
             'Device credentials are scoped, Computer Service cannot read chats, and untrusted content loses privileged tools.',
         },
       },
-      section1Title: 'One system for the work around you.',
+      section1Title: 'One system for the world around you.',
       section1Copy:
         'Conversation is only the surface. Personal Agent connects memory, tools, durable execution and policy underneath it.',
       features: {
         memoryTitle: 'World-state memory',
         memoryCopy:
           'A bitemporal, causal graph connects live entities and long-term memory with provenance.',
-        durableTitle: 'Durable work',
+        durableTitle: 'Tasks that keep going',
         durableCopy:
           'Agents and workflows keep running, survive interruption, and return results to the conversation.',
         chatTitle: 'Chat & agents',
@@ -415,11 +415,11 @@ export const messages = {
       clients: {
         eyebrow: 'Fünf Zugänge · ein Personal Agent',
         title: 'Dein Assistent, wo immer du ihn brauchst.',
-        copy: 'Starte im Browser, arbeite auf Desktop, Smartphone oder Terminal weiter – oder sprich einfach. Jeder Client verbindet sich mit der Personal-Agent-Instanz deiner Wahl.',
+        copy: 'Wechsle nahtlos zwischen Browser, Desktop, Smartphone und Terminal – oder sprich einfach. Jeder Client verbindet sich mit der Personal-Agent-Instanz deiner Wahl.',
         webTitle: 'Web',
         webCopy:
-          'Der vollständige Arbeitsbereich in jedem modernen Browser – ohne Installation auf deinem Gerät.',
-        webMeta: 'Browser · kompletter Arbeitsbereich',
+          'Das vollständige Erlebnis in jedem modernen Browser – ohne Installation auf deinem Gerät.',
+        webMeta: 'Browser · vollständiges Erlebnis',
         desktopTitle: 'Desktop',
         desktopCopy:
           'Ein nativer Linux-Client mit Tray-Integration und Benachrichtigungen für schnell erreichbare Unterhaltungen.',
@@ -477,14 +477,14 @@ export const messages = {
             'Gerätezugänge sind begrenzt, Computer Service kann keine Chats lesen und nicht vertrauenswürdige Inhalte verlieren privilegierte Werkzeuge.',
         },
       },
-      section1Title: 'Ein System für die Arbeit um dich herum.',
+      section1Title: 'Ein System für die Welt um dich herum.',
       section1Copy:
         'Die Unterhaltung ist nur die Oberfläche. Darunter verbindet Personal Agent Gedächtnis, Werkzeuge, dauerhafte Ausführung und Richtlinien.',
       features: {
         memoryTitle: 'Weltzustands-Gedächtnis',
         memoryCopy:
           'Ein bitemporaler, kausaler Graph verbindet aktuelle Entitäten und Langzeitgedächtnis samt Herkunft.',
-        durableTitle: 'Dauerhafte Arbeit',
+        durableTitle: 'Aufgaben, die weiterlaufen',
         durableCopy:
           'Agenten und Workflows laufen weiter, überstehen Unterbrechungen und liefern Ergebnisse in die Unterhaltung zurück.',
         chatTitle: 'Chat & Agenten',
