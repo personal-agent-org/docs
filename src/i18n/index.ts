@@ -188,7 +188,7 @@ export const messages = {
     organizations: {
       meta: 'For organizations',
       seoDescription:
-        'Deploy Personal Agent for companies and public institutions with OIDC, governed execution, consulting, professional support and custom development.',
+        'Deploy provider-independent Personal Agent for organizations with OIDC, budgets, an open ecosystem, consulting, support and custom development.',
       eyebrow: 'For companies and public institutions',
       title: 'AI assistance under your control.',
       lead: 'Operate Personal Agent in an environment that matches your security, governance and data-sovereignty requirements, from a dedicated cloud deployment to your own infrastructure.',
@@ -250,6 +250,15 @@ export const messages = {
         lifecycleTitle: 'Managed lifecycle',
         lifecycleCopy:
           'Establish controlled updates, monitoring, backup, recovery and support processes for production operation.',
+        budgetsTitle: 'Budgets & cost control',
+        budgetsCopy:
+          'Set usage and cost limits by user, agent or organizational scope and make consumption visible before it becomes an operational surprise.',
+        providersTitle: 'Provider independence',
+        providersCopy:
+          'Use local models or select and combine external providers by policy without binding the platform to one large AI vendor.',
+        ecosystemTitle: 'Open ecosystem',
+        ecosystemCopy:
+          'Extend the platform with open agents, skills, integrations and workflows instead of depending on a closed vendor catalog.',
       },
       sectorsLabel: 'One platform, different operating models',
       sectorsTitle: 'For regulated teams and public responsibility.',
@@ -575,7 +584,7 @@ export const messages = {
     organizations: {
       meta: 'Für Organisationen',
       seoDescription:
-        'Personal Agent für Unternehmen und öffentliche Einrichtungen mit OIDC, geregelter Ausführung, Beratung, professionellem Support und individueller Entwicklung.',
+        'Anbieterunabhängiger Personal Agent für Organisationen mit OIDC, Budgetierung, offenem Ökosystem, Beratung, Support und individueller Entwicklung.',
       eyebrow: 'Für Unternehmen und öffentliche Einrichtungen',
       title: 'KI-Unterstützung unter Ihrer Kontrolle.',
       lead: 'Betreiben Sie Personal Agent in einer Umgebung, die zu Ihren Anforderungen an Sicherheit, Governance und Datensouveränität passt – von einer dedizierten Cloud-Installation bis zur eigenen Infrastruktur.',
@@ -637,6 +646,15 @@ export const messages = {
         lifecycleTitle: 'Geregelter Lebenszyklus',
         lifecycleCopy:
           'Etablieren Sie kontrollierte Updates, Monitoring, Backups, Wiederherstellung und Supportprozesse für den Produktivbetrieb.',
+        budgetsTitle: 'Budgetierung & Kostenkontrolle',
+        budgetsCopy:
+          'Definieren Sie Nutzungs- und Kostenlimits pro Benutzer, Agent oder Organisationsbereich und machen Sie den Verbrauch frühzeitig sichtbar.',
+        providersTitle: 'Anbieterunabhängigkeit',
+        providersCopy:
+          'Nutzen Sie lokale Modelle oder wählen und kombinieren Sie externe Anbieter nach Richtlinie, ohne die Plattform an einen großen KI-Anbieter zu binden.',
+        ecosystemTitle: 'Offenes Ökosystem',
+        ecosystemCopy:
+          'Erweitern Sie die Plattform mit offenen Agenten, Skills, Integrationen und Workflows, statt von einem geschlossenen Herstellerkatalog abhängig zu sein.',
       },
       sectorsLabel: 'Eine Plattform, unterschiedliche Betriebsmodelle',
       sectorsTitle: 'Für regulierte Teams und öffentliche Verantwortung.',

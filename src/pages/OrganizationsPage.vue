@@ -227,5 +227,20 @@ const enterpriseFeatures = computed(() => [
     title: t('organizations.enterprise.lifecycleTitle'),
     copy: t('organizations.enterprise.lifecycleCopy'),
   },
+  {
+    icon: 'account_balance_wallet',
+    title: t('organizations.enterprise.budgetsTitle'),
+    copy: t('organizations.enterprise.budgetsCopy'),
+  },
+  {
+    icon: 'swap_horiz',
+    title: t('organizations.enterprise.providersTitle'),
+    copy: t('organizations.enterprise.providersCopy'),
+  },
+  {
+    icon: 'diversity_3',
+    title: t('organizations.enterprise.ecosystemTitle'),
+    copy: t('organizations.enterprise.ecosystemCopy'),
+  },
 ]);
 </script>
