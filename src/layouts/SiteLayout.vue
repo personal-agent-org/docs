@@ -71,6 +71,18 @@
           @click="drawerOpen = true"
         />
       </q-toolbar>
+      <a
+        class="sponsor-bar"
+        href="https://token-router.eu/"
+        target="_blank"
+        rel="sponsored noopener"
+      >
+        <span>{{ t('sponsor.label') }}</span>
+        <strong>token-router.eu</strong>
+        <i aria-hidden="true">—</i>
+        <span>{{ t('sponsor.claim') }}</span>
+        <q-icon name="north_east" aria-hidden="true" />
+      </a>
     </q-header>
 
     <q-drawer v-model="drawerOpen" side="right" overlay behavior="mobile" class="mobile-drawer">

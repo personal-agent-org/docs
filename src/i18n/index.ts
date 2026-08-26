@@ -18,6 +18,10 @@ export const messages = {
       cloudConnect: 'Cloud Connect',
       hosted: 'Hosted Personal Agent',
     },
+    sponsor: {
+      label: 'Sponsored by',
+      claim: 'the sovereign alternative to OpenRouter',
+    },
     footer: {
       slogan: 'Your world, handled.',
       explore: 'Explore',
@@ -296,6 +300,10 @@ export const messages = {
       cloud: 'Cloud',
       cloudConnect: 'Cloud Connect',
       hosted: 'Personal Agent Hosting',
+    },
+    sponsor: {
+      label: 'Gesponsert von',
+      claim: 'die souveräne Alternative zu OpenRouter',
     },
     footer: {
       slogan: 'Deine Welt. Erledigt.',
