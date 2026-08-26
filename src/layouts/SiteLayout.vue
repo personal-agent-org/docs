@@ -80,7 +80,7 @@
       >
         <span>{{ t('sponsor.label') }}</span>
         <strong>token-router.eu</strong>
-        <i aria-hidden="true">—</i>
+        <i aria-hidden="true">·</i>
         <span>{{ t('sponsor.claim') }}</span>
         <q-icon name="north_east" aria-hidden="true" />
       </a>

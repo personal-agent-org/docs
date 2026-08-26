@@ -191,11 +191,11 @@ export const messages = {
         'Deploy Personal Agent for companies and public institutions with controlled infrastructure, identity, data and governed execution.',
       eyebrow: 'For companies and public institutions',
       title: 'AI assistance under your control.',
-      lead: 'Operate Personal Agent in an environment that matches your security, governance and data-sovereignty requirements—from a dedicated cloud deployment to your own infrastructure.',
+      lead: 'Operate Personal Agent in an environment that matches your security, governance and data-sovereignty requirements, from a dedicated cloud deployment to your own infrastructure.',
       contact: 'Talk to us',
       explore: 'Explore the platform',
       trustLabel: 'Built for accountable deployment',
-      trustTitle: 'Automation that fits your organization—not the other way around.',
+      trustTitle: 'Automation that fits your organization, not the other way around.',
       trustCopy:
         'Personal Agent combines conversational access with durable workflows, scoped tools and explicit policy. Teams gain practical automation while administrators retain control over identity, models, data and execution.',
       pillars: {
@@ -219,7 +219,7 @@ export const messages = {
         'Connect internal systems, automate recurring work and give teams a consistent assistant without surrendering control of operational data.',
       publicTitle: 'Government & public sector',
       publicCopy:
-        'Design deployments around organizational boundaries, transparent policy and self-operated infrastructure—without making unsupported compliance promises.',
+        'Design deployments around organizational boundaries, transparent policy and self-operated infrastructure without making unsupported compliance promises.',
       partnershipTitle: 'Plan your deployment with us.',
       partnershipCopy:
         'We can discuss architecture, integration scope, rollout stages and operational ownership with your technical and procurement teams.',
@@ -271,7 +271,7 @@ export const messages = {
       primary: 'Register interest',
       compare: 'See Cloud Connect',
       valueLabel: 'A managed home for your agent',
-      valueTitle: 'Start with the product—not the infrastructure.',
+      valueTitle: 'Start with the product, not the infrastructure.',
       valueCopy:
         'We operate the platform lifecycle while you retain control of your account, connected services and the capabilities you grant to agents and workflows.',
       features: {
