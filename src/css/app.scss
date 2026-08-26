@@ -1502,6 +1502,9 @@ p {
   font-weight: 400;
   letter-spacing: -0.055em;
 }
+html[lang='de'] .home-page .hero h1 {
+  font-size: clamp(48px, 6vw, 88px);
+}
 .home-page .hero-lead {
   max-width: 570px;
   margin: 0;

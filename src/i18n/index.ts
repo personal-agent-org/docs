@@ -29,12 +29,12 @@ export const messages = {
       license: 'MIT license',
     },
     home: {
-      meta: 'Your world, handled.',
+      meta: 'An agent you can trust.',
       seoDescription:
         'Use private AI agents across web, desktop, terminal, Android and voice hardware on a local-first, self-hostable platform with explicit trust controls.',
       kicker: 'Open source · local first · self-hostable',
-      title: 'Your world,',
-      titleAccent: 'handled.',
+      title: 'An agent',
+      titleAccent: 'you can trust.',
       lead: 'A self-hostable LLM chat and agent platform on a durable runtime. Per-user agents use tools, browse your data, drive connected computers and browsers, run integrations, react to events, and act proactively on your behalf.',
       getStarted: 'Get started',
       viewGithub: 'View on GitHub',
@@ -377,12 +377,12 @@ export const messages = {
       license: 'MIT-Lizenz',
     },
     home: {
-      meta: 'Deine Welt. Erledigt.',
+      meta: 'Ein Agent, dem du vertrauen kannst.',
       seoDescription:
         'Nutze private KI-Agenten im Web, auf Desktop, Terminal, Android und Voice-Hardware – local first, selbst hostbar und mit explizitem Vertrauensmodell.',
       kicker: 'Open Source · Local First · selbst hostbar',
-      title: 'Deine Welt.',
-      titleAccent: 'Erledigt.',
+      title: 'Ein Agent,',
+      titleAccent: 'dem du vertrauen kannst.',
       lead: 'Eine selbst hostbare LLM-Chat- und Agentenplattform auf einer dauerhaften Laufzeitumgebung. Persönliche Agenten nutzen Werkzeuge und deine Daten, steuern verbundene Computer und Browser, führen Integrationen aus, reagieren auf Ereignisse und handeln proaktiv für dich.',
       getStarted: 'Loslegen',
       viewGithub: 'Auf GitHub ansehen',
