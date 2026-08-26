@@ -40,14 +40,20 @@
             no-caps
             class="locale-menu"
             content-class="site-dropdown locale-dropdown"
-            :label="locale.toUpperCase()"
+            :label="`${locale === 'de' ? '🇩🇪' : '🇬🇧'} ${locale.toUpperCase()}`"
             :aria-label="t('nav.language')"
           >
             <q-list dark dense>
               <q-item clickable v-close-popup @click="changeLocale('en')">
+                <q-item-section avatar
+                  ><span class="locale-flag" aria-hidden="true">🇬🇧</span></q-item-section
+                >
                 <q-item-section>English</q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="changeLocale('de')">
+                <q-item-section avatar
+                  ><span class="locale-flag" aria-hidden="true">🇩🇪</span></q-item-section
+                >
                 <q-item-section>Deutsch</q-item-section>
               </q-item>
             </q-list>
@@ -118,10 +124,16 @@
         <q-separator dark spaced />
         <q-item-label header>{{ t('nav.language') }}</q-item-label>
         <q-item clickable v-close-popup @click="changeLocale('en')">
+          <q-item-section avatar
+            ><span class="locale-flag" aria-hidden="true">🇬🇧</span></q-item-section
+          >
           <q-item-section>English</q-item-section>
           <q-item-section v-if="locale === 'en'" side><q-icon name="check" /></q-item-section>
         </q-item>
         <q-item clickable v-close-popup @click="changeLocale('de')">
+          <q-item-section avatar
+            ><span class="locale-flag" aria-hidden="true">🇩🇪</span></q-item-section
+          >
           <q-item-section>Deutsch</q-item-section>
           <q-item-section v-if="locale === 'de'" side><q-icon name="check" /></q-item-section>
         </q-item>

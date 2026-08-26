@@ -830,7 +830,12 @@ p {
 }
 
 .locale-menu {
-  min-width: 48px;
+  min-width: 74px;
+}
+
+.locale-flag {
+  font-size: 20px;
+  line-height: 1;
 }
 
 .q-menu.site-dropdown {
