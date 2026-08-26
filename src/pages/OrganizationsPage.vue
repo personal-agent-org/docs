@@ -60,6 +60,42 @@
 
     <section class="solution-section page-width">
       <div class="solution-heading">
+        <span class="eyebrow">{{ t('organizations.servicesLabel') }}</span>
+        <h2>{{ t('organizations.servicesTitle') }}</h2>
+        <p>{{ t('organizations.servicesCopy') }}</p>
+      </div>
+      <div class="solution-feature-grid organization-service-grid">
+        <article v-for="service in services" :key="service.title" class="solution-feature-card">
+          <q-icon :name="service.icon" />
+          <h3>{{ service.title }}</h3>
+          <p>{{ service.copy }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="solution-section solution-section-muted">
+      <div class="page-width">
+        <div class="solution-heading">
+          <span class="eyebrow">{{ t('organizations.enterpriseLabel') }}</span>
+          <h2>{{ t('organizations.enterpriseTitle') }}</h2>
+          <p>{{ t('organizations.enterpriseCopy') }}</p>
+        </div>
+        <div class="solution-feature-grid organization-enterprise-grid">
+          <article
+            v-for="feature in enterpriseFeatures"
+            :key="feature.title"
+            class="solution-feature-card"
+          >
+            <q-icon :name="feature.icon" />
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.copy }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="solution-section page-width">
+      <div class="solution-heading">
         <span class="eyebrow">{{ t('organizations.sectorsLabel') }}</span>
         <h2>{{ t('organizations.sectorsTitle') }}</h2>
       </div>
@@ -139,6 +175,57 @@ const pillars = computed(() => [
     icon: 'hub',
     title: t('organizations.pillars.extensibilityTitle'),
     copy: t('organizations.pillars.extensibilityCopy'),
+  },
+]);
+
+const services = computed(() => [
+  {
+    icon: 'architecture',
+    title: t('organizations.services.consultingTitle'),
+    copy: t('organizations.services.consultingCopy'),
+  },
+  {
+    icon: 'support_agent',
+    title: t('organizations.services.supportTitle'),
+    copy: t('organizations.services.supportCopy'),
+  },
+  {
+    icon: 'code',
+    title: t('organizations.services.customTitle'),
+    copy: t('organizations.services.customCopy'),
+  },
+]);
+
+const enterpriseFeatures = computed(() => [
+  {
+    icon: 'login',
+    title: t('organizations.enterprise.oidcTitle'),
+    copy: t('organizations.enterprise.oidcCopy'),
+  },
+  {
+    icon: 'admin_panel_settings',
+    title: t('organizations.enterprise.rolesTitle'),
+    copy: t('organizations.enterprise.rolesCopy'),
+  },
+  {
+    icon: 'rule',
+    title: t('organizations.enterprise.policyTitle'),
+    copy: t('organizations.enterprise.policyCopy'),
+  },
+  {
+    icon: 'fact_check',
+    title: t('organizations.enterprise.auditTitle'),
+    copy: t('organizations.enterprise.auditCopy'),
+  },
+  {
+    icon: 'cloud_done',
+    title: t('organizations.enterprise.deploymentTitle'),
+    copy: t('organizations.enterprise.deploymentCopy'),
+  },
+  {
+    icon: 'published_with_changes',
+    title: t('organizations.enterprise.lifecycleTitle'),
+    copy: t('organizations.enterprise.lifecycleCopy'),
   },
 ]);
 </script>

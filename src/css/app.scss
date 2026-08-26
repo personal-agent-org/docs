@@ -959,6 +959,16 @@ p {
   gap: 16px;
 }
 
+.organization-service-grid,
+.organization-enterprise-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.organization-service-grid .solution-feature-card,
+.organization-enterprise-grid .solution-feature-card {
+  min-height: 260px;
+}
+
 .solution-feature-card {
   min-height: 285px;
   padding: 28px;

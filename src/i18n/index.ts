@@ -188,7 +188,7 @@ export const messages = {
     organizations: {
       meta: 'For organizations',
       seoDescription:
-        'Deploy Personal Agent for companies and public institutions with controlled infrastructure, identity, data and governed execution.',
+        'Deploy Personal Agent for companies and public institutions with OIDC, governed execution, consulting, professional support and custom development.',
       eyebrow: 'For companies and public institutions',
       title: 'AI assistance under your control.',
       lead: 'Operate Personal Agent in an environment that matches your security, governance and data-sovereignty requirements, from a dedicated cloud deployment to your own infrastructure.',
@@ -204,13 +204,52 @@ export const messages = {
           'Run in a dedicated environment or on infrastructure you operate. Keep architectural and operational ownership where your requirements demand it.',
         identityTitle: 'Identity & access',
         identityCopy:
-          'Connect organizational identity, define roles and scopes, and separate employee, service and device credentials.',
+          'Connect your identity provider through OIDC, define roles and scopes, and separate employee, service and device credentials.',
         governanceTitle: 'Governed execution',
         governanceCopy:
           'Apply explicit permissions, data classification, budgets and approval boundaries to tools, agents and workflows.',
         extensibilityTitle: 'Controlled extensibility',
         extensibilityCopy:
           'Adopt integrations, skills and agents through a capability model that makes requested access visible before rollout.',
+      },
+      servicesLabel: 'Services for successful adoption',
+      servicesTitle: 'A partner for planning, rollout and operation.',
+      servicesCopy:
+        'We help your organization turn Personal Agent into a dependable part of its environment, from the first architecture decision through productive operation.',
+      services: {
+        consultingTitle: 'Consulting & implementation',
+        consultingCopy:
+          'Plan architecture, security boundaries, use cases, integrations and rollout stages together with our technical team.',
+        supportTitle: 'Professional support',
+        supportCopy:
+          'Get direct assistance for deployment, upgrades, operations and incident analysis with support options matched to your requirements.',
+        customTitle: 'Custom development',
+        customCopy:
+          'Commission individual features, workflows and integrations for your systems while keeping them aligned with the platform architecture.',
+      },
+      enterpriseLabel: 'Business capabilities',
+      enterpriseTitle: 'Identity, governance and operations for organizations.',
+      enterpriseCopy:
+        'Business deployments combine the open platform with the controls needed for shared, accountable use across teams and organizational boundaries.',
+      enterprise: {
+        oidcTitle: 'OIDC & single sign-on',
+        oidcCopy:
+          'Connect Keycloak, Entra ID, Okta or another standards-based identity provider and keep authentication under organizational control.',
+        rolesTitle: 'Roles & scoped access',
+        rolesCopy:
+          'Control access to agents, tools, integrations and administration through explicit roles and permissions.',
+        policyTitle: 'Policies & approvals',
+        policyCopy:
+          'Apply data classes, model trust levels, budgets and approval boundaries consistently across execution paths.',
+        auditTitle: 'Auditability & observability',
+        auditCopy:
+          'Make system activity, durable runs, infrastructure health and policy decisions available for accountable operations.',
+        deploymentTitle: 'Dedicated deployment',
+        deploymentCopy:
+          'Operate in a dedicated cloud environment, your data center or another infrastructure model selected for your requirements.',
+        lifecycleTitle: 'Managed lifecycle',
+        lifecycleCopy:
+          'Establish controlled updates, monitoring, backup, recovery and support processes for production operation.',
       },
       sectorsLabel: 'One platform, different operating models',
       sectorsTitle: 'For regulated teams and public responsibility.',
@@ -222,7 +261,7 @@ export const messages = {
         'Design deployments around organizational boundaries, transparent policy and self-operated infrastructure without making unsupported compliance promises.',
       partnershipTitle: 'Plan your deployment with us.',
       partnershipCopy:
-        'We can discuss architecture, integration scope, rollout stages and operational ownership with your technical and procurement teams.',
+        'Discuss architecture, integration scope, custom features, support requirements, rollout stages and operational ownership with our team.',
       email: 'Email',
       phone: 'Phone',
       placeholder: 'Placeholder contact',
@@ -536,7 +575,7 @@ export const messages = {
     organizations: {
       meta: 'Für Organisationen',
       seoDescription:
-        'Personal Agent für Unternehmen und öffentliche Einrichtungen – mit kontrollierter Infrastruktur, Identität, Datenhaltung und Ausführung.',
+        'Personal Agent für Unternehmen und öffentliche Einrichtungen mit OIDC, geregelter Ausführung, Beratung, professionellem Support und individueller Entwicklung.',
       eyebrow: 'Für Unternehmen und öffentliche Einrichtungen',
       title: 'KI-Unterstützung unter Ihrer Kontrolle.',
       lead: 'Betreiben Sie Personal Agent in einer Umgebung, die zu Ihren Anforderungen an Sicherheit, Governance und Datensouveränität passt – von einer dedizierten Cloud-Installation bis zur eigenen Infrastruktur.',
@@ -552,13 +591,52 @@ export const messages = {
           'Betreiben Sie die Plattform in einer dedizierten Umgebung oder auf eigener Infrastruktur. Architektur und Betrieb bleiben dort in Ihrer Verantwortung, wo Ihre Anforderungen es verlangen.',
         identityTitle: 'Identität & Zugriff',
         identityCopy:
-          'Binden Sie die Identität Ihrer Organisation an, definieren Sie Rollen und Geltungsbereiche und trennen Sie Mitarbeiter-, Dienst- und Gerätezugänge.',
+          'Binden Sie Ihren Identity Provider über OIDC an, definieren Sie Rollen und Geltungsbereiche und trennen Sie Mitarbeiter-, Dienst- und Gerätezugänge.',
         governanceTitle: 'Geregelte Ausführung',
         governanceCopy:
           'Wenden Sie explizite Berechtigungen, Datenklassen, Budgets und Freigabegrenzen auf Werkzeuge, Agenten und Workflows an.',
         extensibilityTitle: 'Kontrollierte Erweiterbarkeit',
         extensibilityCopy:
           'Führen Sie Integrationen, Skills und Agenten über ein Fähigkeitsmodell ein, das benötigte Zugriffe vor dem Rollout sichtbar macht.',
+      },
+      servicesLabel: 'Leistungen für eine erfolgreiche Einführung',
+      servicesTitle: 'Ein Partner für Planung, Rollout und Betrieb.',
+      servicesCopy:
+        'Wir helfen Ihrer Organisation, Personal Agent zuverlässig in die eigene Umgebung zu integrieren, von der ersten Architekturentscheidung bis zum produktiven Betrieb.',
+      services: {
+        consultingTitle: 'Beratung & Implementierung',
+        consultingCopy:
+          'Planen Sie Architektur, Sicherheitsgrenzen, Anwendungsfälle, Integrationen und Rollout-Phasen gemeinsam mit unserem technischen Team.',
+        supportTitle: 'Professioneller Support',
+        supportCopy:
+          'Erhalten Sie direkte Unterstützung bei Bereitstellung, Updates, Betrieb und Fehleranalyse mit passenden Supportoptionen.',
+        customTitle: 'Individuelle Entwicklung',
+        customCopy:
+          'Beauftragen Sie individuelle Funktionen, Workflows und Integrationen für Ihre Systeme, abgestimmt auf die Architektur der Plattform.',
+      },
+      enterpriseLabel: 'Business-Funktionen',
+      enterpriseTitle: 'Identität, Governance und Betrieb für Organisationen.',
+      enterpriseCopy:
+        'Business-Installationen verbinden die offene Plattform mit den Kontrollen, die für eine gemeinsame und verantwortbare Nutzung über Teams und Organisationsgrenzen hinweg nötig sind.',
+      enterprise: {
+        oidcTitle: 'OIDC & Single Sign-on',
+        oidcCopy:
+          'Binden Sie Keycloak, Entra ID, Okta oder einen anderen standardbasierten Identity Provider an und behalten Sie die Authentifizierung unter eigener Kontrolle.',
+        rolesTitle: 'Rollen & begrenzte Zugriffe',
+        rolesCopy:
+          'Steuern Sie den Zugriff auf Agenten, Werkzeuge, Integrationen und Administration über explizite Rollen und Berechtigungen.',
+        policyTitle: 'Richtlinien & Freigaben',
+        policyCopy:
+          'Wenden Sie Datenklassen, Modell-Vertrauensstufen, Budgets und Freigabegrenzen konsistent auf alle Ausführungspfade an.',
+        auditTitle: 'Auditierbarkeit & Observability',
+        auditCopy:
+          'Machen Sie Systemaktivitäten, dauerhafte Läufe, Infrastrukturzustand und Richtlinienentscheidungen für einen verantwortbaren Betrieb sichtbar.',
+        deploymentTitle: 'Dedizierter Betrieb',
+        deploymentCopy:
+          'Betreiben Sie Personal Agent in einer dedizierten Cloud-Umgebung, im eigenen Rechenzentrum oder auf einer anderen passenden Infrastruktur.',
+        lifecycleTitle: 'Geregelter Lebenszyklus',
+        lifecycleCopy:
+          'Etablieren Sie kontrollierte Updates, Monitoring, Backups, Wiederherstellung und Supportprozesse für den Produktivbetrieb.',
       },
       sectorsLabel: 'Eine Plattform, unterschiedliche Betriebsmodelle',
       sectorsTitle: 'Für regulierte Teams und öffentliche Verantwortung.',
@@ -570,7 +648,7 @@ export const messages = {
         'Richten Sie den Betrieb an Organisationsgrenzen, transparenten Richtlinien und selbst betriebener Infrastruktur aus – ohne unbelegte Compliance-Versprechen.',
       partnershipTitle: 'Planen Sie Ihren Einsatz mit uns.',
       partnershipCopy:
-        'Wir besprechen Architektur, Integrationsumfang, Rollout-Phasen und Betriebsverantwortung mit Ihren Technik- und Beschaffungsteams.',
+        'Besprechen Sie Architektur, Integrationsumfang, individuelle Funktionen, Supportbedarf, Rollout-Phasen und Betriebsverantwortung mit unserem Team.',
       email: 'E-Mail',
       phone: 'Telefon',
       placeholder: 'Platzhalter-Kontakt',
