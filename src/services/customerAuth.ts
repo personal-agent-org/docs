@@ -32,7 +32,24 @@ export async function initializeCustomerAuth(): Promise<void> {
 }
 
 export async function loginCustomer(returnTo = window.location.href): Promise<void> {
-  await (await getManager()).signinRedirect({ state: { returnTo } });
+  await (
+    await getManager()
+  ).signinRedirect({
+    state: { returnTo },
+    extraQueryParams: { ui_locales: customerAuthLocale() },
+  });
+}
+
+export async function registerCustomer(returnTo = window.location.href): Promise<void> {
+  await (
+    await getManager()
+  ).signinRedirect({
+    state: { returnTo },
+    extraQueryParams: {
+      prompt: 'create',
+      ui_locales: customerAuthLocale(),
+    },
+  });
 }
 
 export async function completeCustomerLogin(): Promise<string> {
@@ -60,6 +77,11 @@ export function useCustomerAuth() {
     ready: readonly(ready),
     initialize: initializeCustomerAuth,
     login: loginCustomer,
+    register: registerCustomer,
     logout: logoutCustomer,
   };
+}
+
+function customerAuthLocale(): 'de' | 'en' {
+  return document.documentElement.lang.toLowerCase().startsWith('de') ? 'de' : 'en';
 }

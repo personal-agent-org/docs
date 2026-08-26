@@ -56,6 +56,16 @@
             :label="t('nav.login')"
             @click="customerLogin()"
           />
+          <q-btn
+            v-if="!customerUser"
+            outline
+            no-caps
+            color="secondary"
+            icon="person_add"
+            :label="t('nav.register')"
+            class="register-nav-button"
+            @click="customerRegister()"
+          />
           <q-btn-dropdown
             v-else
             flat
@@ -139,6 +149,10 @@
           <q-item-section avatar><q-icon name="login" /></q-item-section>
           <q-item-section>{{ t('nav.login') }}</q-item-section>
         </q-item>
+        <q-item v-if="!customerUser" clickable v-close-popup @click="customerRegister()">
+          <q-item-section avatar><q-icon name="person_add" /></q-item-section>
+          <q-item-section>{{ t('nav.register') }}</q-item-section>
+        </q-item>
         <q-item v-else clickable v-close-popup @click="customerLogout()">
           <q-item-section avatar><q-icon name="logout" /></q-item-section>
           <q-item-section>{{ t('nav.logout') }}</q-item-section>
@@ -213,6 +227,7 @@ const {
   user: customerUser,
   initialize: initializeCustomerAuth,
   login: customerLogin,
+  register: customerRegister,
   logout: customerLogout,
 } = useCustomerAuth();
 
