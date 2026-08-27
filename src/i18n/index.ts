@@ -17,7 +17,7 @@ export const messages = {
       plus: 'PA+',
       hosted: 'Cloud',
       login: 'Log in',
-      register: 'Create account',
+      register: 'Sign up',
       logout: 'Log out',
     },
     sponsor: {
@@ -463,7 +463,7 @@ export const messages = {
       plus: 'PA+',
       hosted: 'Cloud',
       login: 'Anmelden',
-      register: 'Konto erstellen',
+      register: 'Registrieren',
       logout: 'Abmelden',
     },
     sponsor: {

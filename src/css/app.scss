@@ -55,6 +55,7 @@ p {
   backdrop-filter: blur(18px);
 }
 .site-toolbar {
+  width: min(1280px, calc(100% - 48px));
   min-height: 72px;
   padding: 0;
 }
@@ -99,6 +100,8 @@ p {
   font-weight: 750;
   letter-spacing: -0.02em;
   font-size: 18px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .brand-mark {
   display: grid;

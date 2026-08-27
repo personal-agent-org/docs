@@ -61,7 +61,6 @@
             outline
             no-caps
             color="secondary"
-            icon="person_add"
             :label="t('nav.register')"
             class="register-nav-button"
             @click="customerRegister()"
