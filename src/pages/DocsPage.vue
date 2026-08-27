@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import MarkdownIt from 'markdown-it';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -179,6 +179,37 @@ const renderedMarkdown = computed(() =>
     ? markdown.render(stripFrontmatter(document.value.source), { slug: document.value.slug })
     : '',
 );
+
+let mermaidInitialized = false;
+
+async function renderMermaid(): Promise<void> {
+  if (typeof globalThis.document === 'undefined') return;
+
+  await nextTick();
+  const nodes = globalThis.document.querySelectorAll<HTMLElement>(
+    '.docs-content pre code.language-mermaid',
+  );
+  if (nodes.length === 0) return;
+
+  const { default: mermaid } = await import('mermaid');
+  if (!mermaidInitialized) {
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict' });
+    mermaidInitialized = true;
+  }
+
+  for (const code of nodes) {
+    const container = globalThis.document.createElement('div');
+    container.className = 'mermaid';
+    container.textContent = code.textContent;
+    code.parentElement?.replaceWith(container);
+  }
+  await mermaid.run({
+    nodes: globalThis.document.querySelectorAll<HTMLElement>('.docs-content .mermaid'),
+    suppressErrors: true,
+  });
+}
+
+watch(renderedMarkdown, renderMermaid, { flush: 'post', immediate: true });
 
 function documentDescription(source: string): string {
   const description = stripFrontmatter(source)

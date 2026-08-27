@@ -686,6 +686,19 @@ p {
   padding: 0;
   background: none;
 }
+.markdown-body .mermaid {
+  overflow-x: auto;
+  margin: 24px 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f8fafc;
+  text-align: center;
+}
+.markdown-body .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
 .markdown-body blockquote {
   margin-inline: 0;
   padding: 4px 20px;

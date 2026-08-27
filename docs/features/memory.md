@@ -176,7 +176,4 @@ removed, and the curator never mines it — nothing in nor out.
 This gate is enforced at the source, so sub-agents and scripted tools spawned from the chat
 honour the same policy. See also [Chat controls](chat-controls.md#memory-access).
 
-!!! note "Going deeper"
-    The full design of the world-state memory graph — its two time axes, provenance, and
-    the read / propose / write pipeline — is in [Universal memory](../universal-memory.md).
-    For browsing entities, helpers and areas, see [Entities](entities.md).
+For browsing entities, helpers and areas, see [Entities](entities.md).

@@ -6,8 +6,7 @@ contains a `chat` view; a pure dashboard is the same shape *without* a `chat` vi
 the developer reference for the data model, the config blob, how integrations contribute
 surfaces, and the card model underneath it all.
 
-The full design rationale lives in [`docs/design/surfaces.md`](../design/surfaces.md). The hard
-rule from that doc is worth repeating up front, because it shapes everything else:
+The core design rule is worth stating up front, because it shapes everything else:
 
 !!! warning "No code branches on a surface id"
     Nothing in the code may key off a specific slug (`"coding"`, `"standard"`, …). The built-in
@@ -357,4 +356,3 @@ changes.
 | Frontend types | frontend repo `src/stores/surfaces.ts`, `src/lib/dashboard/types.ts` |
 | Card registry | frontend repo `src/components/dashboard/card-registry.ts` |
 | Conditions / strategies | frontend repo `src/lib/dashboard/conditions.ts`, `strategies.ts` |
-| Design doc | [`docs/design/surfaces.md`](../design/surfaces.md) |

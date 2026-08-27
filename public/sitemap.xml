@@ -67,48 +67,6 @@
     <loc>https://personal-agent.org/de/marketplace/inbox-triage/</loc>
   </url>
   <url>
-    <loc>https://personal-agent.org/docs/computer-service-durable-followup/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/disaster-recovery/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/fcm-push-setup/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/feature-comparison/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/frontend-refactor-todo/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/home-assistant-adoption/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/home-assistant-integration-porting-plan/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/implementation-plan/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/personal-agent-android-app-plan/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/personal-agent-android-expansion-plan/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/subagents-durable-followup/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/tui-web-parity/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/universal-memory/</loc>
-  </url>
-  <url>
     <loc>https://personal-agent.org/docs/getting-started/client-apps/</loc>
   </url>
   <url>
@@ -206,36 +164,6 @@
   </url>
   <url>
     <loc>https://personal-agent.org/docs/development/surfaces/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/design/home-assistant-parity-roadmap/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/design/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/design/notes-collaboration/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/design/scope-entity-unification/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/design/surfaces/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/design/workflows-unification/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/comparisons/autonomer-completion-loop/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/comparisons/hermes-feature-adoption/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/comparisons/personal-agent-vs-hermes-agent/</loc>
-  </url>
-  <url>
-    <loc>https://personal-agent.org/docs/comparisons/prompt-and-toolset-assembly/</loc>
   </url>
   <url>
     <loc>https://personal-agent.org/docs/architecture/frozen-contracts/</loc>

@@ -51,7 +51,7 @@ Register the app's OIDC redirect URI on the `personal-agent-app` Keycloak client
 templates this from `ANDROID_REDIRECT_SCHEME` (compose default `org.personalagent.android`, giving
 `org.personalagent.android:/oauth/callback`); match it to your build's redirect scheme. The default
 flavor (`minimal`) uses foreground-WebSocket push (no Google services); the `full` flavor adds
-**Firebase Cloud Messaging** (see [FCM push setup](../fcm-push-setup.md)).
+**Firebase Cloud Messaging**.
 
 ## Terminal client (TUI)
 
