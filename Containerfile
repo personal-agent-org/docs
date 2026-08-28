@@ -11,7 +11,7 @@ COPY . .
 RUN pnpm install --offline --frozen-lockfile && pnpm build
 
 
-FROM docker.io/library/nginx:1.29-alpine AS runtime
+FROM docker.io/library/nginx:1.31-alpine AS runtime
 
 LABEL org.opencontainers.image.source="https://github.com/personal-agent-org/docs" \
       org.opencontainers.image.description="Personal Agent website and documentation" \
