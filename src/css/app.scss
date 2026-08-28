@@ -2040,6 +2040,7 @@ html[lang='de'] .home-page .hero h1 {
   opacity: 1;
 }
 .client-card-top,
+.client-card-actions,
 .client-card-meta {
   display: flex;
   align-items: center;
@@ -2076,17 +2077,49 @@ html[lang='de'] .home-page .hero h1 {
 }
 .client-card-meta {
   gap: 16px;
-  margin-top: auto;
-  padding-top: 28px;
   color: #6f8eb8;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.client-card-actions {
+  z-index: 1;
+  gap: 14px;
+  margin-top: auto;
+  padding-top: 28px;
+}
+.client-card-meta:hover {
+  color: #9fbae0;
+}
 .client-card-meta .q-icon {
   color: #536f93;
   font-size: 17px;
+}
+.client-download {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid rgba(120, 169, 255, 0.34);
+  border-radius: 8px;
+  color: #e5efff;
+  background: rgba(120, 169, 255, 0.12);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+.client-download:hover {
+  border-color: rgba(120, 169, 255, 0.68);
+  background: rgba(120, 169, 255, 0.22);
+  transform: translateY(-1px);
 }
 .client-card-featured {
   grid-column: 1 / -1;
@@ -2100,7 +2133,7 @@ html[lang='de'] .home-page .hero h1 {
     linear-gradient(135deg, rgba(120, 169, 255, 0.09), transparent 40%), #091522;
 }
 .client-card-featured .client-card-top,
-.client-card-featured .client-card-meta {
+.client-card-featured .client-card-actions {
   grid-column: 1 / -1;
 }
 .client-card-featured .client-card-top {

@@ -89,6 +89,8 @@ export const messages = {
         appCopy:
           'Connect Android to your self-hosted instance with native push, deep links and sharing.',
         appMeta: 'Android · native companion',
+        openWeb: 'Open web app',
+        download: 'Download',
         voiceTitle: 'Voice assistant',
         voiceCopy:
           'Get Alexa-style hands-free access through Home Assistant Voice PE: wake word, natural request and a governed response through the speaker.',
@@ -535,6 +537,8 @@ export const messages = {
         appCopy:
           'Verbinde Android mit deiner selbst gehosteten Instanz – inklusive Push, Deep Links und Teilen.',
         appMeta: 'Android · nativer Begleiter',
+        openWeb: 'Web-App öffnen',
+        download: 'Herunterladen',
         voiceTitle: 'Sprachassistent',
         voiceCopy:
           'Nutze Personal Agent freihändig wie Alexa über Home Assistant Voice PE: Aktivierungswort, natürliche Anfrage und geregelte Antwort über den Lautsprecher.',
