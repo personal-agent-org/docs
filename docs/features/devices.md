@@ -28,8 +28,8 @@ the device revokes it.
 `pacs` writes per-user configuration to
 `~/.config/personal-agent/computer-service/config.toml`. On Unix it also reads
 `/etc/personal-agent/computer-service/config.toml` when the per-user file is absent; the per-user
-file always has priority. Desktop/TUI configuration remains per-user only under
-`~/.config/personal-agent/desktop/`.
+file always has priority. Desktop and TUI configuration remains per-user only under
+`~/.config/personal-agent/desktop/` and `~/.config/personal-agent/tui/`, respectively.
 
 !!! note "Device safety is per chat"
     A device no longer carries its own rules — what Computer Service may do on it is governed by the

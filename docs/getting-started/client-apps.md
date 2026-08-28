@@ -2,16 +2,16 @@
 
 Optional native and companion clients that connect to your instance. The web app needs none of
 this: it runs in any browser. Ready-made downloads live under **Settings → App** (desktop, Android,
-browser extension, terminal client, plus the MCP server URL and access tokens). The desktop/TUI, Android
-and other client artifacts are proxied by the backend from each client repo's GitHub release (the routes are
+browser extension, terminal client, plus the MCP server URL and access tokens). Desktop, TUI, Android
+and other client artifacts come from each client's own GitHub release (the proxy routes are
 under `/api/v1/devices/...`), so the same instance always serves a matching build. The steps below
 are for **building your own** against your instance.
 
 ## Desktop app (Tauri)
 
 The desktop app is a native Tauri v2 / WebKitGTK shell (Linux, x86_64) that loads your live SPA.
-It shares one repository and one `pa` binary with the terminal UI:
-[`personal-agent-org/pa`](https://github.com/personal-agent-org/pa). You enter your
+It lives in [`personal-agent-org/desktop`](https://github.com/personal-agent-org/desktop), and its
+executable is `pagui`. You enter your
 **Server URL** on first launch and can change it later from the tray. It surfaces background
 pushes as native OS notifications and keeps the SPA's in-window Keycloak login. Builds ship as an
 AppImage (the recommended download) and a `.deb`.
@@ -56,8 +56,8 @@ flavor (`minimal`) uses foreground-WebSocket push (no Google services); the `ful
 ## Terminal client (TUI)
 
 A Rust terminal chat client that speaks the **same `/api/v1` HTTP and SSE endpoints as the web app**
-(no special-purpose API). It lives alongside the desktop app in
-[`personal-agent-org/pa`](https://github.com/personal-agent-org/pa), and ships as the `pa` binary.
+(no special-purpose API). It lives in
+[`personal-agent-org/tui`](https://github.com/personal-agent-org/tui) and ships as the `pa` binary.
 Build it with `cargo build --release`, then log in via the discovered **device flow**:
 
 ```bash
@@ -65,16 +65,16 @@ pa login --server https://pa.example.com
 pa
 ```
 
-The desktop and TUI keep their per-user files under `~/.config/personal-agent/desktop/`; they do
-not load system-wide configuration from `/etc`.
+Desktop and TUI keep independent per-user files under `~/.config/personal-agent/desktop/` and
+`~/.config/personal-agent/tui/`. Neither loads system-wide configuration from `/etc`.
 
 The backend advertises either its local device grant or the external provider's discovered device
 grant. Login acts *as the user* without a client secret. Unlike Computer Service,
 `pa` is a chat client and never announces tools, sensors, or host capabilities to the backend.
 The desktop offers Computer Service setup under Settings; the TUI offers
 `/computer-service [device name]`. Both launch a separate one-time service enrollment after the
-client has restored its normal UI/terminal state, and neither shares its chat token with the
-running service.
+client has restored its normal UI or terminal state. The clients do not share configuration or
+tokens with each other or with the running service.
 
 The installed Computer Service executable is `pacs`. Its per-user configuration is
 `~/.config/personal-agent/computer-service/config.toml`. On Unix, `pacs` falls back to

@@ -17,7 +17,7 @@ integrations and the tools in one `personal_agent` package (src/ layout).
 | backend repo, `src/personal_agent/worker/` | The Temporal worker (`personal_agent.worker`) - the durable `ChatAgentWorkflow` plus the curator / goal / workflow-schedule / entity-sync / world-maintenance / proactive-review / push-token-maintenance workflows and their activities. |
 | backend repo, `integrations/<domain>/` | Home-Assistant-style integration folders (manifest + config flow + integration class), discovered at runtime by the `IntegrationRegistry`. |
 | `personal-agent-org/frontend` | The Quasar / Vue 3 single-page app (at the repo root). Android has a separate shell repo. |
-| clients and capability providers | `personal-agent-org/pa` contains the desktop and terminal chat clients. `personal-agent-org/computer-service` exposes tools and sensors with no chat access. Browser devices live in `browser-sandbox` and `browser-extension`. |
+| clients and capability providers | `personal-agent-org/desktop` and `personal-agent-org/tui` contain the independent desktop and terminal chat clients. `personal-agent-org/computer-service` exposes tools and sensors with no chat access. Browser devices live in `browser-sandbox` and `browser-extension`. |
 
 Ops live in the deploy repo (`personal-agent-org/deploy`): `compose/`, `charts/` (Helm),
 `keycloak/` (realm-as-code) and `observability/`. The backend repo also carries `tools/` (scripts).
